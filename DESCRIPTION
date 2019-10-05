@@ -9,8 +9,12 @@ Encoding: UTF-8
 LazyData: TRUE
 License: MIT
 Imports:
+    reticulate (>= 1.13),
     tensorflow (>= 1.14.0),
-    keras (>= 2.2.4.1)
+    keras (>= 2.2.4.1),
+    EBImage (>= 4.26.0),
+    dplyr (>= 0.8.3),
+    purrr (>= 0.3.2)
 Suggests:
     testthat,
     lintr
