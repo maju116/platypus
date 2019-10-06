@@ -54,10 +54,13 @@ u_net <- function(input_shape, blocks, filters, dropout = 0.1, batch_normalizati
                                                    kernel_initializer = kernel_initializer)
 
   for (block in 1:blocks) {
-    conv_tr_layers[[block]] <- layer_conv_2d_transpose(conv_layers[[blocks + block]], filters * 2^(blocks - block), kernel_size = 3, strides = 2, padding = "same")
+    conv_tr_layers[[block]] <- layer_conv_2d_transpose(conv_layers[[blocks + block]], filters * 2^(blocks - block), kernel_size = 3,
+                                                       strides = 2, padding = "same")
     conv_tr_layers[[block]] <- layer_concatenate(inputs = list(conv_tr_layers[[block]], conv_layers[[blocks - block + 1]])) %>%
       layer_dropout(rate = dropout)
-    conv_layers[[blocks + block + 1]] <- u_net_double_conv2d(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3, batch_normalization = batch_normalization, kernel_initializer = kernel_initializer)
+    conv_layers[[blocks + block + 1]] <- u_net_double_conv2d(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3,
+                                                             batch_normalization = batch_normalization,
+                                                             kernel_initializer = kernel_initializer)
   }
 
   output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], 1, 1, activation = "sigmoid")
