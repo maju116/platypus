@@ -21,7 +21,7 @@ u_net(input_shape, blocks, filters, dropout = 0.1,
 \item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
 \value{
-Downsalmling U-Net block
+U-Net model.
 }
 \description{
 Creates a U-Net architecture.

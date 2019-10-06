@@ -2,13 +2,13 @@
 % Please edit documentation in R/u_net.R
 \name{u_net_double_conv2d}
 \alias{u_net_double_conv2d}
-\title{Creates a downsampling U-Net block.}
+\title{Creates a double convolutional U-Net block.}
 \usage{
 u_net_double_conv2d(input, filters, kernel_size,
   batch_normalization = TRUE, kernel_initializer = "he_normal")
 }
 \arguments{
-\item{input}{Model or layer object}
+\item{input}{Model or layer object.}
 
 \item{filters}{Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).}
 
@@ -19,7 +19,7 @@ u_net_double_conv2d(input, filters, kernel_size,
 \item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
 \value{
-Downsalmling U-Net block
+Double convolutional U-Net block
 }
 \description{
 Creates a double convolutional U-Net block.

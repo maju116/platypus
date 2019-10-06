@@ -1,14 +1,14 @@
-#' Creates a downsampling U-Net block.
+#' Creates a double convolutional U-Net block.
 #' @description Creates a double convolutional U-Net block.
 #' @import keras
 #' @importFrom magrittr %>%
 #' @importFrom purrr when
-#' @param input Model or layer object
+#' @param input Model or layer object.
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param kernel_size An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
 #' @param batch_normalization Shoud batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
-#' @return Downsalmling U-Net block
+#' @return Double convolutional U-Net block
 #' @export
 u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input %>%
@@ -33,7 +33,7 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @param dropout Dropout rate.
 #' @param batch_normalization Shoud batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
-#' @return Downsalmling U-Net block
+#' @return U-Net model.
 #' @export
 u_net <- function(input_shape, blocks, filters, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input_img <- layer_input(shape = input_shape, name = 'input_img')
