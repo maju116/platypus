@@ -9,7 +9,6 @@
 #' @param batch_normalization Shoud batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return Double convolutional U-Net block
-#' @export
 u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input %>%
     layer_conv_2d(filters = filters, kernel_size = kernel_size,
@@ -27,7 +26,7 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @import keras
 #' @importFrom magrittr %>%
 #' @importFrom purrr when
-#' @param input_shape Input layer shape (`HxWxC`). `H` and `W` must be qqual to `2^x, x - natural`.
+#' @param input_shape Input layer shape (`HxWxC`). `H` and `W` must be equal to `2^x, x - natural`.
 #' @param blocks Number of blocks in the model
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param dropout Dropout rate.
@@ -35,7 +34,7 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return U-Net model.
 #' @export
-u_net <- function(input_shape, blocks, filters, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+u_net <- function(input_shape, blocks = 4, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input_img <- layer_input(shape = input_shape, name = 'input_img')
 
   conv_layers <- pool_layers <- conv_tr_layers <- list()
