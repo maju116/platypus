@@ -4,7 +4,7 @@
 \alias{u_net}
 \title{Creates a U-Net architecture.}
 \usage{
-u_net(input_shape, blocks = 4, filters = 16, dropout = 0.1,
+u_net(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1,
   batch_normalization = TRUE, kernel_initializer = "he_normal")
 }
 \arguments{

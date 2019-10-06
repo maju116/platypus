@@ -34,7 +34,7 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return U-Net model.
 #' @export
-u_net <- function(input_shape, blocks = 4, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+u_net <- function(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input_img <- layer_input(shape = input_shape, name = 'input_img')
 
   conv_layers <- pool_layers <- conv_tr_layers <- list()
@@ -62,6 +62,6 @@ u_net <- function(input_shape, blocks = 4, filters = 16, dropout = 0.1, batch_no
                                                              kernel_initializer = kernel_initializer)
   }
 
-  output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], 1, 1, activation = "sigmoid")
+  output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], classes, 1, activation = "softmax")
   keras_model(inputs = input_img, outputs = output)
 }
