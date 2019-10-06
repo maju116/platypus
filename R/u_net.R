@@ -1,5 +1,5 @@
 #' Creates a downsampling U-Net block.
-#' @description Creates a downsampling U-Net block.
+#' @description Creates a double convolutional U-Net block.
 #' @import keras
 #' @importFrom magrittr %>%
 #' @importFrom purrr when
@@ -10,7 +10,7 @@
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return Downsalmling U-Net block
 #' @export
-u_net_down <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input %>%
     layer_conv_2d(filters = filters, kernel_size = kernel_size,
                   padding = "same", kernel_initializer = kernel_initializer) %>%
@@ -42,22 +42,22 @@ u_net <- function(input_shape, blocks, filters, dropout = 0.1, batch_normalizati
 
   for (block in 1:blocks) {
     current_input <- if (block == 1) input_img else pool_layers[[block - 1]]
-    conv_layers[[block]] <- u_net_down(current_input, filters * 2^(block - 1), kernel_size = 3,
-                                       batch_normalization = batch_normalization,
-                                       kernel_initializer = kernel_initializer)
+    conv_layers[[block]] <- u_net_double_conv2d(current_input, filters * 2^(block - 1), kernel_size = 3,
+                                                batch_normalization = batch_normalization,
+                                                kernel_initializer = kernel_initializer)
     pool_layers[[block]] <- layer_max_pooling_2d(conv_layers[[block]], pool_size = 2) %>%
       layer_dropout(rate = dropout)
   }
 
-  conv_layers[[blocks + 1]] <- u_net_down(pool_layers[[blocks]], filters * 2^blocks, kernel_size = 3,
-                                          batch_normalization = batch_normalization,
-                                          kernel_initializer = kernel_initializer)
+  conv_layers[[blocks + 1]] <- u_net_double_conv2d(pool_layers[[blocks]], filters * 2^blocks, kernel_size = 3,
+                                                   batch_normalization = batch_normalization,
+                                                   kernel_initializer = kernel_initializer)
 
   for (block in 1:blocks) {
     conv_tr_layers[[block]] <- layer_conv_2d_transpose(conv_layers[[blocks + block]], filters * 2^(blocks - block), kernel_size = 3, strides = 2, padding = "same")
     conv_tr_layers[[block]] <- layer_concatenate(inputs = list(conv_tr_layers[[block]], conv_layers[[blocks - block + 1]])) %>%
       layer_dropout(rate = dropout)
-    conv_layers[[blocks + block + 1]] <- u_net_down(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3, batch_normalization = batch_normalization, kernel_initializer = kernel_initializer)
+    conv_layers[[blocks + block + 1]] <- u_net_double_conv2d(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3, batch_normalization = batch_normalization, kernel_initializer = kernel_initializer)
   }
 
   output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], 1, 1, activation = "sigmoid")
