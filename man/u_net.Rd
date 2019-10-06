@@ -4,16 +4,21 @@
 \alias{u_net}
 \title{Creates a U-Net architecture.}
 \usage{
-u_net(input_img, filters, dropout = 0.1, batch_normalization = TRUE)
+u_net(input_shape, blocks, filters, dropout = 0.1,
+  batch_normalization = TRUE, kernel_initializer = "he_normal")
 }
 \arguments{
-\item{input_img}{Model or layer object}
+\item{input_shape}{Input layer shape (`HxWxC`). `H` and `W` must be qqual to `2^x, x - natural`.}
+
+\item{blocks}{Number of blocks in the model}
 
 \item{filters}{Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).}
 
 \item{dropout}{Dropout rate.}
 
 \item{batch_normalization}{Shoud batch normalization be used in the block.}
+
+\item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
 \value{
 Downsalmling U-Net block

@@ -4,6 +4,7 @@
 
 # Session Data files
 .RData
+.Rprofile
 
 # Example code in package build process
 *-Ex.R
@@ -29,3 +30,5 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
+
+development

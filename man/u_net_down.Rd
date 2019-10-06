@@ -4,7 +4,8 @@
 \alias{u_net_down}
 \title{Creates a downsampling U-Net block.}
 \usage{
-u_net_down(input, filters, kernel_size, batch_normalization = TRUE)
+u_net_down(input, filters, kernel_size, batch_normalization = TRUE,
+  kernel_initializer = "he_normal")
 }
 \arguments{
 \item{input}{Model or layer object}
@@ -14,6 +15,8 @@ u_net_down(input, filters, kernel_size, batch_normalization = TRUE)
 \item{kernel_size}{An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.}
 
 \item{batch_normalization}{Shoud batch normalization be used in the block.}
+
+\item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
 \value{
 Downsalmling U-Net block

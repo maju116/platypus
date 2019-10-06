@@ -7,18 +7,17 @@
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param kernel_size An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
 #' @param batch_normalization Shoud batch normalization be used in the block.
+#' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return Downsalmling U-Net block
 #' @export
-u_net_down <- function(input, filters, kernel_size, batch_normalization = TRUE) {
-  # First layer
+u_net_down <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input %>%
     layer_conv_2d(filters = filters, kernel_size = kernel_size,
-                  padding = "same", kernel_initializer = "he_normal") %>%
+                  padding = "same", kernel_initializer = kernel_initializer) %>%
     when(batch_normalization ~ layer_batch_normalization(.), ~ .) %>%
     layer_activation_relu() %>%
-    # Second layer
     layer_conv_2d(filters = filters, kernel_size = kernel_size,
-                  padding = "same", kernel_initializer = "he_normal") %>%
+                  padding = "same", kernel_initializer = kernel_initializer) %>%
     when(batch_normalization ~ layer_batch_normalization(.), ~ .) %>%
     layer_activation_relu()
 }
@@ -28,51 +27,39 @@ u_net_down <- function(input, filters, kernel_size, batch_normalization = TRUE) 
 #' @import keras
 #' @importFrom magrittr %>%
 #' @importFrom purrr when
-#' @param input_img Model or layer object
+#' @param input_shape Input layer shape (`HxWxC`). `H` and `W` must be qqual to `2^x, x - natural`.
+#' @param blocks Number of blocks in the model
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param dropout Dropout rate.
 #' @param batch_normalization Shoud batch normalization be used in the block.
+#' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return Downsalmling U-Net block
 #' @export
-u_net <- function(input_img, filters, dropout = 0.1, batch_normalization = TRUE) {
-  c1 <- u_net_down(input_img, filters * 1, kernel_size = 3, batch_normalization = batch_normalization)
-  p1 <- layer_max_pooling_2d(c1, pool_size = 2) %>%
-    layer_dropout(rate = dropout)
+u_net <- function(input_shape, blocks, filters, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+  input_img <- layer_input(shape = input_shape, name = 'input_img')
 
-  c2 <- u_net_down(p1, filters * 2, kernel_size = 3, batch_normalization = batch_normalization)
-  p2 <- layer_max_pooling_2d(c2, pool_size = 2) %>%
-    layer_dropout(rate = dropout)
+  conv_layers <- pool_layers <- conv_tr_layers <- list()
 
-  c3 <- u_net_down(p2, filters * 4, kernel_size = 3, batch_normalization = batch_normalization)
-  p3 <- layer_max_pooling_2d(c3, pool_size = 2) %>%
-    layer_dropout(rate = dropout)
+  for (block in 1:blocks) {
+    current_input <- if (block == 1) input_img else pool_layers[[block - 1]]
+    conv_layers[[block]] <- u_net_down(current_input, filters * 2^(block - 1), kernel_size = 3,
+                                       batch_normalization = batch_normalization,
+                                       kernel_initializer = kernel_initializer)
+    pool_layers[[block]] <- layer_max_pooling_2d(conv_layers[[block]], pool_size = 2) %>%
+      layer_dropout(rate = dropout)
+  }
 
-  c4 <- u_net_down(p3, filters * 8, kernel_size = 3, batch_normalization = batch_normalization)
-  p4 <- layer_max_pooling_2d(c4, pool_size = 2) %>%
-    layer_dropout(rate = dropout)
+  conv_layers[[blocks + 1]] <- u_net_down(pool_layers[[blocks]], filters * 2^blocks, kernel_size = 3,
+                                          batch_normalization = batch_normalization,
+                                          kernel_initializer = kernel_initializer)
 
-  c5 <- u_net_down(p4, filters * 16, kernel_size = 3, batch_normalization = batch_normalization)
+  for (block in 1:blocks) {
+    conv_tr_layers[[block]] <- layer_conv_2d_transpose(conv_layers[[blocks + block]], filters * 2^(blocks - block), kernel_size = 3, strides = 2, padding = "same")
+    conv_tr_layers[[block]] <- layer_concatenate(inputs = list(conv_tr_layers[[block]], conv_layers[[blocks - block + 1]])) %>%
+      layer_dropout(rate = dropout)
+    conv_layers[[blocks + block + 1]] <- u_net_down(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3, batch_normalization = batch_normalization, kernel_initializer = kernel_initializer)
+  }
 
-  u6 <- layer_conv_2d_transpose(c5, filters * 8, kernel_size = 3, strides = 2, padding = "same")
-  u6 <- layer_concatenate(inputs = list(u6, c4)) %>%
-    layer_dropout(rate = dropout)
-  c6 <- u_net_down(u6, filters * 8, kernel_size = 3, batch_normalization = batch_normalization)
-
-  u7 <- layer_conv_2d_transpose(c6, filters * 4, kernel_size = 3, strides = 2, padding = "same")
-  u7 <- layer_concatenate(inputs = list(u7, c3)) %>%
-    layer_dropout(rate = dropout)
-  c7 <- u_net_down(u7, filters * 4, kernel_size = 3, batch_normalization = batch_normalization)
-
-  u8 <- layer_conv_2d_transpose(c7, filters * 2, kernel_size = 3, strides = 2, padding = "same")
-  u8 <- layer_concatenate(inputs = list(u8, c2)) %>%
-    layer_dropout(rate = dropout)
-  c8 <- u_net_down(u8, filters * 2, kernel_size = 3, batch_normalization = batch_normalization)
-
-  u9 <- layer_conv_2d_transpose(c8, filters * 1, kernel_size = 3, strides = 2, padding = "same")
-  u9 <- layer_concatenate(inputs = list(u9, c1)) %>%
-    layer_dropout(rate = dropout)
-  c9 <- u_net_down(u9, filters * 1, kernel_size = 3, batch_normalization = batch_normalization)
-
-  output <- layer_conv_2d(c9, 1, 1, activation = "sigmoid")
+  output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], 1, 1, activation = "sigmoid")
   keras_model(inputs = input_img, outputs = output)
 }
