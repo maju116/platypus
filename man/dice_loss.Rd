@@ -4,7 +4,7 @@
 \alias{dice_loss}
 \title{Dice loss.}
 \usage{
-dice_loss(...)
+dice_loss()
 }
 \value{
 Dice loss.

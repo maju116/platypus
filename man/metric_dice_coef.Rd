@@ -4,7 +4,7 @@
 \alias{metric_dice_coef}
 \title{Dice coefficient metric.}
 \usage{
-metric_dice_coef(...)
+metric_dice_coef()
 }
 \value{
 Dice coefficient metric.
