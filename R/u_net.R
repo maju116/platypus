@@ -8,7 +8,7 @@
 #' @param kernel_size An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
 #' @param batch_normalization Shoud batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
-#' @return Double convolutional U-Net block
+#' @return Double convolutional U-Net block.
 u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   input %>%
     layer_conv_2d(filters = filters, kernel_size = kernel_size,

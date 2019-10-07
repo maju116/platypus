@@ -19,7 +19,7 @@ u_net_double_conv2d(input, filters, kernel_size,
 \item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
 \value{
-Double convolutional U-Net block
+Double convolutional U-Net block.
 }
 \description{
 Creates a double convolutional U-Net block.
