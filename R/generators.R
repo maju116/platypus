@@ -2,6 +2,7 @@
 #' @description Reads images from directory.
 #' @import keras
 #' @importFrom abind abind
+#' @importFrom purrr map
 #' @param paths Images directories.
 #' @param indices Indices of selected images. If `NULL` all images in `paths` will be selected.
 #' @param target_size Images size (height, width). Default to `c(256, 256)`.

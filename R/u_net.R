@@ -27,7 +27,8 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @importFrom magrittr %>%
 #' @importFrom purrr when
 #' @param input_shape Input layer shape (`HxWxC`). `H` and `W` must be equal to `2^x, x - natural`.
-#' @param blocks Number of blocks in the model
+#' @param blocks Number of blocks in the model.
+#' @param classes Number of classes. Minimum is `2` (background + other object).
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param dropout Dropout rate.
 #' @param batch_normalization Shoud batch normalization be used in the block.
