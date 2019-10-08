@@ -4,12 +4,14 @@
 \alias{segmentation_generator}
 \title{Generates batches of data (images and masks). The data will be looped over (in batches).}
 \usage{
-segmentation_generator(path, target_size = c(256, 256),
-  grayscale = FALSE, scale = 1/255, batch_size = 32,
+segmentation_generator(path, only_images = FALSE, target_size = c(256,
+  256), grayscale = FALSE, scale = 1/255, batch_size = 32,
   shuffle = TRUE, subdirs = c("images", "masks"))
 }
 \arguments{
 \item{path}{Images and masks directory.}
+
+\item{only_images}{Should generator read only images (e.g. on train set for predictions).}
 
 \item{target_size}{Images / mask size (height, width). Default to `c(256, 256)`.}
 
