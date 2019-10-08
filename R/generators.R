@@ -49,7 +49,7 @@ segmentation_generator <- function(path, nested_paths = FALSE, only_images = FAL
       indices <- sample(1:length(images_paths), size = batch_size)
     } else {
       indices <- c(i:min(i + batch_size - 1, length(images_paths)))
-      i <<- if (i + batch_size >= length(images_paths)) 1 else i + length(indices)
+      i <<- if (i + batch_size > length(images_paths)) 1 else i + length(indices)
     }
     images <- read_images_from_directory(images_paths, indices = indices, target_size = target_size,
                                          grayscale = grayscale, scale = scale)
