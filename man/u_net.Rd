@@ -10,7 +10,9 @@ u_net(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1,
 \arguments{
 \item{input_shape}{Input layer shape (`HxWxC`). `H` and `W` must be equal to `2^x, x - natural`.}
 
-\item{blocks}{Number of blocks in the model}
+\item{blocks}{Number of blocks in the model.}
+
+\item{classes}{Number of classes. Minimum is `2` (background + other object).}
 
 \item{filters}{Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).}
 

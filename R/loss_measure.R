@@ -15,15 +15,19 @@ dice_coef <- function(y_true, y_pred, smooth = 1.0) {
 #' @import keras
 #' @return Dice coefficient metric.
 #' @export
-metric_dice_coef <- custom_metric("dice_coeff", function(y_true, y_pred) {
-  dice_coef(y_true, y_pred, smooth = 1.0)
-})
+metric_dice_coef <- function() {
+  custom_metric("dice_coeff", function(y_true, y_pred) {
+    dice_coef(y_true, y_pred, smooth = 1.0)
+  })
+}
 
 #' Dice loss.
 #' @description Dice loss.
 #' @import keras
 #' @return Dice loss.
 #' @export
-dice_loss <- custom_metric("dice_loss", function(y_true, y_pred) {
-  1 - dice_coef(y_true, y_pred, smooth = 1.0)
-})
+dice_loss <- function() {
+  custom_metric("dice_loss", function(y_true, y_pred) {
+    1 - dice_coef(y_true, y_pred, smooth = 1.0)
+  })
+}

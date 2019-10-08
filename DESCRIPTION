@@ -3,6 +3,7 @@ Type: Package
 Title: Tools for Computer Vision in R
 Version: 0.1.0
 Author: c(person("Michal", "Maj", email = "michalmaj116@gmail.com", role = c("aut", "cre"))
+Maintainer: Michał Maj <michalmaj116@gmail.com>
 Description: Set of tools for Computer Vision like YOLO for object detection and U-Net for semantic segmentation.
 BugReports: https://github.com/maju116/platypus/issues
 Encoding: UTF-8
@@ -14,7 +15,7 @@ Depends:
 Imports:
     reticulate (>= 1.13),
     tensorflow (>= 1.14.0),
-    dplyr (>= 0.8.3),
+    magrittr (>= 1.5),
     purrr (>= 0.3.2),
     abind
 Suggests:
