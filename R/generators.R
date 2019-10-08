@@ -32,13 +32,13 @@ segmentation_generator <- function(path, only_images = FALSE, target_size = c(25
   images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE)
   if (!only_images) masks_paths <- list.files(file.path(path, subdirs[2]), full.names = TRUE)
   # all(basename(images_paths) == basename(masks_paths))
+  print(paste0(length(images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
   function() {
     if (shuffle) {
       indices <- sample(1:length(images_paths), size = batch_size)
     } else {
       indices <- c(i:min(i + batch_size - 1, length(images_paths)))
-      print(indices)
       i <<- if (i + batch_size >= length(images_paths)) 1 else i + length(indices)
     }
     images <- read_images_from_directory(images_paths, indices = indices, target_size = target_size,
