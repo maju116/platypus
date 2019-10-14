@@ -26,7 +26,7 @@ metric_dice_coef <- function() {
 #' @import keras
 #' @return Dice loss.
 #' @export
-dice_loss <- function() {
+loss_dice <- function() {
   custom_metric("dice_loss", function(y_true, y_pred) {
     1 - dice_coef(y_true, y_pred, smooth = 1.0)
   })

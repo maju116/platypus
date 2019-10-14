@@ -4,12 +4,15 @@
 \alias{segmentation_generator}
 \title{Generates batches of data (images and masks). The data will be looped over (in batches).}
 \usage{
-segmentation_generator(path, only_images = FALSE, target_size = c(256,
-  256), grayscale = FALSE, scale = 1/255, batch_size = 32,
-  shuffle = TRUE, subdirs = c("images", "masks"))
+segmentation_generator(path, mode = "dir", only_images = FALSE,
+  target_size = c(256, 256), grayscale = FALSE, scale = 1/255,
+  batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
+  column_sep = ";")
 }
 \arguments{
 \item{path}{Images and masks directory.}
+
+\item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")`}
 
 \item{only_images}{Should generator read only images (e.g. on train set for predictions).}
 
@@ -24,6 +27,8 @@ segmentation_generator(path, only_images = FALSE, target_size = c(256,
 \item{shuffle}{Should data be shuffled.}
 
 \item{subdirs}{Vector of two characters containing names of subdirectories with images and masks.}
+
+\item{column_sep}{Character. Configuration file separator.}
 }
 \description{
 Generates batches of data (images and masks). The data will be looped over (in batches).
