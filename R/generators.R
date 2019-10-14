@@ -64,19 +64,19 @@ segmentation_generator <- function(path, mode = "dir", only_images = FALSE, targ
                                    grayscale = FALSE, scale = 1 / 255,
                                    batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
                                    column_sep = ";") {
-  create_images_masks_paths(path, mode, only_images, subdirs, config_sep)
-  print(paste0(length(images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
+  config <- create_images_masks_paths(path, mode, only_images, subdirs, config_sep)
+  print(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
   function() {
     if (shuffle) {
-      indices <- sample(1:length(images_paths), size = batch_size)
+      indices <- sample(1:length(config$images_paths), size = batch_size)
     } else {
-      indices <- c(i:min(i + batch_size - 1, length(images_paths)))
-      i <<- if (i + batch_size > length(images_paths)) 1 else i + length(indices)
+      indices <- c(i:min(i + batch_size - 1, length(config$images_paths)))
+      i <<- if (i + batch_size > length(config$images_paths)) 1 else i + length(indices)
     }
-    images <- read_images_from_directory(images_paths, indices = indices, target_size = target_size,
+    images <- read_images_from_directory(config$images_paths, indices = indices, target_size = target_size,
                                          grayscale = grayscale, scale = scale)
-    if (!only_images) masks <- read_images_from_directory(masks_paths, indices = indices, target_size = target_size,
+    if (!only_images) masks <- read_images_from_directory(config$masks_paths, indices = indices, target_size = target_size,
                                                           grayscale = TRUE, scale = 1 / 255) %>% to_categorical()
     if (!only_images) list(images, masks) else list(images)
   }
