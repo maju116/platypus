@@ -19,10 +19,38 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
   }) %>% abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 }
 
+#' Generates inmages/masks path from selected cofiguration.
+#' @description Generates inmages/masks path from selected cofiguration.
+#' @importFrom purrr map
+#' @importFrom readr read_csv
+#' @param path Images directories or configuration file path.
+#' @param mode Character. One of `c("dir", "nested_dirs", "config_file")`
+#' @param only_images Should generator read only images (e.g. on train set for predictions).
+#' @param subdirs Vector of two characters containing names of subdirectories with images and masks.
+#' @param column_sep Character. Configuration file separator.
+#' @export
+create_images_masks_paths <- function(path, mode, only_images, subdirs = c("images", "masks"), column_sep = ";") {
+  stopifnot(mode %in% c("dir", "nested_dirs", "config_file"))
+  if (mode == "dir") {
+    images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE) %>% as.list()
+    masks_paths <- if (!only_images) list.files(file.path(path, subdirs[2]), full.names = TRUE) %>% as.list() else NULL
+  } else if (mode == "nested_dirs") {
+    nested_dirs <- list.dirs(path, full.names  = TRUE, recursive = FALSE)
+    images_paths <- nested_dirs %>% map(~ list.files(file.path(.x, subdirs[1]), full.names  = TRUE))
+    masks_paths <- if (!only_images) nested_dirs %>% map(~ list.files(file.path(.x, subdirs[2]), full.names  = TRUE)) else NULL
+  } else {
+    config_file <- read_csv(path)
+    images_paths <- config_file$images %>% as.list()
+    masks_paths <- config_file$masks %>% strsplit(column_sep)
+  }
+  list(images_paths = images_paths, masks_paths = masks_paths, classes = NULL)
+}
+
 #' Generates batches of data (images and masks). The data will be looped over (in batches).
 #' @description Generates batches of data (images and masks). The data will be looped over (in batches).
 #' @importFrom purrr map
 #' @param path Images and masks directory.
+#' @param mode Character. One of `c("dir", "nested_dirs", "config_file")`
 #' @param only_images Should generator read only images (e.g. on train set for predictions).
 #' @param target_size Images / mask size (height, width). Default to `c(256, 256)`.
 #' @param grayscale Boolean, whether to load the image as grayscale.
@@ -30,18 +58,13 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
 #' @param batch_size Batch size.
 #' @param shuffle Should data be shuffled.
 #' @param subdirs Vector of two characters containing names of subdirectories with images and masks.
+#' @param column_sep Character. Configuration file separator.
 #' @export
-segmentation_generator <- function(path, nested_paths = FALSE, only_images = FALSE, target_size = c(256, 256),
+segmentation_generator <- function(path, mode = "dir", only_images = FALSE, target_size = c(256, 256),
                                    grayscale = FALSE, scale = 1 / 255,
-                                   batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks")) {
-  if (!nested_paths) {
-    images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE) %>% as.list()
-    if (!only_images) masks_paths <- list.files(file.path(path, subdirs[2]), full.names = TRUE) %>% as.list()
-  } else {
-    images_dirs <- list.dirs(path, full.names  = TRUE, recursive = FALSE)
-    images_paths <- images_dirs %>% map(~ list.files(file.path(.x, subdirs[1]), full.names  = TRUE))
-    if (!only_images) masks_paths <- images_dirs %>% map(~ list.files(file.path(.x, subdirs[2]), full.names  = TRUE))
-  }
+                                   batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
+                                   column_sep = ";") {
+  create_images_masks_paths(path, mode, only_images, subdirs, config_sep)
   print(paste0(length(images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
   function() {
@@ -54,7 +77,7 @@ segmentation_generator <- function(path, nested_paths = FALSE, only_images = FAL
     images <- read_images_from_directory(images_paths, indices = indices, target_size = target_size,
                                          grayscale = grayscale, scale = scale)
     if (!only_images) masks <- read_images_from_directory(masks_paths, indices = indices, target_size = target_size,
-                                        grayscale = TRUE, scale = 1 / 255) %>% to_categorical()
+                                                          grayscale = TRUE, scale = 1 / 255) %>% to_categorical()
     if (!only_images) list(images, masks) else list(images)
   }
 }
