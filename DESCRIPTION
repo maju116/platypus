@@ -21,5 +21,6 @@ Imports:
     abind (>= 1.4-5)
 Suggests:
     testthat,
-    lintr
+    lintr,
+    covr
 RoxygenNote: 6.1.1
