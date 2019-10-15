@@ -10,5 +10,8 @@ r_packages:
   - devtools
 
 after_success:
+  - sudo apt-get update
+  - sudo apt-get install python3 python3-pip
+  - pip3 install --upgrade --ignore-installed --user travis virtualenv
   - Rscript -e 'covr::codecov()'
   - R CMD INSTALL .
