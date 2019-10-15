@@ -10,7 +10,7 @@ create_images_masks_paths(path, mode, only_images, subdirs = c("images",
 \arguments{
 \item{path}{Images directories or configuration file path.}
 
-\item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")`}
+\item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")` or `c(1, 2, 3)` correspondingly.}
 
 \item{only_images}{Should generator read only images (e.g. on train set for predictions).}
 

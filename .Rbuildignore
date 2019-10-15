@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 examples
 development
+^\.travis\.yml$
+^codecov\.yml$

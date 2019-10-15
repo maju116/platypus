@@ -24,17 +24,16 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
 #' @importFrom purrr map
 #' @importFrom readr read_csv
 #' @param path Images directories or configuration file path.
-#' @param mode Character. One of `c("dir", "nested_dirs", "config_file")`
+#' @param mode Character. One of `c("dir", "nested_dirs", "config_file")` or `c(1, 2, 3)` correspondingly.
 #' @param only_images Should generator read only images (e.g. on train set for predictions).
 #' @param subdirs Vector of two characters containing names of subdirectories with images and masks.
 #' @param column_sep Character. Configuration file separator.
 #' @export
 create_images_masks_paths <- function(path, mode, only_images, subdirs = c("images", "masks"), column_sep = ";") {
-  stopifnot(mode %in% c("dir", "nested_dirs", "config_file"))
-  if (mode == "dir") {
+  if (mode %in% c("dir", 1)) {
     images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE) %>% as.list()
     masks_paths <- if (!only_images) list.files(file.path(path, subdirs[2]), full.names = TRUE) %>% as.list() else NULL
-  } else if (mode == "nested_dirs") {
+  } else if (mode == c("nested_dirs", 2)) {
     nested_dirs <- list.dirs(path, full.names  = TRUE, recursive = FALSE)
     images_paths <- nested_dirs %>% map(~ list.files(file.path(.x, subdirs[1]), full.names  = TRUE))
     masks_paths <- if (!only_images) nested_dirs %>% map(~ list.files(file.path(.x, subdirs[2]), full.names  = TRUE)) else NULL
@@ -64,7 +63,8 @@ segmentation_generator <- function(path, mode = "dir", only_images = FALSE, targ
                                    grayscale = FALSE, scale = 1 / 255,
                                    batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
                                    column_sep = ";") {
-  config <- create_images_masks_paths(path, mode, only_images, subdirs, config_sep)
+  segmentation_generator_check(mode, only_images, target_size, grayscale, shuffle)
+  config <- create_images_masks_paths(path, mode, only_images, subdirs, column_sep)
   print(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
   function() {

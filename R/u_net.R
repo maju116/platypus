@@ -36,6 +36,7 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @return U-Net model.
 #' @export
 u_net <- function(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+  u_net_check(input_shape, blocks, classes, filters, dropout, batch_normalization)
   input_img <- layer_input(shape = input_shape, name = 'input_img')
 
   conv_layers <- pool_layers <- conv_tr_layers <- list()
