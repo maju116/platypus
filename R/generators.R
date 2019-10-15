@@ -30,7 +30,6 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
 #' @param column_sep Character. Configuration file separator.
 #' @export
 create_images_masks_paths <- function(path, mode, only_images, subdirs = c("images", "masks"), column_sep = ";") {
-  stopifnot(mode %in% c("dir", "nested_dirs", "config_file"))
   if (mode %in% c("dir", 1)) {
     images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE) %>% as.list()
     masks_paths <- if (!only_images) list.files(file.path(path, subdirs[2]), full.names = TRUE) %>% as.list() else NULL
@@ -64,6 +63,7 @@ segmentation_generator <- function(path, mode = "dir", only_images = FALSE, targ
                                    grayscale = FALSE, scale = 1 / 255,
                                    batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
                                    column_sep = ";") {
+  segmentation_generator_check(mode, only_images, target_size, grayscale, shuffle)
   config <- create_images_masks_paths(path, mode, only_images, subdirs, column_sep)
   print(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
