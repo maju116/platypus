@@ -1,6 +1,6 @@
 context("u_net")
 
-test_that("u_net accepts only correct inputs", {
+test_that("u_net accepts only correct inputs.", {
   correct_input_shape <- c(256, 256, 3)
   correct_blocks <- 3
   correct_classes <- 5
@@ -41,4 +41,28 @@ test_that("u_net accepts only correct inputs", {
                       incorrect_dropout_2, correct_batch_normalization))
   expect_error(u_net(correct_input_shape, correct_blocks, correct_classes, correct_filters,
                      correct_dropout, incorrect_batch_normalization))
+})
+
+test_that("u_net creates correct network architecture.", {
+  input_shape <- c(256, 256, 3)
+  blocks_1 <- 3
+  blocks_2 <- 5
+  classes <- 5
+  filters <- 12
+  dropout <- 0.567
+  batch_normalization_1 <- TRUE
+  batch_normalization_2 <- FALSE
+
+  model1 <- u_net(input_shape, blocks_1, classes, filters,
+                 dropout, batch_normalization_1)
+  model2 <- u_net(input_shape, blocks_2, classes, filters,
+                  dropout, batch_normalization_2)
+
+  len_layers_out_1 <- length(model1$layers)
+  expected_len_layers_out_1 <- 1 + blocks_1 * 8 + 6 + blocks_1 * 9 + 1
+  len_layers_out_2 <- length(model2$layers)
+  expected_len_layers_out_2 <- 1 + blocks_2 * 6 + 4 + blocks_2 * 7 + 1
+
+  expect_equal(len_layers_out_1, expected_len_layers_out_1)
+  expect_equal(len_layers_out_2, expected_len_layers_out_2)
 })
