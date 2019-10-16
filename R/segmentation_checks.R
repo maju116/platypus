@@ -46,8 +46,9 @@ u_net_check <- function(input_shape, blocks, classes, filters, dropout, batch_no
   check_input_in_set(batch_normalization, c(TRUE, FALSE))
 }
 
-segmentation_generator_check <- function(mode, only_images, target_size, grayscale, shuffle) {
+segmentation_generator_check <- function(mode, classes, only_images, target_size, grayscale, shuffle) {
   check_input_in_set(mode, c("dir", "nested_dirs", "config_file", 1:3))
+  check_input_greater_than_min(classes, min_value = 2, "You need background and at least one other class.")
   check_input_shape_u_net(target_size, 2)
   check_input_in_set(only_images, c(TRUE, FALSE))
   check_input_in_set(grayscale, c(TRUE, FALSE))

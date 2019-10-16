@@ -50,6 +50,7 @@ create_images_masks_paths <- function(path, mode, only_images, subdirs = c("imag
 #' @importFrom purrr map
 #' @param path Images and masks directory.
 #' @param mode Character. One of `c("dir", "nested_dirs", "config_file")`
+#' @param classes Number of classes. Minimum is `2` (background + other object).
 #' @param only_images Should generator read only images (e.g. on train set for predictions).
 #' @param target_size Images / mask size (height, width). Default to `c(256, 256)`.
 #' @param grayscale Boolean, whether to load the image as grayscale.
@@ -59,11 +60,11 @@ create_images_masks_paths <- function(path, mode, only_images, subdirs = c("imag
 #' @param subdirs Vector of two characters containing names of subdirectories with images and masks.
 #' @param column_sep Character. Configuration file separator.
 #' @export
-segmentation_generator <- function(path, mode = "dir", only_images = FALSE, target_size = c(256, 256),
+segmentation_generator <- function(path, mode = "dir", classes = 2, only_images = FALSE, target_size = c(256, 256),
                                    grayscale = FALSE, scale = 1 / 255,
                                    batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
                                    column_sep = ";") {
-  segmentation_generator_check(mode, only_images, target_size, grayscale, shuffle)
+  segmentation_generator_check(mode, classes, only_images, target_size, grayscale, shuffle)
   config <- create_images_masks_paths(path, mode, only_images, subdirs, column_sep)
   print(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
   i <- 1
@@ -77,7 +78,8 @@ segmentation_generator <- function(path, mode = "dir", only_images = FALSE, targ
     images <- read_images_from_directory(config$images_paths, indices = indices, target_size = target_size,
                                          grayscale = grayscale, scale = scale)
     if (!only_images) masks <- read_images_from_directory(config$masks_paths, indices = indices, target_size = target_size,
-                                                          grayscale = TRUE, scale = 1 / 255) %>% to_categorical()
+                                                          grayscale = TRUE, scale = 1 / 255) %>%
+      to_categorical(num_classes = classes)
     if (!only_images) list(images, masks) else list(images)
   }
 }
