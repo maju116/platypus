@@ -121,7 +121,7 @@ test_that("segmentation_generator reads images and masks correctly from configur
   images_paths <- nested_dirs %>% purrr::map(~ list.files(file.path(.x, "images"), full.names  = TRUE))
   masks_paths <- nested_dirs %>% purrr::map(~ paste0(list.files(file.path(.x, "masks"), full.names  = TRUE), collapse = ";"))
   config_df <- data.frame(images = unlist(images_paths), masks = unlist(masks_paths))
-  write_csv(config_df, path = path)
+  readr::write_csv(config_df, path = path)
 
   mode <- "config_file"
   classes <- 4
