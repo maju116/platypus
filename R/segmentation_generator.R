@@ -33,7 +33,7 @@ create_images_masks_paths <- function(path, mode, only_images, subdirs = c("imag
   if (mode %in% c("dir", 1)) {
     images_paths <- list.files(file.path(path, subdirs[1]), full.names  = TRUE) %>% as.list()
     masks_paths <- if (!only_images) list.files(file.path(path, subdirs[2]), full.names = TRUE) %>% as.list() else NULL
-  } else if (mode == c("nested_dirs", 2)) {
+  } else if (mode %in% c("nested_dirs", 2)) {
     nested_dirs <- list.dirs(path, full.names  = TRUE, recursive = FALSE)
     images_paths <- nested_dirs %>% map(~ list.files(file.path(.x, subdirs[1]), full.names  = TRUE))
     masks_paths <- if (!only_images) nested_dirs %>% map(~ list.files(file.path(.x, subdirs[2]), full.names  = TRUE)) else NULL

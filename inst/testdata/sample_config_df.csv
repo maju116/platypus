@@ -1,0 +1,4 @@
+images,masks
+inst/testdata/nested_dirs/sample_image_1.png,inst/testdata/nested_dirs/sample_mask_1.png;inst/testdata/nested_dirs/sample_mask_2.png
+inst/testdata/nested_dirs/sample_image_2.png,inst/testdata/nested_dirs/sample_mask_1.png;inst/testdata/nested_dirs/sample_mask_2.png
+inst/testdata/nested_dirs/sample_image_3.png,inst/testdata/nested_dirs/sample_mask_1.png;inst/testdata/nested_dirs/sample_mask_2.png
