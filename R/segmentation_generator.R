@@ -42,7 +42,7 @@ create_images_masks_paths <- function(path, mode, only_images, subdirs = c("imag
     images_paths <- config_file$images %>% as.list()
     masks_paths <- config_file$masks %>% strsplit(column_sep)
   }
-  list(images_paths = images_paths, masks_paths = masks_paths, classes = NULL)
+  list(images_paths = images_paths, masks_paths = masks_paths)
 }
 
 #' Generates batches of data (images and masks). The data will be looped over (in batches).
