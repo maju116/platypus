@@ -78,7 +78,7 @@ test_that("segmentation_generator reads images and masks correctly from director
   }) %>% abind::abind(along = 4) %>% aperm(c(4, 1, 2, 3))
   sample_masks[sample_masks > 0.99] <- 1 # It somehow makes difference for to_categorical function
 
-  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.001))
+  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.005))
   expect_equal(sample_masks %>% keras::to_categorical(classes), generator_output[[2]])
 })
 
@@ -110,7 +110,7 @@ test_that("segmentation_generator reads images and masks correctly from nested d
     array_reshape(grayscale, c(2, 2, 1))
   }) %>% abind::abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 
-  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.001))
+  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.005))
   expect_equal(sample_masks %>% keras::to_categorical(classes), generator_output[[2]])
 })
 
@@ -147,6 +147,6 @@ test_that("segmentation_generator reads images and masks correctly from configur
     array_reshape(grayscale, c(2, 2, 1))
   }) %>% abind::abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 
-  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.001))
+  expect_true(all(abs(sample_images - generator_output[[1]]) < 0.005))
   expect_equal(sample_masks %>% keras::to_categorical(classes), generator_output[[2]])
 })
