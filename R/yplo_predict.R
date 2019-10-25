@@ -15,15 +15,16 @@ get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_thr
   grid_w <- dim(preds)[1]
   grid_h <- dim(preds)[2]
   boxes_coords <- split(1:dim(preds)[3], rep(1:n_box, each = 5 + n_class))
-  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(w = Var1, h = Var2)
-  pmap(grid_dims, function(w, h) {
+  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(w = Var2, h = Var1) %>%
+    mutate(l = 1:(grid_w * grid_h), row = (l - 1) / grid_w , col = (l - 1) %% grid_w)
+  pmap(grid_dims, function(w, h, l, row, col) {
     map2(boxes_coords, anchors, ~ {
       box_data <- preds[w, h, .x]
       anchor <- .y
-      if (sigmoid(box_data[5]) > obj_threshold) {
+      if (3>2) { # sigmoid(box_data[5]) > obj_threshold
         # Changing predictions to bbox center coordinates
-        box_data[1] <- (sigmoid(box_data[1]) + (w - 1) / grid_w) / grid_w
-        box_data[2] <- (sigmoid(box_data[2]) + (h - 1) / grid_h) / grid_h
+        box_data[1] <- (sigmoid(box_data[1]) + col) / grid_w
+        box_data[2] <- (sigmoid(box_data[2]) + row) / grid_h
         box_data[3] <- anchor[1] * exp(box_data[3]) / net_w
         box_data[4] <- anchor[2] * exp(box_data[4]) / net_h
         box_data[5] <- sigmoid(box_data[5])
@@ -40,4 +41,29 @@ get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_thr
       box_data
     }) %>% keep(~ length(.x) > 1)
   }) %>% unlist(recursive = FALSE)
+}
+
+correct_boxes <- function(boxes, image_w = 640, image_h = 386, net_w = 416, net_h = 416) {
+  # if (net_w / image_w > net_h / image_h) {
+  new_w <- net_w
+  new_h <- net_h # (image_h * net_w) / image_w
+  # } else {
+  #   new_h <- net_w
+  #   new_w <- (image_w * net_h) / image_h
+  # }
+  x_offset <- (net_w - new_w) / 2 / net_w
+  x_scale <- new_w / net_w
+  y_offset <- (net_h - new_h) / 2 / net_h
+  y_scale <- new_h / net_h
+  boxes %>% map(~ {
+    image_boxes <- .x
+    image_boxes %>% map(~ {
+      data <- .x
+      data[1] <- as.integer((data[1] - x_offset) / x_scale * image_w)
+      data[2] <- as.integer((data[2] - y_offset) / x_scale * image_h)
+      data[3] <- as.integer((data[3] - x_offset) / y_scale * image_w)
+      data[4] <- as.integer((data[4] - y_offset) / y_scale * image_h)
+      data
+    })
+  })
 }
