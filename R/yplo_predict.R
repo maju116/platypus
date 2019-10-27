@@ -86,3 +86,30 @@ intersection_over_union <- function(box1, box2) {
     (box2[3] - box2[1]) * (box2[4] - box2[2]) - intersection
   intersection / union
 }
+
+non_max_suppression <- function(boxes, n_class = 80, overlap_tresh = 0.5) {
+  boxes %>% map(~ {
+    images_boxes <- .x
+    class_indexes <- 6:(n_class + 5)
+    combinations_to_check <- class_indexes %>% map(~ {
+      index <- .x
+      images_boxes %>% keep(~ .x[index] == 1)
+    }) %>% keep(~ length(.x) > 1)
+    combinations_to_check %>% map(~ {
+      current_boxes <- .x
+      proba <- current_boxes %>% map_dbl(~ .x[5])
+      combinations <- expand.grid(1:length(.x), 1:length(.x)) %>%
+        rename(box1 = Var1, box2 = Var2)
+      IoU <- combinations %>% pmap_dbl(function(box1, box2) {
+        intersection_over_union(current_boxes[[box1]], current_boxes[[box2]])
+      })
+      unique_boxes <- combinations %>% bind_cols(IoU = IoU) %>%
+        mutate(overlap = IoU >= overlap_tresh) %>%
+        left_join(tibble(box1 = 1:length(current_boxes), proba = proba)) %>%
+        group_by(box2, overlap) %>% mutate(proba_max = max(proba)) %>%
+        filter(overlap == TRUE & proba == proba_max) %>% ungroup() %>%
+        pull(box1) %>% unique()
+      current_boxes[unique_boxes]
+    })
+  }) %>% unlist(recursive = FALSE)
+}
