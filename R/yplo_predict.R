@@ -67,3 +67,22 @@ correct_boxes <- function(boxes, image_w = 640, image_h = 386, net_w = 416, net_
     })
   })
 }
+
+check_boxes_intersect <- function(box1, box2) {
+  x_intersect <- box1[1] < box2[3] & box1[3] > box2[1]
+  y_intersect <- box1[2] < box2[4] & box1[4] > box2[2]
+  x_intersect & y_intersect
+}
+
+intersection_over_union <- function(box1, box2) {
+  boxes_intersect <- check_boxes_intersect(box1, box2)
+  intersection <- if (boxes_intersect) {
+    (min(box1[3], box2[3]) - if (box2[1] < box1[1]) box1[1] else box2[1]) *
+      (min(box1[4], box2[4]) - if (box2[2] < box1[2]) box1[2] else box2[2])
+  } else {
+    0
+  }
+  union <- (box1[3] - box1[1]) * (box1[4] - box1[2]) +
+    (box2[3] - box2[1]) * (box2[4] - box2[2]) - intersection
+  intersection / union
+}
