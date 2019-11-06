@@ -21,7 +21,7 @@ get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_thr
     map2(boxes_coords, anchors, ~ {
       box_data <- preds[w, h, .x]
       anchor <- .y
-      if (3>2) { # sigmoid(box_data[5]) > obj_threshold
+      if (sigmoid(box_data[5]) > obj_threshold) {
         # Changing predictions to bbox center coordinates
         box_data[1] <- (sigmoid(box_data[1]) + col) / grid_w
         box_data[2] <- (sigmoid(box_data[2]) + row) / grid_h

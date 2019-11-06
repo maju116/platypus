@@ -149,3 +149,17 @@ yolo3 <- function(input_shape) {
 
   keras_model(input_img, outputs)
 }
+
+voc_anchors <- list(list(c(116, 90), c(156, 198), c(373, 326)),
+                list(c(30, 61), c(62, 45), c(59, 119)),
+                list(c(10, 13), c(16, 30), c(33, 23)))
+voc_labels = c("person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck",
+           "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
+           "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+           "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard",
+           "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+           "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana",
+           "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
+           "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse",
+           "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator",
+           "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush")
