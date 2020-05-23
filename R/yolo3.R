@@ -1,0 +1,66 @@
+yolo3_conv2d <- function(inputs, filters) {
+  if (is.list(inputs)) {
+    input1 <- layer_input(shape = inputs[[1]]$get_shape()$as_list()[2:4])
+    input2 <- layer_input(shape = inputs[[2]]$get_shape()$as_list()[2:4])
+    input <- list(input1, input2)
+    net_out <- input1 %>%
+      darknet53_conv2d(strides = 1, filters = filters, kernel_size = 1,
+                       batch_normalization = TRUE, leaky_relu = TRUE) %>%
+      layer_upsampling_2d(size = 2)
+    net_out <- layer_concatenate(list(net_out, input2))
+  } else {
+    input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
+    net_out <- input
+  }
+  net_out <- net_out %>%
+    darknet53_conv2d(strides = 1, filters = filters, kernel_size = 1,
+                     batch_normalization = TRUE, leaky_relu = TRUE) %>%
+    darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
+                     batch_normalization = TRUE, leaky_relu = TRUE) %>%
+    darknet53_conv2d(strides = 1, filters = filters, kernel_size = 1,
+                     batch_normalization = TRUE, leaky_relu = TRUE) %>%
+    darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
+                     batch_normalization = TRUE, leaky_relu = TRUE) %>%
+    darknet53_conv2d(strides = 1, filters = filters, kernel_size = 1,
+                     batch_normalization = TRUE, leaky_relu = TRUE)
+  keras_model(input, net_out)(inputs)
+}
+
+yolo3_output <- function(inputs, filters, anchors, classes) {
+  input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
+  net_out <- input %>%
+    darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
+                     batch_normalization = TRUE, leaky_relu = TRUE) %>%
+    darknet53_conv2d(strides = 1, filters = anchors * (classes + 5), kernel_size = 1,
+                     batch_normalization = FALSE, leaky_relu = FALSE)
+  # Add lambda fun
+  keras_model(input, net_out)(inputs)
+}
+
+yolo3 <- function(input_shape = 416, channels = 3, classes = 80, anchors_per_grid = 3) {
+  input_img <- layer_input(shape = c(input_shape, input_shape, channels), name = 'input_img')
+  darknet <- darknet53()(input_img)
+  net_out <- yolo3_conv2d(darknet[[3]], 512)
+  grid_13 <- yolo3_output(net_out, 512, anchors_per_grid, classes)
+  net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256)
+  grid_26 <- yolo3_output(net_out, 256, anchors_per_grid, classes)
+  net_out <- yolo3_conv2d(list(net_out, darknet[[1]]), 128)
+  grid_52 <- yolo3_output(net_out, 128, anchors_per_grid, classes)
+  keras_model(input_img, list(grid_13, grid_26, grid_52))
+}
+
+coco_anchors <- list(
+  list(c(116, 90), c(156, 198), c(373, 326)),
+  list(c(30, 61), c(62, 45), c(59, 119)),
+  list(c(10, 13), c(16, 30), c(33, 23))
+)
+coco_labels = c("person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck",
+                "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
+                "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard",
+                "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+                "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana",
+                "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
+                "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse",
+                "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator",
+                "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush")
