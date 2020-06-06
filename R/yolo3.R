@@ -26,6 +26,12 @@ yolo3_conv2d <- function(inputs, filters) {
   keras_model(input, net_out)(inputs)
 }
 
+reshape_yolo3_output <- function(x, anchors, classes) {
+  x_shape <- x$get_shape()$as_list()
+  k_reshape(x, list(-1, x_shape[[2]], x_shape[[3]],
+                anchors, classes + 5))
+}
+
 yolo3_output <- function(inputs, filters, anchors, classes) {
   input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
   net_out <- input %>%
@@ -33,12 +39,13 @@ yolo3_output <- function(inputs, filters, anchors, classes) {
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
     darknet53_conv2d(strides = 1, filters = anchors * (classes + 5), kernel_size = 1,
                      batch_normalization = FALSE, leaky_relu = FALSE)
-  # Add lambda fun
+  net_out <- layer_lambda(net_out, f = reshape_yolo3_output,
+                          arguments = list(anchors = anchors, classes = classes))
   keras_model(input, net_out)(inputs)
 }
 
 yolo3 <- function(input_shape = 416, channels = 3, classes = 80, anchors_per_grid = 3) {
-  input_img <- layer_input(shape = c(input_shape, input_shape, channels), name = 'input_img')
+  input_img <- layer_input(shape = list(input_shape, input_shape, channels), name = 'input_img')
   darknet <- darknet53()(input_img)
   net_out <- yolo3_conv2d(darknet[[3]], 512)
   grid_13 <- yolo3_output(net_out, 512, anchors_per_grid, classes)
