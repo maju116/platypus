@@ -1,9 +1,11 @@
 read_darknet_weights <- function(model, weights_path = "development/yolov3.weights") {
+  pb <- progress_bar$new(total = 75)
   submodels <- model$layers %>% map_chr(~ .$name) %>% .[c(2, 3, 6, 4, 7, 5, 8)]
   darknet_weights_file <- file(weights_path, "rb")
   config <- readBin(darknet_weights_file, integer(), n = 5, endian = "little", size = 4)
   darknet_weights <- readBin(darknet_weights_file, double(), n = 62001757, endian = "little", size = 4)
   ind <- 1
+  close(darknet_weights_file)
   for (submodel_name in submodels) {
     submodel <- model %>% get_layer(name = submodel_name)
     submodel_layer_names <- submodel$layers %>% map_chr(~ .$name)
@@ -11,7 +13,7 @@ read_darknet_weights <- function(model, weights_path = "development/yolov3.weigh
     for (i in 1:submodel_layer_len) {
       current_layer_name <- submodel_layer_names[i]
       if (grepl("conv2d", current_layer_name)) {
-        print(paste("Inserting weights to :", current_layer_name))
+        pb$tick()
         conv_layer <- get_layer(submodel, current_layer_name)
         conv_layer_shape <- get_weights(conv_layer)
         batch_norm <- FALSE

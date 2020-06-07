@@ -4,9 +4,9 @@ get_boxes <- function(preds, anchors, n_class = 80, n_box = 3, obj_threshold = 0
   n_images <- dim(preds[[1]])[1]
   1:n_images %>% map(~ {
     image_nr <- .x
-    current_preds <- preds %>% map(~ .x[image_nr, , , ])
+    current_preds <- preds %>% map(~ .x[image_nr, , , , ])
     map2(current_preds, anchors, ~ get_boxes_for_scale(preds = .x, anchors = .y, n_class, n_box,
-                                                       class_threshold, net_w, net_h)) %>%
+                                                       obj_threshold, net_w, net_h)) %>%
       unlist(recursive = FALSE)
   })
 }
@@ -14,12 +14,11 @@ get_boxes <- function(preds, anchors, n_class = 80, n_box = 3, obj_threshold = 0
 get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_threshold = 0.6, net_w = 416, net_h = 416) {
   grid_w <- dim(preds)[1]
   grid_h <- dim(preds)[2]
-  boxes_coords <- split(1:dim(preds)[3], rep(1:n_box, each = 5 + n_class))
   grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(w = Var2, h = Var1) %>%
     mutate(l = 1:(grid_w * grid_h), row = (l - 1) / grid_w , col = (l - 1) %% grid_w)
   pmap(grid_dims, function(w, h, l, row, col) {
-    map2(boxes_coords, anchors, ~ {
-      box_data <- preds[w, h, .x]
+    map2(1:n_box, anchors, ~ {
+      box_data <- preds[w, h, .x, ]
       anchor <- .y
       if (sigmoid(box_data[5]) > obj_threshold) {
         # Changing predictions to bbox center coordinates
@@ -41,31 +40,6 @@ get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_thr
       box_data
     }) %>% keep(~ length(.x) > 1)
   }) %>% unlist(recursive = FALSE)
-}
-
-correct_boxes <- function(boxes, image_w = 640, image_h = 386, net_w = 416, net_h = 416) {
-  # if (net_w / image_w > net_h / image_h) {
-  new_w <- net_w
-  new_h <- net_h # (image_h * net_w) / image_w
-  # } else {
-  #   new_h <- net_w
-  #   new_w <- (image_w * net_h) / image_h
-  # }
-  x_offset <- (net_w - new_w) / 2 / net_w
-  x_scale <- new_w / net_w
-  y_offset <- (net_h - new_h) / 2 / net_h
-  y_scale <- new_h / net_h
-  boxes %>% map(~ {
-    image_boxes <- .x
-    image_boxes %>% map(~ {
-      data <- .x
-      data[1] <- as.integer((data[1] - x_offset) / x_scale * image_w)
-      data[2] <- as.integer((data[2] - y_offset) / x_scale * image_h)
-      data[3] <- as.integer((data[3] - x_offset) / y_scale * image_w)
-      data[4] <- as.integer((data[4] - y_offset) / y_scale * image_h)
-      data
-    })
-  })
 }
 
 check_boxes_intersect <- function(box1, box2) {
@@ -110,6 +84,20 @@ non_max_suppression <- function(boxes, n_class = 80, overlap_tresh = 0.5) {
         filter(overlap == TRUE & proba == proba_max) %>% ungroup() %>%
         pull(box1) %>% unique()
       current_boxes[unique_boxes]
+    }) %>% unlist(recursive = FALSE)
+  })
+}
+
+correct_boxes <- function(boxes, image_w = 640, image_h = 386, net_w = 416, net_h = 416) {
+  boxes %>% map(~ {
+    image_boxes <- .x
+    image_boxes %>% map(~ {
+      data <- .x
+      data[1] <- as.integer(data[1] * image_w)
+      data[2] <- as.integer(data[2] * image_h)
+      data[3] <- as.integer(data[3] * image_w)
+      data[4] <- as.integer(data[4] * image_h)
+      data
     })
-  }) %>% unlist(recursive = FALSE)
+  })
 }
