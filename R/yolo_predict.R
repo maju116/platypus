@@ -1,23 +1,37 @@
 sigmoid <- function(x) 1 / (1 + exp(-x))
 
-get_boxes <- function(preds, anchors, n_class = 80, n_box = 3, obj_threshold = 0.6, net_h = 416, net_w = 416) {
+get_boxes <- function(preds, anchors, labels, obj_threshold = 0.6,
+                      net_h = 416, net_w = 416, nms = TRUE,
+                      nms_threshold = 0.6, correct_hw = FALSE,
+                      image_h = NULL, image_w = NULL) {
+  n_class = length(labels)
+  anchors_per_grid = length(anchors[[1]])
+  preds %>%
+    transform_boxes(anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) %>%
+    when(nms ~ non_max_suppression(., n_class, nms_threshold), ~ .) %>%
+    clean_boxes(labels) %>%
+    when(correct_hw ~ correct_boxes(., image_h, image_w), ~ .)
+}
+
+transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
   n_images <- dim(preds[[1]])[1]
   1:n_images %>% map(~ {
     image_nr <- .x
     current_preds <- preds %>% map(~ .x[image_nr, , , , ])
-    map2(current_preds, anchors, ~ get_boxes_for_scale(preds = .x, anchors = .y, n_class, n_box,
-                                                       obj_threshold, net_w, net_h)) %>%
+    map2(current_preds, anchors, ~
+           transform_boxes_for_image(preds = .x, anchors = .y, n_class, anchors_per_grid,
+                                     obj_threshold, net_w, net_h)) %>%
       unlist(recursive = FALSE)
   })
 }
 
-get_boxes_for_scale <- function(preds, anchors, n_class = 80, n_box = 3, obj_threshold = 0.6, net_w = 416, net_h = 416) {
+transform_boxes_for_image <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
   grid_w <- dim(preds)[1]
   grid_h <- dim(preds)[2]
   grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(w = Var2, h = Var1) %>%
     mutate(l = 1:(grid_w * grid_h), row = (l - 1) / grid_w , col = (l - 1) %% grid_w)
   pmap(grid_dims, function(w, h, l, row, col) {
-    map2(1:n_box, anchors, ~ {
+    map2(1:anchors_per_grid, anchors, ~ {
       box_data <- preds[w, h, .x, ]
       anchor <- .y
       if (sigmoid(box_data[5]) > obj_threshold) {
@@ -61,7 +75,7 @@ intersection_over_union <- function(box1, box2) {
   intersection / union
 }
 
-non_max_suppression <- function(boxes, n_class = 80, overlap_tresh = 0.5) {
+non_max_suppression <- function(boxes, n_class, nms_threshold = 0.5) {
   boxes %>% map(~ {
     images_boxes <- .x
     class_indexes <- 6:(n_class + 5)
@@ -78,8 +92,8 @@ non_max_suppression <- function(boxes, n_class = 80, overlap_tresh = 0.5) {
         intersection_over_union(current_boxes[[box1]], current_boxes[[box2]])
       })
       unique_boxes <- combinations %>% bind_cols(IoU = IoU) %>%
-        mutate(overlap = IoU >= overlap_tresh) %>%
-        left_join(tibble(box1 = 1:length(current_boxes), proba = proba)) %>%
+        mutate(overlap = IoU >= nms_threshold) %>%
+        left_join(tibble(box1 = 1:length(current_boxes), proba = proba), by = "box1") %>%
         group_by(box2, overlap) %>% mutate(proba_max = max(proba)) %>%
         filter(overlap == TRUE & proba == proba_max) %>% ungroup() %>%
         pull(box1) %>% unique()
@@ -88,16 +102,25 @@ non_max_suppression <- function(boxes, n_class = 80, overlap_tresh = 0.5) {
   })
 }
 
-correct_boxes <- function(boxes, image_w = 640, image_h = 386, net_w = 416, net_h = 416) {
+clean_boxes <- function(boxes, labels) {
   boxes %>% map(~ {
-    image_boxes <- .x
-    image_boxes %>% map(~ {
-      data <- .x
-      data[1] <- as.integer(data[1] * image_w)
-      data[2] <- as.integer(data[2] * image_h)
-      data[3] <- as.integer(data[3] * image_w)
-      data[4] <- as.integer(data[4] * image_h)
-      data
-    })
+    boxes_data <- .x %>% map_df(~ as.data.frame(t(.x))) %>%
+      set_names(c("xmin", "ymin", "xmax", "ymax", "p_obj", paste0("class", 1:length(labels))))
+    boxes_data$label_id = apply(boxes_data %>% select(starts_with("class")), 1, which.max)
+    boxes_data %>% select(-starts_with("class")) %>%
+      mutate(label = labels[label_id])
+  })
+}
+
+correct_boxes <- function(boxes, image_h, image_w) {
+  boxes %>% map(~ {
+    current_boxes <- .x
+    current_boxes %>%
+      mutate(
+        xmin = as.integer(xmin * image_w),
+        ymin = as.integer(ymin * image_h),
+        xmax = as.integer(xmax * image_w),
+        ymax = as.integer(ymax * image_h)
+      )
   })
 }

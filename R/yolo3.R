@@ -61,6 +61,7 @@ coco_anchors <- list(
   list(c(30, 61), c(62, 45), c(59, 119)),
   list(c(10, 13), c(16, 30), c(33, 23))
 )
+
 coco_labels = c("person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck",
                 "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
                 "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
