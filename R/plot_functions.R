@@ -22,7 +22,8 @@ plot_boxes <- function(image_path, boxes, labels, grayscale = FALSE, target_size
     set_names(c("xmin", "ymin", "xmax", "ymax", "p_obj", paste0("class", 1:length(labels)))) %>%
     mutate(x = 0, y = 0, r = 0, g = 0, b = 0)
   boxes_data$label = labels[apply(boxes_data %>% select(starts_with("class")), 1, which.max)]
-  p + geom_rect(data = boxes_data, aes(xmin = xmin, ymin = h-ymin, xmax = xmax, ymax = h-ymax),
-                fill = NA, colour = "red", size = 1) +
-    geom_label(data = boxes_data, aes(x = xmin, y = h-ymin, label = label), colour = "red")
+  p + geom_rect(data = boxes_data, aes(xmin = xmin, ymin = h-ymin, xmax = xmax, ymax = h-ymax, colour = label),
+                fill = NA, size = 1) +
+    geom_label(data = boxes_data, aes(x = xmin, y = h-ymin, label = label, colour = label)) +
+    theme(legend.position = "none")
 }
