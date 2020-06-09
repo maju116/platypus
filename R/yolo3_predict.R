@@ -20,19 +20,19 @@ transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_thres
     current_preds <- preds %>% map(~ .x[image_nr, , , , ])
     map2(current_preds, anchors, ~
            transform_boxes_for_image(preds = .x, anchors = .y, n_class, anchors_per_grid,
-                                     obj_threshold, net_w, net_h)) %>%
+                                     obj_threshold, net_h, net_w)) %>%
       unlist(recursive = FALSE)
   })
 }
 
 transform_boxes_for_image <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
-  grid_w <- dim(preds)[1]
-  grid_h <- dim(preds)[2]
-  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(w = Var2, h = Var1) %>%
-    mutate(l = 1:(grid_w * grid_h), row = (l - 1) / grid_w , col = (l - 1) %% grid_w)
+  grid_h <- dim(preds)[1]
+  grid_w <- dim(preds)[2]
+  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(h = Var1, w = Var2) %>%
+    mutate(l = 1:(grid_h * grid_w), row = floor((l - 1) / grid_h) , col = (l - 1) %% grid_w)
   pmap(grid_dims, function(w, h, l, row, col) {
     map2(1:anchors_per_grid, anchors, ~ {
-      box_data <- preds[w, h, .x, ]
+      box_data <- preds[h, w, .x, ]
       anchor <- .y
       if (sigmoid(box_data[5]) > obj_threshold) {
         # Changing predictions to bbox center coordinates

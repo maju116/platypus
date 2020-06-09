@@ -26,33 +26,33 @@ yolo3_conv2d <- function(inputs, filters) {
   keras_model(input, net_out)(inputs)
 }
 
-reshape_yolo3_output <- function(x, anchors, classes) {
+reshape_yolo3_output <- function(x, anchors, n_class) {
   x_shape <- x$get_shape()$as_list()
   k_reshape(x, list(-1, x_shape[[2]], x_shape[[3]],
-                anchors, classes + 5))
+                anchors, n_class + 5))
 }
 
-yolo3_output <- function(inputs, filters, anchors, classes) {
+yolo3_output <- function(inputs, filters, anchors, n_class) {
   input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
   net_out <- input %>%
     darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
-    darknet53_conv2d(strides = 1, filters = anchors * (classes + 5), kernel_size = 1,
+    darknet53_conv2d(strides = 1, filters = anchors * (n_class + 5), kernel_size = 1,
                      batch_normalization = FALSE, leaky_relu = FALSE)
   net_out <- layer_lambda(net_out, f = reshape_yolo3_output,
-                          arguments = list(anchors = anchors, classes = classes))
+                          arguments = list(anchors = anchors, n_class = n_class))
   keras_model(input, net_out)(inputs)
 }
 
-yolo3 <- function(input_shape = 416, channels = 3, classes = 80, anchors_per_grid = 3) {
-  input_img <- layer_input(shape = list(input_shape, input_shape, channels), name = 'input_img')
+yolo3 <- function(image_hw = 416, channels = 3, n_class = 80, anchors_per_grid = 3) {
+  input_img <- layer_input(shape = list(image_hw, image_hw, channels), name = 'input_img')
   darknet <- darknet53()(input_img)
   net_out <- yolo3_conv2d(darknet[[3]], 512)
-  grid_13 <- yolo3_output(net_out, 512, anchors_per_grid, classes)
+  grid_13 <- yolo3_output(net_out, 512, anchors_per_grid, n_class)
   net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256)
-  grid_26 <- yolo3_output(net_out, 256, anchors_per_grid, classes)
+  grid_26 <- yolo3_output(net_out, 256, anchors_per_grid, n_class)
   net_out <- yolo3_conv2d(list(net_out, darknet[[1]]), 128)
-  grid_52 <- yolo3_output(net_out, 128, anchors_per_grid, classes)
+  grid_52 <- yolo3_output(net_out, 128, anchors_per_grid, n_class)
   keras_model(input_img, list(grid_13, grid_26, grid_52))
 }
 
