@@ -28,9 +28,9 @@ transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_thres
 transform_boxes_for_image <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
   grid_h <- dim(preds)[1]
   grid_w <- dim(preds)[2]
-  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% rename(h = Var1, w = Var2) %>%
+  grid_dims <- expand.grid(1:grid_h, 1:grid_w) %>% select(h = Var2, w = Var1) %>%
     mutate(l = 1:(grid_h * grid_w), row = floor((l - 1) / grid_h) , col = (l - 1) %% grid_w)
-  pmap(grid_dims, function(w, h, l, row, col) {
+  pmap(grid_dims, function(h, w, l, row, col) {
     map2(1:anchors_per_grid, anchors, ~ {
       box_data <- preds[h, w, .x, ]
       anchor <- .y
