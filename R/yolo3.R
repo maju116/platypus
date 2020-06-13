@@ -26,45 +26,47 @@ yolo3_conv2d <- function(inputs, filters) {
   keras_model(input, net_out)(inputs)
 }
 
-reshape_yolo3_output <- function(x, anchors, n_class) {
+reshape_yolo3_output <- function(x, anchors_per_grid, n_class) {
   x_shape <- x$get_shape()$as_list()
   k_reshape(x, list(-1, x_shape[[2]], x_shape[[3]],
-                anchors, n_class + 5))
+                    anchors_per_grid, n_class + 5))
 }
 
-yolo3_output <- function(inputs, filters, anchors, n_class) {
+yolo3_output <- function(inputs, filters, anchors_per_grid, n_class) {
   input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
   net_out <- input %>%
     darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
-    darknet53_conv2d(strides = 1, filters = anchors * (n_class + 5), kernel_size = 1,
+    darknet53_conv2d(strides = 1, filters = anchors_per_grid * (n_class + 5), kernel_size = 1,
                      batch_normalization = FALSE, leaky_relu = FALSE)
   net_out <- layer_lambda(net_out, f = reshape_yolo3_output,
-                          arguments = list(anchors = anchors, n_class = n_class))
+                          arguments = list(anchors_per_grid = anchors_per_grid, n_class = n_class))
   keras_model(input, net_out)(inputs)
 }
 
-yolo3 <- function(net_h = 416, net_w = 416, channels = 3, n_class = 80, anchors_per_grid = 3, anchors = coco_anchors) {
+yolo3 <- function(net_h = 416, net_w = 416, grayscale = FALSE, n_class = 80, anchors = coco_anchors) {
+  anchors_per_grid <- length(anchors[[1]])
+  channels <- if (grayscale) 1 else 3
   input_img <- layer_input(shape = list(net_h, net_w, channels), name = 'input_img')
   darknet <- darknet53()(input_img)
   net_out <- yolo3_conv2d(darknet[[3]], 512)
-  grid_13 <- yolo3_output(net_out, 512, anchors_per_grid, n_class)
+  grid_1 <- yolo3_output(net_out, 512, anchors_per_grid, n_class)
   net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256)
-  grid_26 <- yolo3_output(net_out, 256, anchors_per_grid, n_class)
+  grid_2 <- yolo3_output(net_out, 256, anchors_per_grid, n_class)
   net_out <- yolo3_conv2d(list(net_out, darknet[[1]]), 128)
-  grid_52 <- yolo3_output(net_out, 128, anchors_per_grid, n_class)
+  grid_3 <- yolo3_output(net_out, 128, anchors_per_grid, n_class)
 
-  # grid_13_transform <- layer_lambda(grid_13, f = transform_boxes_tf,
+  # grid_1_transform <- layer_lambda(grid_1, f = transform_boxes_tf,
   #                                   arguments = list(anchors = anchors[[1]], n_class = n_class,
   #                                                    net_h = net_h, net_w = net_w))
-  # grid_26_transform <- layer_lambda(grid_26, f = transform_boxes_tf,
+  # grid_2_transform <- layer_lambda(grid_2, f = transform_boxes_tf,
   #                                   arguments = list(anchors = anchors[[2]], n_class = n_class,
   #                                                    net_h = net_h, net_w = net_w))
-  # grid_52_transform <- layer_lambda(grid_52, f = transform_boxes_tf,
+  # grid_3_transform <- layer_lambda(grid_3, f = transform_boxes_tf,
   #                                   arguments = list(anchors = anchors[[3]], n_class = n_class,
   #                                                    net_h = net_h, net_w = net_w))
 
-  keras_model(input_img, list(grid_13, grid_26, grid_52))
+  keras_model(input_img, list(grid_1, grid_2, grid_3))
 }
 
 coco_anchors <- list(

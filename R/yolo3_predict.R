@@ -1,5 +1,7 @@
 sigmoid <- function(x) 1 / (1 + exp(-x))
 
+logit <- function(x) log(x / (1 - x))
+
 get_boxes <- function(preds, anchors, labels, obj_threshold = 0.6,
                       net_h = 416, net_w = 416, nms = TRUE,
                       nms_threshold = 0.6, correct_hw = FALSE,
@@ -75,7 +77,7 @@ intersection_over_union <- function(box1, box2) {
   intersection / union
 }
 
-non_max_suppression <- function(boxes, n_class, nms_threshold = 0.5) {
+non_max_suppression <- function(boxes, n_class, nms_threshold) {
   boxes %>% map(~ {
     images_boxes <- .x
     class_indexes <- 6:(n_class + 5)
