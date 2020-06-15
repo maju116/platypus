@@ -84,7 +84,7 @@ non_max_suppression <- function(boxes, n_class, nms_threshold) {
     combinations_to_check <- class_indexes %>% map(~ {
       index <- .x
       images_boxes %>% keep(~ .x[index] == 1)
-    }) %>% keep(~ length(.x) > 1)
+    }) %>% keep(~ length(.x) >= 1)
     combinations_to_check %>% map(~ {
       current_boxes <- .x
       proba <- current_boxes %>% map_dbl(~ .x[5])
