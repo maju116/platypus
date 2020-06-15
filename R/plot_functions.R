@@ -16,7 +16,7 @@ plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size) {
     image_to_array()
   h <- dim(sample_image)[1]
   w <- dim(sample_image)[2]
-  boxes <- if (correct_hw) correct_boxes(list(boxes), image_h = h, image_w = w)[[1]]
+  boxes <- if (correct_hw) correct_boxes(list(boxes), image_h = h, image_w = w)[[1]] else boxes
   boxes <- boxes %>% mutate(x = 0, y = 0, r = 0, g = 0, b = 0)
   xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
   plot_data <- create_plot_data(xy_axis, sample_image)
