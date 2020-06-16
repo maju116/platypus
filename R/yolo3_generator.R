@@ -79,8 +79,8 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
       mutate(
         center_x = (xmin + xmax) / 2 / net_w * current_grid_w,
         center_y = (ymin + ymax) / 2 / net_h * current_grid_h,
-        t_x = logit(center_x - floor(center_x)),
-        t_y = logit(center_y - floor(center_y)),
+        t_x = logit(center_x - floor(center_x)), # Error?
+        t_y = logit(center_y - floor(center_y)), # Error?
         t_w = log((xmax - xmin) / anchor_w),
         t_h = log((ymax - ymin) / anchor_h),
         sample_id = sample_id
@@ -113,8 +113,8 @@ yolo3_generator <- function(annot_path, images_path, net_h = 416, net_w = 416, g
     cbox <- true_boxes[i, ]
     cgrid_id <- cbox$grid_id
     csample_id <- cbox$sample_id
-    crow <- floor(cbox$center_y)
-    ccol <- floor(cbox$center_x)
+    crow <- floor(cbox$center_y) + 1
+    ccol <- floor(cbox$center_x) + 1
     canchor_id_grid <- cbox$anchor_id_grid
     cbbox <- cbox %>% select(t_x, t_y, t_w, t_h) %>% as.numeric()
     clabel_id <- cbox$label_id
