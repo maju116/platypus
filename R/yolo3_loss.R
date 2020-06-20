@@ -37,8 +37,26 @@ yolo3_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
 
   bbox_scale <- 2 - true_boxes[[1]][ , , , , 3] * true_boxes[[1]][ , , , , 4]
-  obj_mask <- tf$squeeze(true_boxes[[2]], -1)
+  obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
   bbox_loss <- bbox_scale * obj_mask *
     tf$reduce_sum(tf$square(true_boxes[[1]] - pred_boxes[[1]]), axis = as.integer(-1))
+  obj_loss <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
+  obj_loss <- obj_mask * obj_loss  + ( 1 - obj_mask) * obj_loss # * lambda_noobj
+  class_loss <- 0
+  for (cls in 1:n_class) {
+    current_class_true <- tf$expand_dims(true_boxes[[3]][ , , , , cls], axis = as.integer(-1))
+    current_class_false <- 1 - current_class_true
+    current_class <- k_concatenate(list(current_class_true, current_class_false), axis = as.integer(-1))
+    current_class_pred_true <- tf$expand_dims(pred_boxes[[3]][ , , , , cls], axis = as.integer(-1))
+    current_class_pred_false <- 1 - current_class_pred_true
+    current_class_pred <- k_concatenate(list(current_class_pred_true, current_class_pred_false), axis = as.integer(-1))
+    current_class_bc <- tf$keras$losses$binary_crossentropy(current_class, current_class_pred)
+    class_loss <- class_loss + current_class_bc
+  }
 
+  bbox_loss <- tf$reduce_sum(bbox_loss, axis = as.integer(1:3))
+  obj_loss <- tf$reduce_sum(obj_loss, axis = as.integer(1:3))
+  class_loss <- tf$reduce_sum(class_loss, axis = as.integer(1:3))
+  total_loss <- bbox_loss + obj_loss + class_loss
+  total_loss
 }
