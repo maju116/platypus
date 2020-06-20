@@ -53,6 +53,7 @@ yolo3_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold
     current_class_bc <- tf$keras$losses$binary_crossentropy(current_class, current_class_pred)
     class_loss <- class_loss + current_class_bc
   }
+  class_loss <- obj_mask * class_loss
 
   bbox_loss <- tf$reduce_sum(bbox_loss, axis = as.integer(1:3))
   obj_loss <- tf$reduce_sum(obj_loss, axis = as.integer(1:3))
