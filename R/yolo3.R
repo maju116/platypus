@@ -1,4 +1,13 @@
-yolo3_conv2d <- function(inputs, filters) {
+#' Creates a convolutional Yolo3 unit.
+#' @description Creates a convolutional Yolo3 unit.
+#' @import keras
+#' @import tensorflow
+#' @importFrom magrittr %>%
+#' @param input Model or layer object.
+#' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
+#' @param name Model name.
+#' @return Convolutional Yolo3 unit.
+yolo3_conv2d <- function(inputs, filters, name) {
   if (is.list(inputs)) {
     input1 <- layer_input(shape = inputs[[1]]$get_shape()$as_list()[2:4])
     input2 <- layer_input(shape = inputs[[2]]$get_shape()$as_list()[2:4])
@@ -23,16 +32,34 @@ yolo3_conv2d <- function(inputs, filters) {
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
     darknet53_conv2d(strides = 1, filters = filters, kernel_size = 1,
                      batch_normalization = TRUE, leaky_relu = TRUE)
-  keras_model(input, net_out)(inputs)
+  tf$keras$Model(input, net_out, name = name)(inputs)
 }
 
+#' Reshapes Yolo3 output grid.
+#' @description Reshapes Yolo3 output grid from `(S, H, W, anchors_per_grid * (5 + n_class))` to `(S, H, W, anchors_per_grid, 5 + n_class)`.
+#' @import keras
+#' @import tensorflow
+#' @param x Yolo3 grid output layer object.
+#' @param anchors_per_grid Number of anchors/boxes per one output grid.
+#' @param n_class Number of prediction classes.
+#' @return Reshaped Yolo3 output grid.
 reshape_yolo3_output <- function(x, anchors_per_grid, n_class) {
   x_shape <- x$get_shape()$as_list()
   k_reshape(x, list(-1, x_shape[[2]], x_shape[[3]],
                     anchors_per_grid, n_class + 5))
 }
 
-yolo3_output <- function(inputs, filters, anchors_per_grid, n_class) {
+#' Creates Yolo3 output grid.
+#' @description Creates Yolo3 output grid of dimensionality `(S, H, W, anchors_per_grid, 5 + n_class)`.
+#' @import keras
+#' @import tensorflow
+#' @param inputs Models or layer objects.
+#' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
+#' @param anchors_per_grid Number of anchors/boxes per one output grid.
+#' @param n_class Number of prediction classes.
+#' @param name Model name.
+#' @return Yolo3 output grid.
+yolo3_output <- function(inputs, filters, anchors_per_grid, n_class, name) {
   input <- layer_input(shape = inputs$get_shape()$as_list()[2:4])
   net_out <- input %>%
     darknet53_conv2d(strides = 1, filters = filters * 2, kernel_size = 3,
@@ -41,40 +68,48 @@ yolo3_output <- function(inputs, filters, anchors_per_grid, n_class) {
                      batch_normalization = FALSE, leaky_relu = FALSE)
   net_out <- layer_lambda(net_out, f = reshape_yolo3_output,
                           arguments = list(anchors_per_grid = anchors_per_grid, n_class = n_class))
-  keras_model(input, net_out)(inputs)
+  tf$keras$Model(input, net_out, name = name)(inputs)
 }
 
+#' Creates a Yolo3 architecture.
+#' @description Creates a Yolo3 architecture.
+#' @import keras
+#' @import tensorflow
+#' @param net_h Input layer height. Must be divisible by `32`.
+#' @param net_w Input layer width. Must be divisible by `32`.
+#' @param grayscale Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.
+#' @param n_class Number of prediction classes.
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @return Yolo3 model.
+#' @export
 yolo3 <- function(net_h = 416, net_w = 416, grayscale = FALSE, n_class = 80, anchors = coco_anchors) {
   anchors_per_grid <- length(anchors[[1]])
   channels <- if (grayscale) 1 else 3
   input_img <- layer_input(shape = list(net_h, net_w, channels), name = 'input_img')
   darknet <- darknet53()(input_img)
-  net_out <- yolo3_conv2d(darknet[[3]], 512)
-  grid_1 <- yolo3_output(net_out, 512, anchors_per_grid, n_class)
-  net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256)
-  grid_2 <- yolo3_output(net_out, 256, anchors_per_grid, n_class)
-  net_out <- yolo3_conv2d(list(net_out, darknet[[1]]), 128)
-  grid_3 <- yolo3_output(net_out, 128, anchors_per_grid, n_class)
-
-  # grid_1_transform <- layer_lambda(grid_1, f = transform_boxes_tf,
-  #                                   arguments = list(anchors = anchors[[1]], n_class = n_class,
-  #                                                    net_h = net_h, net_w = net_w))
-  # grid_2_transform <- layer_lambda(grid_2, f = transform_boxes_tf,
-  #                                   arguments = list(anchors = anchors[[2]], n_class = n_class,
-  #                                                    net_h = net_h, net_w = net_w))
-  # grid_3_transform <- layer_lambda(grid_3, f = transform_boxes_tf,
-  #                                   arguments = list(anchors = anchors[[3]], n_class = n_class,
-  #                                                    net_h = net_h, net_w = net_w))
-
-  keras_model(input_img, list(grid_1, grid_2, grid_3))
+  net_out <- yolo3_conv2d(darknet[[3]], 512, name = "yolo3_conv1")
+  grid_1 <- yolo3_output(net_out, 512, anchors_per_grid, n_class, name = "grid1")
+  net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256, name = "yolo3_conv2")
+  grid_2 <- yolo3_output(net_out, 256, anchors_per_grid, n_class, name = "grid2")
+  net_out <- yolo3_conv2d(list(net_out, darknet[[1]]), 128, name = "yolo3_conv3")
+  grid_3 <- yolo3_output(net_out, 128, anchors_per_grid, n_class, name = "grid3")
+  tf$keras$Model(input_img, list(grid_1, grid_2, grid_3), name = "yolo3")
 }
 
+#' COCO dataset anchors.
+#' @description COCO dataset anchors.
+#' @return COCO dataset anchors.
+#' @export
 coco_anchors <- list(
   list(c(116, 90), c(156, 198), c(373, 326)),
   list(c(30, 61), c(62, 45), c(59, 119)),
   list(c(10, 13), c(16, 30), c(33, 23))
 )
 
+#' COCO dataset labels.
+#' @description COCO dataset labels.
+#' @return COCO dataset labels.
+#' @export
 coco_labels = c("person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck",
                 "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
                 "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",

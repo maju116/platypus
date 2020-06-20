@@ -1,3 +1,15 @@
+#' Creates a convolutional Darknet53 unit.
+#' @description Creates a convolutional Darknet53 unit.
+#' @import keras
+#' @importFrom magrittr %>%
+#' @importFrom purrr when
+#' @param input Model or layer object.
+#' @param strides An integer or list of 2 integers, specifying the strides of the convolution along the width and height.
+#' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
+#' @param kernel_size An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
+#' @param batch_normalization Should batch normalization be used in the unit.
+#' @param leaky_relu Should leaky ReLU activation function be used in the unit.
+#' @return Convolutional Darknet53 unit.
 darknet53_conv2d <- function(input, strides, filters, kernel_size,
                              batch_normalization = TRUE, leaky_relu = TRUE) {
   input %>%
@@ -12,6 +24,14 @@ darknet53_conv2d <- function(input, strides, filters, kernel_size,
     when(leaky_relu ~ layer_activation_leaky_relu(., alpha = 0.1), ~ .)
 }
 
+#' Creates a residual Darknet53 block.
+#' @description Creates a residual Darknet53 block.
+#' @import keras
+#' @importFrom magrittr %>%
+#' @param input Model or layer object.
+#' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
+#' @param blocks Number of residual blocks.
+#' @return Residual Darknet53 block.
 darknet53_residual_block <- function(input, filters, blocks) {
   net_out <- input %>%
     darknet53_conv2d(strides = 2, filters = filters, kernel_size = 3,
@@ -28,6 +48,13 @@ darknet53_residual_block <- function(input, filters, blocks) {
   net_out
 }
 
+#' Creates a Darknet53 architecture.
+#' @description Creates a Darknet53 architecture.
+#' @import keras
+#' @import tensorflow
+#' @importFrom magrittr %>%
+#' @return Darknet53 model.
+#' @export
 darknet53 <- function() {
   input <- layer_input(shape = list(NULL, NULL, 3))
   net_out <- input %>%
@@ -40,5 +67,5 @@ darknet53 <- function() {
   net_out <- net_out %>% darknet53_residual_block(filters = 512, blocks = 8)
   out2 <- net_out
   net_out <- net_out %>% darknet53_residual_block(filters = 1024, blocks = 4)
-  keras_model(input, list(out1, out2, net_out))
+  tf$keras$Model(input, list(out1, out2, net_out), name = "darknet53")
 }

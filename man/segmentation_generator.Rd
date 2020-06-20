@@ -4,10 +4,19 @@
 \alias{segmentation_generator}
 \title{Generates batches of data (images and masks). The data will be looped over (in batches).}
 \usage{
-segmentation_generator(path, mode = "dir", classes = 2,
-  only_images = FALSE, target_size = c(256, 256), grayscale = FALSE,
-  scale = 1/255, batch_size = 32, shuffle = TRUE,
-  subdirs = c("images", "masks"), column_sep = ";")
+segmentation_generator(
+  path,
+  mode = "dir",
+  classes = 2,
+  only_images = FALSE,
+  target_size = c(256, 256),
+  grayscale = FALSE,
+  scale = 1/255,
+  batch_size = 32,
+  shuffle = TRUE,
+  subdirs = c("images", "masks"),
+  column_sep = ";"
+)
 }
 \arguments{
 \item{path}{Images and masks directory.}

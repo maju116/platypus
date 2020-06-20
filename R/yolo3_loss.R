@@ -23,16 +23,11 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   box_w <- k_exp(box_w) * anchors_tf[[1]] / tf$cast(net_w, tf$float32)
   box_h <- k_exp(box_h) * anchors_tf[[2]] / tf$cast(net_h, tf$float32)
 
-  # box_xmin <- box_x - box_w / 2
-  # box_ymin <- box_y - box_h / 2
-  # box_xmax <- box_x + box_w / 2
-  # box_ymax <- box_y + box_h / 2
-  # bbox <- k_concatenate(list(box_xmin, box_ymin, box_xmax, box_ymax), axis = as.integer(-1))
   bbox <- k_concatenate(list(box_x, box_y, box_w, box_h), axis = as.integer(-1))
   list(bbox, score, class_probs)
 }
 
-yolo3_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold = 0.5) {
+yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold) {
   true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
 
@@ -60,4 +55,14 @@ yolo3_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold
   class_loss <- tf$reduce_sum(class_loss, axis = as.integer(1:3))
   total_loss <- bbox_loss + obj_loss + class_loss
   total_loss
+}
+
+yolo3_loss <- function(anchors, n_class, net_h, net_w, threshold = 0.5) {
+  anchors %>% imap(~ {
+    grid_id <- .y
+    current_anchors <- .x
+    custom_metric(paste0("yolo3_loss_grid", grid_id), function(y_true, y_pred) {
+      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, threshold)
+    })
+  })
 }

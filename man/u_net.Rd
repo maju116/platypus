@@ -4,8 +4,15 @@
 \alias{u_net}
 \title{Creates a U-Net architecture.}
 \usage{
-u_net(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1,
-  batch_normalization = TRUE, kernel_initializer = "he_normal")
+u_net(
+  input_shape,
+  blocks = 4,
+  classes = 2,
+  filters = 16,
+  dropout = 0.1,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
 }
 \arguments{
 \item{input_shape}{Input layer shape (`HxWxC`). `H` and `W` must be equal to `2^x, x - natural`.}
@@ -18,7 +25,7 @@ u_net(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1,
 
 \item{dropout}{Dropout rate.}
 
-\item{batch_normalization}{Shoud batch normalization be used in the block.}
+\item{batch_normalization}{Should batch normalization be used in the block.}
 
 \item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }

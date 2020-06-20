@@ -4,8 +4,13 @@
 \alias{create_images_masks_paths}
 \title{Generates inmages/masks path from selected cofiguration.}
 \usage{
-create_images_masks_paths(path, mode, only_images, subdirs = c("images",
-  "masks"), column_sep = ";")
+create_images_masks_paths(
+  path,
+  mode,
+  only_images,
+  subdirs = c("images", "masks"),
+  column_sep = ";"
+)
 }
 \arguments{
 \item{path}{Images directories or configuration file path.}

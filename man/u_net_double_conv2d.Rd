@@ -4,8 +4,13 @@
 \alias{u_net_double_conv2d}
 \title{Creates a double convolutional U-Net block.}
 \usage{
-u_net_double_conv2d(input, filters, kernel_size,
-  batch_normalization = TRUE, kernel_initializer = "he_normal")
+u_net_double_conv2d(
+  input,
+  filters,
+  kernel_size,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
 }
 \arguments{
 \item{input}{Model or layer object.}
@@ -14,7 +19,7 @@ u_net_double_conv2d(input, filters, kernel_size,
 
 \item{kernel_size}{An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.}
 
-\item{batch_normalization}{Shoud batch normalization be used in the block.}
+\item{batch_normalization}{Should batch normalization be used in the block.}
 
 \item{kernel_initializer}{Initializer for the kernel weights matrix.}
 }
