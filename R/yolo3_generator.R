@@ -19,7 +19,8 @@ generate_empty_grid <- function(batch_size, net_h, net_w, downscale, anchors_per
                           anchors_per_grid, 5 + n_class))
 }
 
-find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors) {
+find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid) {
+  anchors_per_grid <- length(anchors[[1]])
   anchors_boxes <- unlist(anchors, recursive = FALSE) %>% map_df(~ {
     tibble(xmin = 0, ymin = 0, xmax = .x[1], ymax = .[2])
   }) %>% mutate(anchor_id = row_number())
@@ -62,7 +63,7 @@ find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors) {
            anchor_id_grid = if_else(anchor_id_grid == 0, anchors_per_grid, anchor_id_grid))
 }
 
-get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, labels) {
+get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, labels, true_grid) {
   annotations %>% imap_dfr(~ {
     sample_id <- .y
     image_h <- .x$height
@@ -75,7 +76,7 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
              xmax = xmax / image_w * net_w,
              ymax = ymax / image_h * net_h
       ) %>%
-      find_anchors_and_grids_for_true_boxes(anchors) %>%
+      find_anchors_and_grids_for_true_boxes(anchors, true_grid) %>%
       mutate(
         center_x = (xmin + xmax) / 2 / net_w * current_grid_w,
         center_y = (ymin + ymax) / 2 / net_h * current_grid_h,
@@ -91,7 +92,7 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
 
 yolo3_generator <- function(annot_path, images_path, net_h = 416, net_w = 416, grayscale = FALSE,
                             n_class = 80, anchors = coco_anchors, labels = coco_labels,
-                            batch_size = 3, shuffle = TRUE) {
+                            batch_size = 32, shuffle = TRUE) {
   anchors_per_grid <- length(anchors[[1]])
   downscale_grid <- c(32, 16, 8)
   annot_paths <- list.files(annot_path, pattern = ".xml$", full.names = TRUE)
@@ -103,23 +104,24 @@ yolo3_generator <- function(annot_path, images_path, net_h = 416, net_w = 416, g
       indices <- c(i:min(i + batch_size - 1, length(annot_paths)))
       i <<- if (i + batch_size > length(annot_paths)) 1 else i + length(indices)
     }
-  }
-  true_grid <- downscale_grid %>% map(~ {
-    generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)
-  })
-  annotations <- read_annotations_from_xml(annot_paths, indices, images_path)
-  true_boxes <- get_true_boxes_from_annotations(annotations, net_h, net_w, anchors, labels)
-  for (i in 1:nrow(true_boxes)) {
-    cbox <- true_boxes[i, ]
-    cgrid_id <- cbox$grid_id
-    csample_id <- cbox$sample_id
-    crow <- floor(cbox$center_y) + 1
-    ccol <- floor(cbox$center_x) + 1
-    canchor_id_grid <- cbox$anchor_id_grid
-    cbbox <- cbox %>% select(t_x, t_y, t_w, t_h) %>% as.numeric()
-    clabel_id <- cbox$label_id
-    true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 1:4] <- cbbox
-    true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5] <- 1
-    true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5 + clabel_id] <- 1
+    true_grid <- downscale_grid %>% map(~ {
+      generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)
+    })
+    annotations <- read_annotations_from_xml(annot_paths, indices, images_path)
+    true_boxes <- get_true_boxes_from_annotations(annotations, net_h, net_w, anchors, labels, true_grid)
+    for (i in 1:nrow(true_boxes)) {
+      cbox <- true_boxes[i, ]
+      cgrid_id <- cbox$grid_id
+      csample_id <- cbox$sample_id
+      crow <- floor(cbox$center_y) + 1
+      ccol <- floor(cbox$center_x) + 1
+      canchor_id_grid <- cbox$anchor_id_grid
+      cbbox <- cbox %>% select(t_x, t_y, t_w, t_h) %>% as.numeric()
+      clabel_id <- cbox$label_id
+      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 1:4] <- cbbox
+      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5] <- 1
+      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5 + clabel_id] <- 1
+    }
+    true_grid
   }
 }
