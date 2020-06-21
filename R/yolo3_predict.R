@@ -88,7 +88,8 @@ transform_boxes_for_grid <- function(preds, anchors, n_class, anchors_per_grid, 
         box_data[3] <- anchor[1] * exp(box_data[3]) / net_w
         box_data[4] <- anchor[2] * exp(box_data[4]) / net_h
         box_data[5] <- sigmoid(box_data[5])
-        box_data[6:length(box_data)] <- (box_data[5] * sigmoid(box_data[6:length(box_data)])) > obj_threshold
+        box_data[6:length(box_data)] <- box_data[5] * sigmoid(box_data[6:length(box_data)])
+        box_data[6:length(box_data)] <- (box_data[6:length(box_data)] == max(box_data[6:length(box_data)])) & (box_data[6:length(box_data)] > obj_threshold)
         xmin <- box_data[1] - box_data[3] / 2
         ymin <- box_data[2] - box_data[4] / 2
         xmax <- box_data[1] + box_data[3] / 2
@@ -145,11 +146,11 @@ non_max_suppression <- function(boxes, n_class, nms_threshold) {
     combinations_to_check <- class_indexes %>% map(~ {
       index <- .x
       images_boxes %>% keep(~ .x[index] == 1)
-    }) %>% keep(~ length(.x) > 1) # To fix
+    }) %>% keep(~ length(.x) >= 1)
     combinations_to_check %>% map(~ {
       current_boxes <- .x
       proba <- current_boxes %>% map_dbl(~ .x[5])
-      combinations <- expand.grid(1:length(.x), 1:length(.x)) %>%
+      combinations <- expand.grid(1:length(current_boxes), 1:length(current_boxes)) %>%
         rename(box1 = Var1, box2 = Var2)
       IoU <- combinations %>% pmap_dbl(function(box1, box2) {
         intersection_over_union(current_boxes[[box1]], current_boxes[[box2]])
