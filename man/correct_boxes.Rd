@@ -7,6 +7,8 @@
 correct_boxes(boxes, image_h, image_w)
 }
 \arguments{
+\item{boxes}{`data.frame` with bounding boxes.}
+
 \item{image_h}{Rescaling factor for `ymin/ymax` box coordinates.}
 
 \item{image_w}{Rescaling factor for `xmin/xmax` box coordinates.}

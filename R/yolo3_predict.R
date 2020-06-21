@@ -12,8 +12,8 @@ sigmoid <- function(x) 1 / (1 + exp(-x))
 #' @export
 logit <- function(x) log(x / (1 - x))
 
-#' Transforms Yolo3 predictions into valid boxes.
-#' @description Transforms Yolo3 predictions into valid boxes.
+#' Transforms `Yolo3` predictions into valid boxes.
+#' @description Transforms `Yolo3` predictions into valid boxes.
 #' @param preds \code{\link[platypus]{yolo3}} model predictions.
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
@@ -40,8 +40,8 @@ get_boxes <- function(preds, anchors, labels, obj_threshold = 0.6,
     when(correct_hw ~ correct_boxes(., image_h, image_w), ~ .)
 }
 
-#' Transforms Yolo3 predictions into valid box coordinates/scores.
-#' @description Transforms Yolo3 predictions into valid box coordinates/scores.
+#' Transforms `Yolo3` predictions into valid box coordinates/scores.
+#' @description Transforms `Yolo3` predictions into valid box coordinates/scores.
 #' @param preds \code{\link[platypus]{yolo3}} model predictions.
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
@@ -63,8 +63,9 @@ transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_thres
   })
 }
 
-#' Transforms Yolo3 predictions into valid box coordinates/scores.
-#' @description Transforms Yolo3 predictions into valid box coordinates/scores.
+#' Transforms `Yolo3` predictions into valid box coordinates/scores.
+#' @description Transforms `Yolo3` predictions into valid box coordinates/scores.
+#' @importFrom purrr keep map2 pmap
 #' @param preds \code{\link[platypus]{yolo3}} model predictions (from one grid).
 #' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
@@ -184,9 +185,10 @@ clean_boxes <- function(boxes, labels) {
 
 #' Rescales boxes.
 #' @description Rescales boxes. `xmin/xmax` coordinates are multiplied by `image_w` and `ymin/ymax` coordinates are multiplied by `image_h`.
-#' @return Rescaled bounding boxes.
+#' @param boxes `data.frame` with bounding boxes.
 #' @param image_h Rescaling factor for `ymin/ymax` box coordinates.
 #' @param image_w Rescaling factor for `xmin/xmax` box coordinates.
+#' @return Rescaled bounding boxes.
 #' @export
 correct_boxes <- function(boxes, image_h, image_w) {
   boxes %>% map(~ {

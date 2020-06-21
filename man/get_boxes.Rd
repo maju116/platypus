@@ -2,7 +2,7 @@
 % Please edit documentation in R/yolo3_predict.R
 \name{get_boxes}
 \alias{get_boxes}
-\title{Transforms Yolo3 predictions into valid boxes.}
+\title{Transforms `Yolo3` predictions into valid boxes.}
 \usage{
 get_boxes(
   preds,
@@ -45,5 +45,5 @@ get_boxes(
 List of `data.frames` containing bounding box coordinates and objectness/class scores.
 }
 \description{
-Transforms Yolo3 predictions into valid boxes.
+Transforms `Yolo3` predictions into valid boxes.
 }

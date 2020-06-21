@@ -27,6 +27,8 @@ read_annotations_from_xml <- function(annot_paths, indices, images_path) {
 #' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param downscale Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.
+#' @param anchors_per_grid Number of anchors/boxes per one output grid.
+#' @param n_class Number of prediction classes.
 #' @return Empty output `Yolo3` grid.
 generate_empty_grid <- function(batch_size, net_h, net_w, downscale, anchors_per_grid, n_class) {
   array(data = 0, dim = c(batch_size, net_h / downscale, net_w / downscale,
@@ -35,10 +37,11 @@ generate_empty_grid <- function(batch_size, net_h, net_w, downscale, anchors_per
 
 #' Finds best anchors and output grid coordinates for true bounding box coordinates.
 #' @description Finds best anchors and output grid coordinates for true bounding box coordinates.
-#' @param batch_size Batch size.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param downscale Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.
+#' @importFrom purrr map_df pmap_df
+#' @importFrom dplyr mutate row_number select filter bind_cols if_else
+#' @importFrom tibble tibble
+#' @param true_boxes True bounding box coordinates.
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param true_grid `Yolo3` output grids.
 #' @return `data.frame` with best anchors and output grid coordinates for true bounding box coordinates.
 find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid) {
@@ -87,6 +90,7 @@ find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid
 
 #' Calculates true bounding box coordinates from annotations.
 #' @description Calculates true bounding box coordinates from annotations.
+#' @importFrom purrr imap_dfr
 #' @param annotations Annotations.
 #' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.

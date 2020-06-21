@@ -21,6 +21,10 @@ generate_empty_grid(
 \item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{downscale}{Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.}
+
+\item{anchors_per_grid}{Number of anchors/boxes per one output grid.}
+
+\item{n_class}{Number of prediction classes.}
 }
 \value{
 Empty output `Yolo3` grid.

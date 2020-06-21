@@ -7,15 +7,11 @@
 find_anchors_and_grids_for_true_boxes(true_boxes, anchors, true_grid)
 }
 \arguments{
+\item{true_boxes}{True bounding box coordinates.}
+
+\item{anchors}{Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.}
+
 \item{true_grid}{`Yolo3` output grids.}
-
-\item{batch_size}{Batch size.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{downscale}{Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.}
 }
 \value{
 `data.frame` with best anchors and output grid coordinates for true bounding box coordinates.

@@ -7,11 +7,11 @@
 yolo3_conv2d(inputs, filters, name)
 }
 \arguments{
+\item{inputs}{Models or layer objects.}
+
 \item{filters}{Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).}
 
 \item{name}{Model name.}
-
-\item{input}{Model or layer object.}
 }
 \value{
 Convolutional Yolo3 unit.

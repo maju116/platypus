@@ -1,3 +1,14 @@
+#' Transforms `Yolo3` predictions into valid box coordinates/scores.
+#' @description Transforms `Yolo3` predictions into valid box coordinates/scores.
+#' @import tensorflow
+#' @import keras
+#' @param preds \code{\link[platypus]{yolo3}} model predictions (from one grid).
+#' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param n_class Number of prediction classes.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param transform_proba Logical. Should the score/class probabilities be transformed.
+#' @return Transformed bounding box coordinates/scores.
 transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_proba = TRUE) {
   grid_h <- preds$get_shape()$as_list()[[2]]
   grid_w <- preds$get_shape()$as_list()[[3]]
@@ -27,7 +38,20 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   list(bbox, score, class_probs)
 }
 
-yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, threshold) {
+#' Calculates loss for one `Yolo3` grid.
+#' @description Calculates loss for one `Yolo3` grid.
+#' @import tensorflow
+#' @import keras
+#' @param y_true Tensor of true coordinates/scores.
+#' @param y_pred Tensor of predicted coordinates/scores.
+#' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param n_class Number of prediction classes.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param nonobj_threshold Non-object ignore threshold.
+#' @return Loss for one `Yolo3` grid.
+#' @export
+yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nonobj_threshold) {
   true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
 
@@ -57,12 +81,22 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, thre
   total_loss
 }
 
-yolo3_loss <- function(anchors, n_class, net_h, net_w, threshold = 0.5) {
+#' Generates `Yolo3` loss function.
+#' @description Generates `Yolo3` loss function.
+#' @importFrom purrr imap
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param n_class Number of prediction classes.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param nonobj_threshold Non-object ignore threshold.
+#' @return `Yolo3` loss function.
+#' @export
+yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
   anchors %>% imap(~ {
     grid_id <- .y
     current_anchors <- .x
     custom_metric(paste0("yolo3_loss_grid", grid_id), function(y_true, y_pred) {
-      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, threshold)
+      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, nonobj_threshold)
     })
   })
 }

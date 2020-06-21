@@ -2,7 +2,7 @@
 % Please edit documentation in R/yolo3_predict.R
 \name{transform_boxes}
 \alias{transform_boxes}
-\title{Transforms Yolo3 predictions into valid box coordinates/scores.}
+\title{Transforms `Yolo3` predictions into valid box coordinates/scores.}
 \usage{
 transform_boxes(
   preds,
@@ -33,5 +33,5 @@ transform_boxes(
 List of box coordinates/scores.
 }
 \description{
-Transforms Yolo3 predictions into valid box coordinates/scores.
+Transforms `Yolo3` predictions into valid box coordinates/scores.
 }

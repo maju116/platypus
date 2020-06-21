@@ -1,3 +1,8 @@
+#' Transforms pixel `array` into `data.frame` with raster data.
+#' @description Transforms pixel `array` into `data.frame` with raster data.
+#' @param xy_axis `x` and `y` image grid.
+#' @param sample_image Pixel `array`.
+#' @return  `data.frame` with raster data.
 create_plot_data <- function(xy_axis, sample_image){
   cbind(xy_axis,
         r = as.vector(t(sample_image[, , 1])) / 255,
@@ -5,12 +10,27 @@ create_plot_data <- function(xy_axis, sample_image){
         b = as.vector(t(sample_image[, , 3])) / 255)
 }
 
+#' Generates raster image.
+#' @description Generates raster image.
+#' @import ggplot2
+#' @importFrom grDevices rgb
+#' @param plot_data `data.frame` with `x`, `y` coordinates and color values.
+#' @return  Raster image.
 plot_rgb_raster <- function(plot_data){
   ggplot(plot_data, aes(x, y, fill = rgb(r, g, b))) +
     guides(fill = FALSE) + scale_fill_identity() + theme_void() +
     geom_raster(hjust = 0, vjust = 0)
 }
 
+#' Generates raster image with bounding boxes.
+#' @description Generates raster image with bounding boxes.
+#' @import ggplot2
+#' @importFrom dplyr rename
+#' @param image_path Image filepath.
+#' @param boxes `data.frame` with bounding boxes corresponding to the image.
+#' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied.
+#' @param target_size Image target size.
+#' @return  Raster image with bounding boxes.
 plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size) {
   sample_image <- image_load(image_path, target_size = target_size) %>%
     image_to_array()
@@ -28,6 +48,15 @@ plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size) {
   plot(p)
 }
 
+#' Generates raster images with bounding boxes.
+#' @description Generates raster images with bounding boxes.
+#' @importFrom purrr walk2
+#' @param images_paths Image filepaths.
+#' @param boxes List of `data.frames` with bounding boxes corresponding to the images.
+#' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied.
+#' @param target_size Image target size.
+#' @return  Raster images with bounding boxes.
+#' @export
 plot_boxes <- function(images_paths, boxes, correct_hw = TRUE, target_size = NULL) {
   walk2(images_paths, boxes, ~ plot_boxes_ggplot(.x, .y, correct_hw, target_size))
 }

@@ -3,7 +3,7 @@
 #' @import keras
 #' @import tensorflow
 #' @importFrom magrittr %>%
-#' @param input Model or layer object.
+#' @param inputs Models or layer objects.
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param name Model name.
 #' @return Convolutional Yolo3 unit.
