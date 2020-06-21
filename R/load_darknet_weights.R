@@ -1,7 +1,20 @@
-read_darknet_weights <- function(model, weights_path = "development/yolov3.weights") {
+#' Loads `Yolo3 Darknet` (https://pjreddie.com/darknet/yolo/) weights into \code{\link[platypus]{yolo3}} model.
+#' @description Loads `Yolo3 Darknet` (https://pjreddie.com/darknet/yolo/) weights into \code{\link[platypus]{yolo3}} model.
+#' @import keras
+#' @import progress
+#' @importFrom purrr map_chr
+#' @param model \code{\link[platypus]{yolo3}} model.
+#' @param weights_path Filepath to weights file (You can download valid weights file from "https://pjreddie.com/media/files/yolov3.weights").
+#' @return \code{\link[platypus]{yolo3}} model with pretrained weights.
+#' @export
+load_darknet_weights <- function(model, weights_path) {
   pb <- progress_bar$new(total = 75)
   submodels <- model$layers %>% map_chr(~ .$name) %>% .[c(2, 3, 6, 4, 7, 5, 8)]
-  darknet_weights_file <- file(weights_path, "rb")
+  if (file.exists(weights_path)) {
+    darknet_weights_file <-  file(weights_path, "rb")
+  } else {
+    stop("The 'weights_path' file does not exist!")
+  }
   config <- readBin(darknet_weights_file, integer(), n = 5, endian = "little", size = 4)
   darknet_weights <- readBin(darknet_weights_file, double(), n = 62001757, endian = "little", size = 4)
   ind <- 1

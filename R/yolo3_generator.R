@@ -1,3 +1,10 @@
+#' Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
+#' @description Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
+#' @param annot_paths List to XML annotations filepaths.
+#' @param indices Indices specifying which files to read. If `NULL` all files are loaded.
+#' @param images_path Path to directory with images.
+#' @return List of bounding box coordinates, heights, widths and image filepaths.
+#' @export
 read_annotations_from_xml <- function(annot_paths, indices, images_path) {
   indices <- if (is.null(indices)) 1:length(paths) else indices
   annot_paths[indices] %>%
@@ -14,11 +21,26 @@ read_annotations_from_xml <- function(annot_paths, indices, images_path) {
     })
 }
 
+#' Creates empty output `Yolo3` grid.
+#' @description Creates empty output `Yolo3` grid.
+#' @param batch_size Batch size.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param downscale Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.
+#' @return Empty output `Yolo3` grid.
 generate_empty_grid <- function(batch_size, net_h, net_w, downscale, anchors_per_grid, n_class) {
   array(data = 0, dim = c(batch_size, net_h / downscale, net_w / downscale,
                           anchors_per_grid, 5 + n_class))
 }
 
+#' Finds best anchors and output grid coordinates for true bounding box coordinates.
+#' @description Finds best anchors and output grid coordinates for true bounding box coordinates.
+#' @param batch_size Batch size.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param downscale Integer specifying how to downscale `net_h` and `net_w`. For `Yolo3` output grids equal do `32`, `16` and `8`.
+#' @param true_grid `Yolo3` output grids.
+#' @return `data.frame` with best anchors and output grid coordinates for true bounding box coordinates.
 find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid) {
   anchors_per_grid <- length(anchors[[1]])
   anchors_boxes <- unlist(anchors, recursive = FALSE) %>% map_df(~ {
@@ -63,6 +85,15 @@ find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid
            anchor_id_grid = if_else(anchor_id_grid == 0, anchors_per_grid, anchor_id_grid))
 }
 
+#' Calculates true bounding box coordinates from annotations.
+#' @description Calculates true bounding box coordinates from annotations.
+#' @param annotations Annotations.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
+#' @param true_grid `Yolo3` output grids.
+#' @return `data.frame` with best anchors and output grid coordinates for true bounding box coordinates.
 get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, labels, true_grid) {
   annotations %>% imap_dfr(~ {
     sample_id <- .y
@@ -90,7 +121,26 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
   })
 }
 
-yolo3_generator <- function(annot_path, images_path, net_h = 416, net_w = 416, grayscale = FALSE,
+#' Generates batches of data (images and box coordinates/scores). The data will be looped over (in batches).
+#' @description Generates batches of data (images and box coordinates/scores). The data will be looped over (in batches).
+#' @import keras
+#' @importFrom abind abind
+#' @importFrom purrr map
+#' @param annot_path Annotations directory.
+#' @param images_path Images directory.
+#' @param only_images Should generator read only images (e.g. on train set for predictions).
+#' @param net_h Input layer height. Must be divisible by `32`.
+#' @param net_w Input layer width. Must be divisible by `32`.
+#' @param grayscale Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.
+#' @param scale Scaling factor for images pixel values. Default to `1 / 255`.
+#' @param n_class Number of prediction classes.
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
+#' @param batch_size Batch size.
+#' @param shuffle Should data be shuffled.
+#' @export
+yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h = 416, net_w = 416,
+                            grayscale = FALSE, scale = 1 / 255,
                             n_class = 80, anchors = coco_anchors, labels = coco_labels,
                             batch_size = 32, shuffle = TRUE) {
   anchors_per_grid <- length(anchors[[1]])
@@ -104,24 +154,30 @@ yolo3_generator <- function(annot_path, images_path, net_h = 416, net_w = 416, g
       indices <- c(i:min(i + batch_size - 1, length(annot_paths)))
       i <<- if (i + batch_size > length(annot_paths)) 1 else i + length(indices)
     }
-    true_grid <- downscale_grid %>% map(~ {
-      generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)
-    })
     annotations <- read_annotations_from_xml(annot_paths, indices, images_path)
-    true_boxes <- get_true_boxes_from_annotations(annotations, net_h, net_w, anchors, labels, true_grid)
-    for (i in 1:nrow(true_boxes)) {
-      cbox <- true_boxes[i, ]
-      cgrid_id <- cbox$grid_id
-      csample_id <- cbox$sample_id
-      crow <- floor(cbox$center_y) + 1
-      ccol <- floor(cbox$center_x) + 1
-      canchor_id_grid <- cbox$anchor_id_grid
-      cbbox <- cbox %>% select(t_x, t_y, t_w, t_h) %>% as.numeric()
-      clabel_id <- cbox$label_id
-      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 1:4] <- cbbox
-      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5] <- 1
-      true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5 + clabel_id] <- 1
+    if (!only_images) {
+      true_grid <- downscale_grid %>% map(~ {
+        generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)
+      })
+      true_boxes <- get_true_boxes_from_annotations(annotations, net_h, net_w, anchors, labels, true_grid)
+      for (i in 1:nrow(true_boxes)) {
+        cbox <- true_boxes[i, ]
+        cgrid_id <- cbox$grid_id
+        csample_id <- cbox$sample_id
+        crow <- floor(cbox$center_y) + 1
+        ccol <- floor(cbox$center_x) + 1
+        canchor_id_grid <- cbox$anchor_id_grid
+        cbbox <- cbox %>% select(t_x, t_y, t_w, t_h) %>% as.numeric()
+        clabel_id <- cbox$label_id
+        true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 1:4] <- cbbox
+        true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5] <- 1
+        true_grid[[cgrid_id]][csample_id, crow, ccol, canchor_id_grid, 5 + clabel_id] <- 1
+      }
     }
-    true_grid
+    images_paths <- annotations %>% map(~ .$filename)
+    images <- images_paths %>% map(~ image_to_array(image_load(.x, grayscale = grayscale,
+                                                               target_size = c(net_h, net_w))) * scale) %>%
+      abind(along = 4) %>% aperm(c(4, 1, 2, 3))
+    if (!only_images) list(images, true_grid) else list(images)
   }
 }

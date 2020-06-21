@@ -19,8 +19,8 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
   }) %>% abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 }
 
-#' Generates inmages/masks path from selected cofiguration.
-#' @description Generates inmages/masks path from selected cofiguration.
+#' Generates images/masks path from selected configuration.
+#' @description Generates images/masks path from selected cofiguration.
 #' @importFrom purrr map
 #' @importFrom readr read_csv
 #' @param path Images directories or configuration file path.

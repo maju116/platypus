@@ -2,7 +2,7 @@
 % Please edit documentation in R/segmentation_generator.R
 \name{create_images_masks_paths}
 \alias{create_images_masks_paths}
-\title{Generates inmages/masks path from selected cofiguration.}
+\title{Generates images/masks path from selected configuration.}
 \usage{
 create_images_masks_paths(
   path,
@@ -24,5 +24,5 @@ create_images_masks_paths(
 \item{column_sep}{Character. Configuration file separator.}
 }
 \description{
-Generates inmages/masks path from selected cofiguration.
+Generates images/masks path from selected cofiguration.
 }
