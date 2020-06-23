@@ -66,12 +66,12 @@ calculate_iou <- function(pred_boxes, true_boxes) {
 #' @param true_boxes Tensor of true coordinates.
 #' @return Max IoU between true and predicted boxes.
 get_max_boxes_iou <- function(pred_boxes, true_boxes) {
-  pred_boxes = tf$expand_dims(pred_boxes, as.integer(-2))
-  true_boxes = tf$expand_dims(true_boxes, as.integer(0))
+  pred_boxes <- tf$expand_dims(pred_boxes, as.integer(-2))
+  true_boxes <- tf$expand_dims(true_boxes, as.integer(0))
 
-  new_shape = tf$broadcast_dynamic_shape(tf$shape(pred_boxes), tf$shape(true_boxes))
-  pred_boxes = tf$broadcast_to(pred_boxes, new_shape)
-  true_boxes = tf$broadcast_to(true_boxes, new_shape)
+  new_shape <- tf$broadcast_dynamic_shape(tf$shape(pred_boxes), tf$shape(true_boxes))
+  pred_boxes <- tf$broadcast_to(pred_boxes, new_shape)
+  true_boxes <- tf$broadcast_to(true_boxes, new_shape)
 
   calculate_iou(pred_boxes, true_boxes)
 }
@@ -102,7 +102,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
     get_max_boxes_iou(x[[1]],
                          tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
     list(pred_boxes[[1]], true_boxes[[1]], obj_mask), tf$float32)
-  ignore_mask = tf$cast(max_iou < nonobj_threshold, tf$float32)
+  ignore_mask <- tf$cast(max_iou < nonobj_threshold, tf$float32)
   obj_loss_bc <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
   obj_loss <- obj_mask * obj_loss_bc
   noobj_loss <- (1 - obj_mask) * obj_loss_bc * ignore_mask
