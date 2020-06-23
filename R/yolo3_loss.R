@@ -46,12 +46,12 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
 #' @param true_boxes Tensor of true coordinates.
 #' @return IoU between true and predicted boxes.
 calculate_iou <- function(pred_boxes, true_boxes) {
-  intersection_w = tf$maximum(tf$minimum(pred_boxes[ , , , , 3], true_boxes[ , , , , 3]) -
+  intersection_w <- tf$maximum(tf$minimum(pred_boxes[ , , , , 3], true_boxes[ , , , , 3]) -
                                 tf$maximum(pred_boxes[ , , , , 1], true_boxes[ , , , , 1]), 0)
-  intersection_h = tf$maximum(tf$minimum(pred_boxes[ , , , , 4], true_boxes[ , , , , 4]) -
+  intersection_h <- tf$maximum(tf$minimum(pred_boxes[ , , , , 4], true_boxes[ , , , , 4]) -
                                 tf$maximum(pred_boxes[ , , , , 2], true_boxes[ , , , , 2]), 0)
-  intersection_area = intersection_w * intersection_h
-  pred_boxes_area = (pred_boxes[ , , , , 3] - pred_boxes[ , , , , 1]) *
+  intersection_area <- intersection_w * intersection_h
+  pred_boxes_area <- (pred_boxes[ , , , , 3] - pred_boxes[ , , , , 1]) *
     (pred_boxes[ , , , , 4] - pred_boxes[ , , , , 2])
   true_boxes_area = (true_boxes[ , , , , 3] - true_boxes[ , , , , 1]) *
     (true_boxes[ , , , , 4] - true_boxes[ , , , , 2])
@@ -145,7 +145,7 @@ yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
     custom_metric(paste0("yolo3_loss_grid", grid_id), function(y_true, y_pred) {
       yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, nonobj_threshold)
     })
-  })
+  }) %>% set_names(paste0("grid", 1:3))
 }
 
 #' Calculates IoU metric for one `Yolo3` grid.
@@ -166,12 +166,12 @@ yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
 
   obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
   iou <- calculate_iou(pred_boxes[[1]], true_boxes[[1]]) * obj_mask
-  tf$reduce_sum(iou, axis = as.integer(1:3))
+  tf$reduce_sum(iou, axis = as.integer(1:3)) + tf$cast(tf$reduce_sum(obj_mask, axis = as.integer(1:3)) == 0, tf$float32)
 }
 
 #' Generates `Yolo3` IoU metric function.
 #' @description Generates `Yolo3` IoU metric function.
-#' @importFrom purrr imap
+#' @importFrom purrr map set_names
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
 #' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
@@ -179,11 +179,10 @@ yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
 #' @return `Yolo3` IoU metric function.
 #' @export
 yolo3_metrics <- function(anchors, n_class, net_h, net_w) {
-  anchors %>% imap(~ {
-    grid_id <- .y
+  anchors %>% map(~ {
     current_anchors <- .x
-    custom_metric(paste0("yolo3_iou_grid", grid_id), function(y_true, y_pred) {
+    custom_metric("IoU", function(y_true, y_pred) {
       yolo3_grid_iou(y_true, y_pred, current_anchors, n_class, net_h, net_w)
     })
-  })
+  }) %>% set_names(paste0("grid", 1:3))
 }
