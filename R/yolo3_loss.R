@@ -38,6 +38,20 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   list(bbox, score, class_probs)
 }
 
+#' Transforms boxes to min/max coordinates.
+#' @description Transforms boxes to min/max coordinates.
+#' @import tensorflow
+#' @import keras
+#' @param box Boxes coordinates.
+#' @return Boxes min/max coordinates.
+transform_box_to_min_max <- function(box) {
+  box_xmin <- tf$expand_dims(box[ , , , , 1] - box[ , , , , 3] / 2, axis = as.integer(-1))
+  box_ymin <- tf$expand_dims(box[ , , , , 2] - box[ , , , , 4] / 2, axis = as.integer(-1))
+  box_xmax <- tf$expand_dims(box[ , , , , 1] + box[ , , , , 3] / 2, axis = as.integer(-1))
+  box_ymax <- tf$expand_dims(box[ , , , , 2] + box[ , , , , 4] / 2, axis = as.integer(-1))
+  k_concatenate(list(box_xmin, box_ymin, box_xmax, box_ymax), axis = as.integer(-1))
+}
+
 #' Calculates boxes IoU.
 #' @description Calculates boxes IoU.
 #' @import tensorflow
@@ -92,6 +106,8 @@ get_max_boxes_iou <- function(pred_boxes, true_boxes) {
 yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nonobj_threshold) {
   true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
+  true_boxes_min_max <- transform_box_to_min_max(true_boxes[[1]])
+  pred_boxes_min_max <- transform_box_to_min_max(pred_boxes[[1]])
 
   bbox_scale <- 2 - true_boxes[[1]][ , , , , 3] * true_boxes[[1]][ , , , , 4]
   obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
@@ -101,7 +117,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
   max_iou <- tf$map_fn(function(x) tf$reduce_max(
     get_max_boxes_iou(x[[1]],
                          tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
-    list(pred_boxes[[1]], true_boxes[[1]], obj_mask), tf$float32)
+    list(pred_boxes_min_max, true_boxes_min_max, obj_mask), tf$float32)
   ignore_mask <- tf$cast(max_iou < nonobj_threshold, tf$float32)
   obj_loss_bc <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
   obj_loss <- obj_mask * obj_loss_bc
@@ -163,10 +179,13 @@ yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
 yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
   true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
+  true_boxes_min_max <- transform_box_to_min_max(true_boxes[[1]])
+  pred_boxes_min_max <- transform_box_to_min_max(pred_boxes[[1]])
 
   obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
-  iou <- calculate_iou(pred_boxes[[1]], true_boxes[[1]]) * obj_mask
-  tf$reduce_sum(iou, axis = as.integer(1:3)) + tf$cast(tf$reduce_sum(obj_mask, axis = as.integer(1:3)) == 0, tf$float32)
+  iou <- calculate_iou(pred_boxes_min_max, true_boxes_min_max) * obj_mask
+  mean_iou <- tf$reduce_sum(iou, axis = as.integer(1:3)) / tf$reduce_sum(obj_mask, axis = as.integer(1:3))
+  tf$where(tf$math$is_nan(mean_iou), tf$ones_like(mean_iou), mean_iou)
 }
 
 #' Generates `Yolo3` IoU metric function.
@@ -181,7 +200,7 @@ yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
 yolo3_metrics <- function(anchors, n_class, net_h, net_w) {
   anchors %>% map(~ {
     current_anchors <- .x
-    custom_metric("IoU", function(y_true, y_pred) {
+    custom_metric("avg_IoU", function(y_true, y_pred) {
       yolo3_grid_iou(y_true, y_pred, current_anchors, n_class, net_h, net_w)
     })
   }) %>% set_names(paste0("grid", 1:3))
