@@ -38,21 +38,14 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   list(bbox, score, class_probs)
 }
 
-#' Compares boxes by IoU.
-#' @description Compares boxes by IoU.
+#' Calculates boxes IoU.
+#' @description Calculates boxes IoU.
 #' @import tensorflow
 #' @import keras
 #' @param pred_boxes Tensor of predicted coordinates.
 #' @param true_boxes Tensor of true coordinates.
-#' @return Max IoU between true and predicted boxes.
-compare_boxes_by_iou <- function(pred_boxes, true_boxes) {
-  pred_boxes = tf$expand_dims(pred_boxes, as.integer(-2))
-  true_boxes = tf$expand_dims(true_boxes, as.integer(0))
-
-  new_shape = tf$broadcast_dynamic_shape(tf$shape(pred_boxes), tf$shape(true_boxes))
-  pred_boxes = tf$broadcast_to(pred_boxes, new_shape)
-  true_boxes = tf$broadcast_to(true_boxes, new_shape)
-
+#' @return IoU between true and predicted boxes.
+calculate_iou <- function(pred_boxes, true_boxes) {
   intersection_w = tf$maximum(tf$minimum(pred_boxes[ , , , , 3], true_boxes[ , , , , 3]) -
                                 tf$maximum(pred_boxes[ , , , , 1], true_boxes[ , , , , 1]), 0)
   intersection_h = tf$maximum(tf$minimum(pred_boxes[ , , , , 4], true_boxes[ , , , , 4]) -
@@ -63,6 +56,24 @@ compare_boxes_by_iou <- function(pred_boxes, true_boxes) {
   true_boxes_area = (true_boxes[ , , , , 3] - true_boxes[ , , , , 1]) *
     (true_boxes[ , , , , 4] - true_boxes[ , , , , 2])
   intersection_area / (pred_boxes_area + true_boxes_area - intersection_area)
+}
+
+#' Compares boxes by IoU.
+#' @description Compares boxes by IoU.
+#' @import tensorflow
+#' @import keras
+#' @param pred_boxes Tensor of predicted coordinates.
+#' @param true_boxes Tensor of true coordinates.
+#' @return Max IoU between true and predicted boxes.
+get_max_boxes_iou <- function(pred_boxes, true_boxes) {
+  pred_boxes = tf$expand_dims(pred_boxes, as.integer(-2))
+  true_boxes = tf$expand_dims(true_boxes, as.integer(0))
+
+  new_shape = tf$broadcast_dynamic_shape(tf$shape(pred_boxes), tf$shape(true_boxes))
+  pred_boxes = tf$broadcast_to(pred_boxes, new_shape)
+  true_boxes = tf$broadcast_to(true_boxes, new_shape)
+
+  calculate_iou(pred_boxes, true_boxes)
 }
 
 #' Calculates loss for one `Yolo3` grid.
@@ -88,7 +99,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
     tf$reduce_sum(tf$square(true_boxes[[1]] - pred_boxes[[1]]), axis = as.integer(-1))
 
   max_iou <- tf$map_fn(function(x) tf$reduce_max(
-    compare_boxes_by_iou(x[[1]],
+    get_max_boxes_iou(x[[1]],
                          tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
     list(pred_boxes[[1]], true_boxes[[1]], obj_mask), tf$float32)
   ignore_mask = tf$cast(max_iou < nonobj_threshold, tf$float32)
@@ -133,6 +144,46 @@ yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
     current_anchors <- .x
     custom_metric(paste0("yolo3_loss_grid", grid_id), function(y_true, y_pred) {
       yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, nonobj_threshold)
+    })
+  })
+}
+
+#' Calculates IoU metric for one `Yolo3` grid.
+#' @description Calculates IoU metric for one `Yolo3` grid.
+#' @import tensorflow
+#' @import keras
+#' @param y_true Tensor of true coordinates/scores.
+#' @param y_pred Tensor of predicted coordinates/scores.
+#' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param n_class Number of prediction classes.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @return IoU metric for one `Yolo3` grid.
+#' @export
+yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
+  true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
+  pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
+
+  obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
+  iou <- calculate_iou(pred_boxes[[1]], true_boxes[[1]]) * obj_mask
+  tf$reduce_sum(iou, axis = as.integer(1:3))
+}
+
+#' Generates `Yolo3` IoU metric function.
+#' @description Generates `Yolo3` IoU metric function.
+#' @importFrom purrr imap
+#' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
+#' @param n_class Number of prediction classes.
+#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
+#' @return `Yolo3` IoU metric function.
+#' @export
+yolo3_metrics <- function(anchors, n_class, net_h, net_w) {
+  anchors %>% imap(~ {
+    grid_id <- .y
+    current_anchors <- .x
+    custom_metric(paste0("yolo3_iou_grid", grid_id), function(y_true, y_pred) {
+      yolo3_grid_iou(y_true, y_pred, current_anchors, n_class, net_h, net_w)
     })
   })
 }
