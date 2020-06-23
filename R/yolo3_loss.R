@@ -111,7 +111,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
 
   bbox_scale <- 2 - true_boxes[[1]][ , , , , 3] * true_boxes[[1]][ , , , , 4]
   obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
-  bbox_loss <- bbox_scale * obj_mask *
+  bbox_loss <- 5 * bbox_scale * obj_mask *
     tf$reduce_sum(tf$square(true_boxes[[1]] - pred_boxes[[1]]), axis = as.integer(-1))
 
   max_iou <- tf$map_fn(function(x) tf$reduce_max(
@@ -121,7 +121,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
   ignore_mask <- tf$cast(max_iou < nonobj_threshold, tf$float32)
   obj_loss_bc <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
   obj_loss <- obj_mask * obj_loss_bc
-  noobj_loss <- (1 - obj_mask) * obj_loss_bc * ignore_mask
+  noobj_loss <- 0.5 * (1 - obj_mask) * obj_loss_bc * ignore_mask
 
   class_loss <- 0
   for (cls in 1:n_class) {
