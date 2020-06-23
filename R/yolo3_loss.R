@@ -38,6 +38,33 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   list(bbox, score, class_probs)
 }
 
+#' Compares boxes by IoU.
+#' @description Compares boxes by IoU.
+#' @import tensorflow
+#' @import keras
+#' @param pred_boxes Tensor of predicted coordinates.
+#' @param true_boxes Tensor of true coordinates.
+#' @return Max IoU between true and predicted boxes.
+compare_boxes_by_iou <- function(pred_boxes, true_boxes) {
+  pred_boxes = tf$expand_dims(pred_boxes, as.integer(-2))
+  true_boxes = tf$expand_dims(true_boxes, as.integer(0))
+
+  new_shape = tf$broadcast_dynamic_shape(tf$shape(pred_boxes), tf$shape(true_boxes))
+  pred_boxes = tf$broadcast_to(pred_boxes, new_shape)
+  true_boxes = tf$broadcast_to(true_boxes, new_shape)
+
+  intersection_w = tf$maximum(tf$minimum(pred_boxes[ , , , , 3], true_boxes[ , , , , 3]) -
+                                tf$maximum(pred_boxes[ , , , , 1], true_boxes[ , , , , 1]), 0)
+  intersection_h = tf$maximum(tf$minimum(pred_boxes[ , , , , 4], true_boxes[ , , , , 4]) -
+                                tf$maximum(pred_boxes[ , , , , 2], true_boxes[ , , , , 2]), 0)
+  intersection_area = intersection_w * intersection_h
+  pred_boxes_area = (pred_boxes[ , , , , 3] - pred_boxes[ , , , , 1]) *
+    (pred_boxes[ , , , , 4] - pred_boxes[ , , , , 2])
+  true_boxes_area = (true_boxes[ , , , , 3] - true_boxes[ , , , , 1]) *
+    (true_boxes[ , , , , 4] - true_boxes[ , , , , 2])
+  intersection_area / (pred_boxes_area + true_boxes_area - intersection_area)
+}
+
 #' Calculates loss for one `Yolo3` grid.
 #' @description Calculates loss for one `Yolo3` grid.
 #' @import tensorflow
@@ -59,8 +86,16 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
   obj_mask <- tf$squeeze(true_boxes[[2]], axis = as.integer(-1))
   bbox_loss <- bbox_scale * obj_mask *
     tf$reduce_sum(tf$square(true_boxes[[1]] - pred_boxes[[1]]), axis = as.integer(-1))
-  obj_loss <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
-  obj_loss <- obj_mask * obj_loss  + ( 1 - obj_mask) * obj_loss # * lambda_noobj
+
+  max_iou <- tf$map_fn(function(x) tf$reduce_max(
+    compare_boxes_by_iou(x[[1]],
+                         tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
+    list(pred_boxes[[1]], true_boxes[[1]], obj_mask), tf$float32)
+  ignore_mask = tf$cast(max_iou < nonobj_threshold, tf$float32)
+  obj_loss_bc <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
+  obj_loss <- obj_mask * obj_loss_bc
+  noobj_loss <- (1 - obj_mask) * obj_loss_bc * ignore_mask
+
   class_loss <- 0
   for (cls in 1:n_class) {
     current_class_true <- tf$expand_dims(true_boxes[[3]][ , , , , cls], axis = as.integer(-1))
@@ -76,8 +111,9 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
 
   bbox_loss <- tf$reduce_sum(bbox_loss, axis = as.integer(1:3))
   obj_loss <- tf$reduce_sum(obj_loss, axis = as.integer(1:3))
+  noobj_loss <- tf$reduce_sum(noobj_loss, axis = as.integer(1:3))
   class_loss <- tf$reduce_sum(class_loss, axis = as.integer(1:3))
-  total_loss <- bbox_loss + obj_loss + class_loss
+  total_loss <- bbox_loss + obj_loss + noobj_loss + class_loss
   total_loss
 }
 
