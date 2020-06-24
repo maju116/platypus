@@ -6,7 +6,7 @@
 #' @return List of bounding box coordinates, heights, widths and image filepaths.
 #' @export
 read_annotations_from_xml <- function(annot_paths, indices, images_path) {
-  indices <- if (is.null(indices)) 1:length(paths) else indices
+  indices <- if (is.null(indices)) 1:length(annot_paths) else indices
   annot_paths[indices] %>%
     map(~ {
       data <- xmlParse(.x) %>%
