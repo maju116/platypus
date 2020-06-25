@@ -35,20 +35,6 @@ yolo3_conv2d <- function(inputs, filters, name) {
   tf$keras$Model(input, net_out, name = name)(inputs)
 }
 
-#' Reshapes Yolo3 output grid.
-#' @description Reshapes Yolo3 output grid from `(S, H, W, anchors_per_grid * (5 + n_class))` to `(S, H, W, anchors_per_grid, 5 + n_class)`.
-#' @import keras
-#' @import tensorflow
-#' @param x Yolo3 grid output layer object.
-#' @param anchors_per_grid Number of anchors/boxes per one output grid.
-#' @param n_class Number of prediction classes.
-#' @return Reshaped Yolo3 output grid.
-reshape_yolo3_output <- function(x, anchors_per_grid, n_class) {
-  x_shape <- x$get_shape()$as_list()
-  k_reshape(x, list(-1, x_shape[[2]], x_shape[[3]],
-                    anchors_per_grid, n_class + 5))
-}
-
 #' Creates Yolo3 output grid.
 #' @description Creates Yolo3 output grid of dimensionality `(S, H, W, anchors_per_grid, 5 + n_class)`.
 #' @import keras
@@ -66,8 +52,11 @@ yolo3_output <- function(inputs, filters, anchors_per_grid, n_class, name) {
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
     darknet53_conv2d(strides = 1, filters = anchors_per_grid * (n_class + 5), kernel_size = 1,
                      batch_normalization = FALSE, leaky_relu = FALSE)
-  net_out <- layer_lambda(net_out, f = reshape_yolo3_output,
-                          arguments = list(anchors_per_grid = anchors_per_grid, n_class = n_class))
+  net_out_shape <- net_out$get_shape()$as_list()
+  net_out <- layer_reshape(
+    net_out,
+    target_shape = c(net_out_shape[[2]], net_out_shape[[3]],
+                     anchors_per_grid, n_class + 5))
   tf$keras$Model(input, net_out, name = name)(inputs)
 }
 
