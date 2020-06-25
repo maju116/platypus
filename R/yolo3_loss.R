@@ -158,7 +158,7 @@ yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
   anchors %>% imap(~ {
     grid_id <- .y
     current_anchors <- .x
-    custom_metric(paste0("yolo3_loss_grid", grid_id), function(y_true, y_pred) {
+    custom_metric("yolo3_loss", function(y_true, y_pred) {
       yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, nonobj_threshold)
     })
   }) %>% set_names(paste0("grid", 1:3))

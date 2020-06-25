@@ -11,10 +11,10 @@ LazyData: TRUE
 License: MIT + file LICENSE
 Depends:
     R (>= 3.6),
+    tensorflow (>= 2.2.0),
     keras (>= 2.3.0.0)
 Imports:
     reticulate (>= 1.16),
-    tensorflow (>= 2.2.0),
     magrittr (>= 1.5),
     dplyr (>= 1.0.0),
     tibble (>= 3.0.1),
