@@ -115,8 +115,8 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
       mutate(
         center_x = (xmin + xmax) / 2 / net_w * current_grid_w,
         center_y = (ymin + ymax) / 2 / net_h * current_grid_h,
-        t_x = logit(center_x - floor(center_x)), # Error?
-        t_y = logit(center_y - floor(center_y)), # Error?
+        t_x = logit(center_x - floor(center_x)),
+        t_y = logit(center_y - floor(center_y)),
         t_w = log((xmax - xmin) / anchor_w),
         t_h = log((ymax - ymin) / anchor_h),
         sample_id = sample_id
