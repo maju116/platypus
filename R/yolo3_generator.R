@@ -1,6 +1,6 @@
 #' Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
 #' @description Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
-#' @importFrom XML xmlParse
+#' @import XML
 #' @param annot_paths List to XML annotations filepaths.
 #' @param indices Indices specifying which files to read. If `NULL` all files are loaded.
 #' @param images_path Path to directory with images.
