@@ -12,7 +12,6 @@ yolo3_generator(
   net_w = 416,
   grayscale = FALSE,
   scale = 1/255,
-  n_class = 80,
   anchors = coco_anchors,
   labels = coco_labels,
   batch_size = 32,
@@ -33,8 +32,6 @@ yolo3_generator(
 \item{grayscale}{Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.}
 
 \item{scale}{Scaling factor for images pixel values. Default to `1 / 255`.}
-
-\item{n_class}{Number of prediction classes.}
 
 \item{anchors}{Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.}
 

@@ -4,9 +4,10 @@
 #' @param annot_paths List to XML annotations filepaths.
 #' @param indices Indices specifying which files to read. If `NULL` all files are loaded.
 #' @param images_path Path to directory with images.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @return List of bounding box coordinates, heights, widths and image filepaths.
 #' @export
-read_annotations_from_xml <- function(annot_paths, indices, images_path) {
+read_annotations_from_xml <- function(annot_paths, indices, images_path, labels) {
   indices <- if (is.null(indices)) 1:length(annot_paths) else indices
   annot_paths[indices] %>%
     map(~ {
@@ -18,7 +19,8 @@ read_annotations_from_xml <- function(annot_paths, indices, images_path) {
            "object" = data[names(data) == "object"] %>%
              map(~ cbind(label = .x$name, .x$bndbox %>% bind_cols())) %>%
              bind_rows() %>%
-             mutate_at(c("xmin", "ymin", "xmax", "ymax"), ~ as.numeric(.)))
+             mutate_at(c("xmin", "ymin", "xmax", "ymax"), ~ as.numeric(.)) %>%
+             filter(xmin < xmax & ymin < ymax & label %in% labels))
     })
 }
 
@@ -138,7 +140,6 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
 #' @param net_w Input layer width. Must be divisible by `32`.
 #' @param grayscale Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.
 #' @param scale Scaling factor for images pixel values. Default to `1 / 255`.
-#' @param n_class Number of prediction classes.
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param batch_size Batch size.
@@ -146,8 +147,9 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
 #' @export
 yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h = 416, net_w = 416,
                             grayscale = FALSE, scale = 1 / 255,
-                            n_class = 80, anchors = coco_anchors, labels = coco_labels,
+                            anchors = coco_anchors, labels = coco_labels,
                             batch_size = 32, shuffle = TRUE) {
+  n_class <- length(labels)
   anchors_per_grid <- length(anchors[[1]])
   downscale_grid <- c(32, 16, 8)
   annot_paths <- list.files(annot_path, pattern = ".xml$", full.names = TRUE)
@@ -159,7 +161,7 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h 
       indices <- c(i:min(i + batch_size - 1, length(annot_paths)))
       i <<- if (i + batch_size > length(annot_paths)) 1 else i + length(indices)
     }
-    annotations <- read_annotations_from_xml(annot_paths, indices, images_path)
+    annotations <- read_annotations_from_xml(annot_paths, indices, images_path, labels)
     if (!only_images) {
       true_grid <- downscale_grid %>% map(~ {
         generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)

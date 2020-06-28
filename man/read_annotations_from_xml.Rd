@@ -4,7 +4,7 @@
 \alias{read_annotations_from_xml}
 \title{Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.}
 \usage{
-read_annotations_from_xml(annot_paths, indices, images_path)
+read_annotations_from_xml(annot_paths, indices, images_path, labels)
 }
 \arguments{
 \item{annot_paths}{List to XML annotations filepaths.}
@@ -12,6 +12,8 @@ read_annotations_from_xml(annot_paths, indices, images_path)
 \item{indices}{Indices specifying which files to read. If `NULL` all files are loaded.}
 
 \item{images_path}{Path to directory with images.}
+
+\item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 }
 \value{
 List of bounding box coordinates, heights, widths and image filepaths.
