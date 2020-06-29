@@ -4,8 +4,30 @@ box_jaccard_distance <- function(box1_w, box1_h, box2_w, box2_h) {
   1 - top / bottom
 }
 
+initialize_anchors <- function(annot_df, total_anchors) {
+  initial_anchors <- annot_df %>% sample_n(1) %>% select(-label)
+
+  for (anchor in 2:total_anchors) {
+    min_distance <- annot_df %>% select(-label) %>%
+      pmap_dbl(function(box_w, box_h) {
+        current_box <- c(box_w, box_h)
+        initial_anchors %>% pmap_dbl(function(box_w, box_h, anchor_id) {
+          current_anchor <- c(box_w, box_h)
+          box_jaccard_distance(current_box[1], current_box[2],
+                               current_anchor[1], current_anchor[2])
+        }) %>% min()
+      })
+    new_anchor_id <- sample(1:nrow(annot_df), 1, prob = min_distance / sum(min_distance))
+    initial_anchors <- initial_anchors %>% bind_rows(
+      annot_df[new_anchor_id, ] %>% select(-label)
+    )
+  }
+  initial_anchors %>%
+    mutate(anchor_id = 1:total_anchors)
+}
+
 generate_anchors <- function(anchors_per_grid, annot_paths,
-                             labels, net_h, net_w, n_iter = 100) {
+                             labels, net_h, net_w, n_iter = 10) {
   total_anchors <- anchors_per_grid * 3
   annotations <- read_annotations_from_xml(annot_paths, NULL, "", labels)
   annot_df <- annotations %>% map_df(~ {
@@ -16,9 +38,9 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
              box_h = (ymax - ymin) / image_h
       )
   }) %>% select(box_w, box_h, label)
+  print(annot_df %>% count(label))
   base_plot <- ggplot(annot_df, aes(box_w, box_h, color = label)) + geom_point() + theme_bw()
-  initial_anchors <- annot_df %>% sample_n(total_anchors) %>% select(-label) %>%
-    mutate(anchor_id = 1:total_anchors)
+  initial_anchors <- initialize_anchors(annot_df, total_anchors)
   for(i in 1:n_iter) {
     best_anchors <- annot_df %>% select(-label) %>%
       pmap_dbl(function(box_w, box_h) {
@@ -30,16 +52,15 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
         }) %>% which.min()
       })
     new_anchors <- annot_df %>% select(-label) %>%
-      mutate(anchor_id = jaccard_distances) %>%
+      mutate(anchor_id = best_anchors) %>%
       group_by(anchor_id) %>%
-      summarise(box_w = median(box_w), box_h = median(box_h)) %>%
+      summarise(box_w = median(box_w), box_h = median(box_h), .groups = 'drop') %>%
       ungroup() %>%
       bind_rows(anti_join(initial_anchors, ., by = "anchor_id")) %>%
       arrange(anchor_id)
-    print(new_anchors)
-    # if (identical(new_anchors, initial_anchors)) break
-    plot(base_plot + geom_point(data = new_anchors, color = "red"))
+    if (identical(new_anchors, initial_anchors)) break
     initial_anchors <- new_anchors
   }
+  plot(base_plot + geom_point(data = new_anchors, color = "red"))
   new_anchors
 }
