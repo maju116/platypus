@@ -34,8 +34,8 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
     image_h <- .x$height
     image_w <- .x$width
     .x$object %>%
-      mutate(box_w = (xmax - xmin) / image_w,
-             box_h = (ymax - ymin) / image_h
+      mutate(box_w = round((xmax - xmin) / image_w * net_w),
+             box_h = round((ymax - ymin) / image_h * net_h)
       )
   }) %>% select(box_w, box_h, label)
   print(annot_df %>% count(label))
@@ -56,11 +56,12 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
       group_by(anchor_id) %>%
       summarise(box_w = median(box_w), box_h = median(box_h), .groups = 'drop') %>%
       ungroup() %>%
-      bind_rows(anti_join(initial_anchors, ., by = "anchor_id")) %>%
       arrange(anchor_id)
     if (identical(new_anchors, initial_anchors)) break
     initial_anchors <- new_anchors
   }
-  plot(base_plot + geom_point(data = new_anchors, color = "red"))
-  new_anchors
+  plot(base_plot + geom_point(data = new_anchors, color = "red", shape = 23))
+  new_anchors %>% mutate(area = box_w * box_h) %>%
+    arrange(desc(area)) %>% select(-area) %>%
+    mutate(anchor_id = 1:total_anchors)
 }
