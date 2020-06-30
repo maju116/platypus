@@ -40,6 +40,9 @@ initialize_anchors <- function(annot_df, total_anchors) {
 
 #' Calculates anchor boxes using k-median++ algorithm.
 #' @description Calculates anchor boxes using k-median++ algorithm.
+#' @importFrom purrr pmap_dbl
+#' @importFrom dplyr count group_by summarise ungroup arrange desc sample_n bind_rows
+#' @importFrom stats median
 #' @param anchors_per_grid Number of anchors per one grid.
 #' @param annot_paths List of annotations filepaths.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
