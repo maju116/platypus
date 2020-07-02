@@ -63,12 +63,11 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
     image_h <- .x$height
     image_w <- .x$width
     .x$object %>%
-      mutate(box_w = (xmax - xmin) / image_w * net_w,
-             box_h = (ymax - ymin) / image_h * net_h
+      mutate(box_w = (xmax - xmin) / image_w,
+             box_h = (ymax - ymin) / image_h
       )
   }) %>% select(box_w, box_h, label)
   print(annot_df %>% count(label))
-  base_plot <- ggplot(annot_df, aes(box_w, box_h, color = label)) + geom_point() + theme_bw()
   initial_anchors <- initialize_anchors(annot_df, total_anchors)
   for(i in 1:n_iter) {
     best_anchors <- annot_df %>% select(-label) %>%
@@ -89,12 +88,11 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
     if (identical(new_anchors, initial_anchors)) break
     initial_anchors <- new_anchors
   }
+  base_plot <- ggplot(annot_df, aes(box_w, box_h, color = label)) + geom_point() + theme_bw()
   plot(base_plot + geom_point(data = new_anchors, color = "red", shape = 23))
   new_anchors_arranged <- new_anchors %>%
-    mutate(box_w = round(box_w), box_h = round(box_h),
-           area = box_w * box_h) %>%
-    arrange(desc(area)) %>% select(-area) %>%
-    select(-anchor_id)
+    mutate(box_w = round(box_w * net_w), box_h = round(box_h * net_h)) %>%
+    arrange(desc(box_w)) %>% select(-anchor_id)
   1:3 %>% map(~ {
     grid <- .x
     new_anchors_arranged[((grid - 1) * anchors_per_grid + 1):(grid * anchors_per_grid), ] %>%
