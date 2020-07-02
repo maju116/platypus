@@ -50,10 +50,12 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param n_iter Maximum number of iteration for k-median++ algorithm.
 #' @param seed Random seed.
+#' @param centroid_fun Function to use for centroid calculation.
 #' @return List of anchor boxes.
 #' @export
 generate_anchors <- function(anchors_per_grid, annot_paths,
-                             labels, net_h, net_w, n_iter = 10, seed = 1234) {
+                             labels, net_h, net_w, n_iter = 10,
+                             seed = 1234, centroid_fun = median) {
   set.seed(seed)
   total_anchors <- anchors_per_grid * 3
   annotations <- read_annotations_from_xml(annot_paths, NULL, "", labels)
@@ -81,7 +83,7 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
     new_anchors <- annot_df %>% select(-label) %>%
       mutate(anchor_id = best_anchors) %>%
       group_by(anchor_id) %>%
-      summarise(box_w = median(box_w), box_h = median(box_h), .groups = 'drop') %>%
+      summarise(box_w = centroid_fun(box_w), box_h = centroid_fun(box_h), .groups = 'drop') %>%
       ungroup() %>%
       arrange(anchor_id)
     if (identical(new_anchors, initial_anchors)) break

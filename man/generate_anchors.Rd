@@ -11,7 +11,8 @@ generate_anchors(
   net_h,
   net_w,
   n_iter = 10,
-  seed = 1234
+  seed = 1234,
+  centroid_fun = median
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ generate_anchors(
 \item{n_iter}{Maximum number of iteration for k-median++ algorithm.}
 
 \item{seed}{Random seed.}
+
+\item{centroid_fun}{Function to use for centroid calculation.}
 }
 \value{
 List of anchor boxes.
