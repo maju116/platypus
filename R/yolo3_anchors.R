@@ -11,11 +11,11 @@ box_jaccard_distance <- function(box1_w, box1_h, box2_w, box2_h) {
   1 - top / bottom
 }
 
-#' Calculates initial anchor boxes for k-median++ algorithm.
-#' @description Calculates initial anchor boxes for k-median++ algorithm.
+#' Calculates initial anchor boxes for k-mean++ algorithm.
+#' @description Calculates initial anchor boxes for k-mean++ algorithm.
 #' @param annot_df `data.frame` with widths and heights of bounding boxes.
 #' @param total_anchors Number of anchors to generate.
-#' @return Initial anchor boxes for k-median++ algorithm.
+#' @return Initial anchor boxes for k-mean++ algorithm.
 initialize_anchors <- function(annot_df, total_anchors) {
   initial_anchors <- annot_df %>% sample_n(1) %>% select(-label)
 
@@ -38,8 +38,8 @@ initialize_anchors <- function(annot_df, total_anchors) {
     mutate(anchor_id = 1:total_anchors)
 }
 
-#' Calculates anchor boxes using k-median++ algorithm.
-#' @description Calculates anchor boxes using k-median++ algorithm.
+#' Calculates anchor boxes using k-mean++ algorithm.
+#' @description Calculates anchor boxes using k-mean++ algorithm.
 #' @importFrom purrr pmap_dbl
 #' @importFrom dplyr count group_by summarise ungroup arrange desc sample_n bind_rows
 #' @importFrom stats median
@@ -48,14 +48,14 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param n_iter Maximum number of iteration for k-median++ algorithm.
+#' @param n_iter Maximum number of iteration for k-mean++ algorithm.
 #' @param seed Random seed.
 #' @param centroid_fun Function to use for centroid calculation.
 #' @return List of anchor boxes.
 #' @export
 generate_anchors <- function(anchors_per_grid, annot_paths,
                              labels, net_h, net_w, n_iter = 10,
-                             seed = 1234, centroid_fun = median) {
+                             seed = 1234, centroid_fun = mean) {
   set.seed(seed)
   total_anchors <- anchors_per_grid * 3
   annotations <- read_annotations_from_xml(annot_paths, NULL, "", labels)

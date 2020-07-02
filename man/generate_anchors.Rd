@@ -2,7 +2,7 @@
 % Please edit documentation in R/yolo3_anchors.R
 \name{generate_anchors}
 \alias{generate_anchors}
-\title{Calculates anchor boxes using k-median++ algorithm.}
+\title{Calculates anchor boxes using k-mean++ algorithm.}
 \usage{
 generate_anchors(
   anchors_per_grid,
@@ -12,7 +12,7 @@ generate_anchors(
   net_w,
   n_iter = 10,
   seed = 1234,
-  centroid_fun = median
+  centroid_fun = mean
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ generate_anchors(
 
 \item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
-\item{n_iter}{Maximum number of iteration for k-median++ algorithm.}
+\item{n_iter}{Maximum number of iteration for k-mean++ algorithm.}
 
 \item{seed}{Random seed.}
 
@@ -36,5 +36,5 @@ generate_anchors(
 List of anchor boxes.
 }
 \description{
-Calculates anchor boxes using k-median++ algorithm.
+Calculates anchor boxes using k-mean++ algorithm.
 }

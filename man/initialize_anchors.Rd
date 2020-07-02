@@ -2,7 +2,7 @@
 % Please edit documentation in R/yolo3_anchors.R
 \name{initialize_anchors}
 \alias{initialize_anchors}
-\title{Calculates initial anchor boxes for k-median++ algorithm.}
+\title{Calculates initial anchor boxes for k-mean++ algorithm.}
 \usage{
 initialize_anchors(annot_df, total_anchors)
 }
@@ -12,8 +12,8 @@ initialize_anchors(annot_df, total_anchors)
 \item{total_anchors}{Number of anchors to generate.}
 }
 \value{
-Initial anchor boxes for k-median++ algorithm.
+Initial anchor boxes for k-mean++ algorithm.
 }
 \description{
-Calculates initial anchor boxes for k-median++ algorithm.
+Calculates initial anchor boxes for k-mean++ algorithm.
 }
