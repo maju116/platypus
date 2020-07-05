@@ -110,7 +110,7 @@ get_true_boxes_from_annotations <- function(annotations, anchors, labels, true_g
              xmin = xmin / image_w,
              ymin = ymin / image_h,
              xmax = xmax / image_w,
-             ymax = ymax / image_h,
+             ymax = ymax / image_h
       ) %>%
       find_anchors_and_grids_for_true_boxes(anchors, true_grid) %>%
       mutate(
