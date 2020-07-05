@@ -8,8 +8,6 @@ generate_anchors(
   anchors_per_grid,
   annot_paths,
   labels,
-  net_h,
-  net_w,
   n_iter = 10,
   seed = 1234,
   centroid_fun = mean
@@ -21,10 +19,6 @@ generate_anchors(
 \item{annot_paths}{List of annotations filepaths.}
 
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{n_iter}{Maximum number of iteration for k-mean++ algorithm.}
 

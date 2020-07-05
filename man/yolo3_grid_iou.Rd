@@ -4,7 +4,7 @@
 \alias{yolo3_grid_iou}
 \title{Calculates IoU metric for one `Yolo3` grid.}
 \usage{
-yolo3_grid_iou(y_true, y_pred, anchors, n_class, net_h, net_w)
+yolo3_grid_iou(y_true, y_pred, anchors, n_class)
 }
 \arguments{
 \item{y_true}{Tensor of true coordinates/scores.}
@@ -14,10 +14,6 @@ yolo3_grid_iou(y_true, y_pred, anchors, n_class, net_h, net_w)
 \item{anchors}{Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.}
 
 \item{n_class}{Number of prediction classes.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 }
 \value{
 IoU metric for one `Yolo3` grid.

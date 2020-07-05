@@ -46,15 +46,13 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @param anchors_per_grid Number of anchors per one grid.
 #' @param annot_paths List of annotations filepaths.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param n_iter Maximum number of iteration for k-mean++ algorithm.
 #' @param seed Random seed.
 #' @param centroid_fun Function to use for centroid calculation.
 #' @return List of anchor boxes.
 #' @export
 generate_anchors <- function(anchors_per_grid, annot_paths,
-                             labels, net_h, net_w, n_iter = 10,
+                             labels, n_iter = 10,
                              seed = 1234, centroid_fun = mean) {
   set.seed(seed)
   total_anchors <- anchors_per_grid * 3
@@ -91,7 +89,6 @@ generate_anchors <- function(anchors_per_grid, annot_paths,
   base_plot <- ggplot(annot_df, aes(box_w, box_h, color = label)) + geom_point() + theme_bw()
   plot(base_plot + geom_point(data = new_anchors, color = "red", shape = 23))
   new_anchors_arranged <- new_anchors %>%
-    mutate(box_w = round(box_w * net_w), box_h = round(box_h * net_h)) %>%
     arrange(desc(box_w)) %>% select(-anchor_id)
   1:3 %>% map(~ {
     grid <- .x

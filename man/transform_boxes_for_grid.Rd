@@ -9,9 +9,7 @@ transform_boxes_for_grid(
   anchors,
   n_class,
   anchors_per_grid,
-  obj_threshold,
-  net_h,
-  net_w
+  obj_threshold
 )
 }
 \arguments{
@@ -24,10 +22,6 @@ transform_boxes_for_grid(
 \item{anchors_per_grid}{Number of anchors/boxes per one output grid.}
 
 \item{obj_threshold}{Minimum objectness score. Must be in range `[0, 1]`. All boxes with objectness score less than `obj_threshold` will be filtered out.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 }
 \value{
 List of box coordinates/scores.

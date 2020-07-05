@@ -4,16 +4,12 @@
 \alias{yolo3_loss}
 \title{Generates `Yolo3` loss function.}
 \usage{
-yolo3_loss(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5)
+yolo3_loss(anchors, n_class, nonobj_threshold = 0.5)
 }
 \arguments{
 \item{anchors}{Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.}
 
 \item{n_class}{Number of prediction classes.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{nonobj_threshold}{Non-object ignore threshold.}
 }

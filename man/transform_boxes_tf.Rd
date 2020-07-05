@@ -4,14 +4,7 @@
 \alias{transform_boxes_tf}
 \title{Transforms `Yolo3` predictions into valid box coordinates/scores.}
 \usage{
-transform_boxes_tf(
-  preds,
-  anchors,
-  n_class,
-  net_h,
-  net_w,
-  transform_proba = TRUE
-)
+transform_boxes_tf(preds, anchors, n_class, transform_proba = TRUE)
 }
 \arguments{
 \item{preds}{\code{\link[platypus]{yolo3}} model predictions (from one grid).}
@@ -19,10 +12,6 @@ transform_boxes_tf(
 \item{anchors}{Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.}
 
 \item{n_class}{Number of prediction classes.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{transform_proba}{Logical. Should the score/class probabilities be transformed.}
 }

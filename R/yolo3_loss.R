@@ -5,11 +5,9 @@
 #' @param preds \code{\link[platypus]{yolo3}} model predictions (from one grid).
 #' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param transform_proba Logical. Should the score/class probabilities be transformed.
 #' @return Transformed bounding box coordinates/scores.
-transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_proba = TRUE) {
+transform_boxes_tf <- function(preds, anchors, n_class, transform_proba = TRUE) {
   grid_h <- preds$get_shape()$as_list()[[2]]
   grid_w <- preds$get_shape()$as_list()[[3]]
   box_split <- tf$split(preds, num_or_size_splits = as.integer(c(1, 1, 1, 1, 1, n_class)), axis = as.integer(-1))
@@ -31,8 +29,8 @@ transform_boxes_tf <- function(preds, anchors, n_class, net_h, net_w, transform_
   anchors_tf <- tf$constant(anchors, tf$float32)
   anchors_tf <- tf$expand_dims(tf$expand_dims(anchors_tf, axis = as.integer(0)), axis = as.integer(0))
   anchors_tf <- tf$split(anchors_tf, num_or_size_splits = as.integer(c(1, 1)), axis = as.integer(-1))
-  box_w <- k_exp(box_w) * anchors_tf[[1]] / tf$cast(net_w, tf$float32)
-  box_h <- k_exp(box_h) * anchors_tf[[2]] / tf$cast(net_h, tf$float32)
+  box_w <- k_exp(box_w) * anchors_tf[[1]]
+  box_h <- k_exp(box_h) * anchors_tf[[2]]
 
   bbox <- k_concatenate(list(box_x, box_y, box_w, box_h), axis = as.integer(-1))
   list(bbox, score, class_probs)
@@ -98,14 +96,12 @@ get_max_boxes_iou <- function(pred_boxes, true_boxes) {
 #' @param y_pred Tensor of predicted coordinates/scores.
 #' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param nonobj_threshold Non-object ignore threshold.
 #' @return Loss for one `Yolo3` grid.
 #' @export
-yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nonobj_threshold) {
-  true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
-  pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
+yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold) {
+  true_boxes <- transform_boxes_tf(y_true, anchors, n_class, transform_proba = FALSE)
+  pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, transform_proba = TRUE)
   true_boxes_min_max <- transform_box_to_min_max(true_boxes[[1]])
   pred_boxes_min_max <- transform_box_to_min_max(pred_boxes[[1]])
 
@@ -149,17 +145,15 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, net_h, net_w, nono
 #' @importFrom purrr imap
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param nonobj_threshold Non-object ignore threshold.
 #' @return `Yolo3` loss function.
 #' @export
-yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
+yolo3_loss <- function(anchors, n_class, nonobj_threshold = 0.5) {
   anchors %>% imap(~ {
     grid_id <- .y
     current_anchors <- .x
     custom_metric("yolo3_loss", function(y_true, y_pred) {
-      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, net_h, net_w, nonobj_threshold)
+      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, nonobj_threshold)
     })
   }) %>% set_names(paste0("grid", 1:3))
 }
@@ -172,13 +166,11 @@ yolo3_loss <- function(anchors, n_class, net_h, net_w, nonobj_threshold = 0.5) {
 #' @param y_pred Tensor of predicted coordinates/scores.
 #' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @return IoU metric for one `Yolo3` grid.
 #' @export
-yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
-  true_boxes <- transform_boxes_tf(y_true, anchors, n_class, net_h, net_w, transform_proba = FALSE)
-  pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, net_h, net_w, transform_proba = TRUE)
+yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class) {
+  true_boxes <- transform_boxes_tf(y_true, anchors, n_class, transform_proba = FALSE)
+  pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, transform_proba = TRUE)
   true_boxes_min_max <- transform_box_to_min_max(true_boxes[[1]])
   pred_boxes_min_max <- transform_box_to_min_max(pred_boxes[[1]])
 
@@ -193,15 +185,13 @@ yolo3_grid_iou <- function(y_true, y_pred, anchors, n_class, net_h, net_w) {
 #' @importFrom purrr map set_names
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @return `Yolo3` IoU metric function.
 #' @export
-yolo3_metrics <- function(anchors, n_class, net_h, net_w) {
+yolo3_metrics <- function(anchors, n_class) {
   anchors %>% map(~ {
     current_anchors <- .x
     custom_metric("avg_IoU", function(y_true, y_pred) {
-      yolo3_grid_iou(y_true, y_pred, current_anchors, n_class, net_h, net_w)
+      yolo3_grid_iou(y_true, y_pred, current_anchors, n_class)
     })
   }) %>% set_names(paste0("grid", 1:3))
 }

@@ -4,21 +4,10 @@
 \alias{get_true_boxes_from_annotations}
 \title{Calculates true bounding box coordinates from annotations.}
 \usage{
-get_true_boxes_from_annotations(
-  annotations,
-  net_h,
-  net_w,
-  anchors,
-  labels,
-  true_grid
-)
+get_true_boxes_from_annotations(annotations, anchors, labels, true_grid)
 }
 \arguments{
 \item{annotations}{Annotations.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{anchors}{Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.}
 

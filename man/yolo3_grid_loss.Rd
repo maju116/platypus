@@ -4,15 +4,7 @@
 \alias{yolo3_grid_loss}
 \title{Calculates loss for one `Yolo3` grid.}
 \usage{
-yolo3_grid_loss(
-  y_true,
-  y_pred,
-  anchors,
-  n_class,
-  net_h,
-  net_w,
-  nonobj_threshold
-)
+yolo3_grid_loss(y_true, y_pred, anchors, n_class, nonobj_threshold)
 }
 \arguments{
 \item{y_true}{Tensor of true coordinates/scores.}
@@ -22,10 +14,6 @@ yolo3_grid_loss(
 \item{anchors}{Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.}
 
 \item{n_class}{Number of prediction classes.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{nonobj_threshold}{Non-object ignore threshold.}
 }

@@ -95,13 +95,11 @@ find_anchors_and_grids_for_true_boxes <- function(true_boxes, anchors, true_grid
 #' @description Calculates true bounding box coordinates from annotations.
 #' @importFrom purrr imap_dfr
 #' @param annotations Annotations.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param true_grid `Yolo3` output grids.
 #' @return `data.frame` with best anchors and output grid coordinates for true bounding box coordinates.
-get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, labels, true_grid) {
+get_true_boxes_from_annotations <- function(annotations, anchors, labels, true_grid) {
   annotations %>% imap_dfr(~ {
     sample_id <- .y
     image_h <- .x$height
@@ -109,15 +107,15 @@ get_true_boxes_from_annotations <- function(annotations, net_h, net_w, anchors, 
     .x$object %>%
       rowwise() %>%
       mutate(label_id = which(label == labels),
-             xmin = xmin / image_w * net_w,
-             ymin = ymin / image_h * net_h,
-             xmax = xmax / image_w * net_w,
-             ymax = ymax / image_h * net_h
+             xmin = xmin / image_w,
+             ymin = ymin / image_h,
+             xmax = xmax / image_w,
+             ymax = ymax / image_h,
       ) %>%
       find_anchors_and_grids_for_true_boxes(anchors, true_grid) %>%
       mutate(
-        center_x = (xmin + xmax) / 2 / net_w * current_grid_w,
-        center_y = (ymin + ymax) / 2 / net_h * current_grid_h,
+        center_x = (xmin + xmax) / 2 * current_grid_w,
+        center_y = (ymin + ymax) / 2 * current_grid_h,
         t_x = logit(center_x - floor(center_x)),
         t_y = logit(center_y - floor(center_y)),
         t_w = log((xmax - xmin) / anchor_w),
@@ -166,7 +164,7 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h 
       true_grid <- downscale_grid %>% map(~ {
         generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)
       })
-      true_boxes <- get_true_boxes_from_annotations(annotations, net_h, net_w, anchors, labels, true_grid)
+      true_boxes <- get_true_boxes_from_annotations(annotations, anchors, labels, true_grid)
       for (i in 1:nrow(true_boxes)) {
         cbox <- true_boxes[i, ]
         cgrid_id <- cbox$grid_id

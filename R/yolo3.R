@@ -90,9 +90,9 @@ yolo3 <- function(net_h = 416, net_w = 416, grayscale = FALSE, n_class = 80, anc
 #' @return COCO dataset anchors.
 #' @export
 coco_anchors <- list(
-  list(c(116, 90), c(156, 198), c(373, 326)),
-  list(c(30, 61), c(62, 45), c(59, 119)),
-  list(c(10, 13), c(16, 30), c(33, 23))
+  list(c(116, 90) / 416, c(156, 198) / 416, c(373, 326) / 416),
+  list(c(30, 61) / 416, c(62, 45) / 416, c(59, 119) / 416),
+  list(c(10, 13) / 416, c(16, 30) / 416, c(33, 23) / 416)
 )
 
 #' COCO dataset labels.

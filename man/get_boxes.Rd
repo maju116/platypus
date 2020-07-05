@@ -9,8 +9,6 @@ get_boxes(
   anchors,
   labels,
   obj_threshold = 0.6,
-  net_h = 416,
-  net_w = 416,
   nms = TRUE,
   nms_threshold = 0.6,
   correct_hw = FALSE,
@@ -26,10 +24,6 @@ get_boxes(
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 
 \item{obj_threshold}{Minimum objectness score. Must be in range `[0, 1]`. All boxes with objectness score less than `obj_threshold` will be filtered out.}
-
-\item{net_h}{Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
-
-\item{net_w}{Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.}
 
 \item{nms}{Logical. Should `Non-Maximum-Suppression` be applied.}
 

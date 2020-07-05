@@ -18,8 +18,6 @@ logit <- function(x) log(x / (1 - x))
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param obj_threshold Minimum objectness score. Must be in range `[0, 1]`. All boxes with objectness score less than `obj_threshold` will be filtered out.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @param nms Logical. Should `Non-Maximum-Suppression` be applied.
 #' @param nms_threshold `Non-Maximum-Suppression` threshold.
 #' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied. If `TRUE` `xmin/xmax` coordinates are multiplied by `image_w` and `ymin/ymax` coordinates are multiplied by `image_h`.
@@ -28,13 +26,12 @@ logit <- function(x) log(x / (1 - x))
 #' @return List of `data.frames` containing bounding box coordinates and objectness/class scores.
 #' @export
 get_boxes <- function(preds, anchors, labels, obj_threshold = 0.6,
-                      net_h = 416, net_w = 416, nms = TRUE,
-                      nms_threshold = 0.6, correct_hw = FALSE,
+                      nms = TRUE, nms_threshold = 0.6, correct_hw = FALSE,
                       image_h = NULL, image_w = NULL) {
   n_class = length(labels)
   anchors_per_grid = length(anchors[[1]])
   preds %>%
-    transform_boxes(anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) %>%
+    transform_boxes(anchors, n_class, anchors_per_grid, obj_threshold) %>%
     when(nms ~ non_max_suppression(., n_class, nms_threshold), ~ .) %>%
     clean_boxes(labels) %>%
     when(correct_hw ~ correct_boxes(., image_h, image_w), ~ .)
@@ -47,18 +44,16 @@ get_boxes <- function(preds, anchors, labels, obj_threshold = 0.6,
 #' @param n_class Number of prediction classes.
 #' @param anchors_per_grid Number of anchors/boxes per one output grid.
 #' @param obj_threshold Minimum objectness score. Must be in range `[0, 1]`. All boxes with objectness score less than `obj_threshold` will be filtered out.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @return List of box coordinates/scores.
 #' @export
-transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
+transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold) {
   n_images <- dim(preds[[1]])[1]
   1:n_images %>% map(~ {
     image_nr <- .x
     current_preds <- preds %>% map(~ .x[image_nr, , , , ])
     map2(current_preds, anchors, ~
            transform_boxes_for_grid(preds = .x, anchors = .y, n_class, anchors_per_grid,
-                                     obj_threshold, net_h, net_w)) %>%
+                                     obj_threshold)) %>%
       unlist(recursive = FALSE)
   })
 }
@@ -71,10 +66,8 @@ transform_boxes <- function(preds, anchors, n_class, anchors_per_grid, obj_thres
 #' @param n_class Number of prediction classes.
 #' @param anchors_per_grid Number of anchors/boxes per one output grid.
 #' @param obj_threshold Minimum objectness score. Must be in range `[0, 1]`. All boxes with objectness score less than `obj_threshold` will be filtered out.
-#' @param net_h Input layer height from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
-#' @param net_w Input layer width from trained \code{\link[platypus]{yolo3}} model. Must be divisible by `32`.
 #' @return List of box coordinates/scores.
-transform_boxes_for_grid <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold, net_h, net_w) {
+transform_boxes_for_grid <- function(preds, anchors, n_class, anchors_per_grid, obj_threshold) {
   grid_h <- dim(preds)[1]
   grid_w <- dim(preds)[2]
   grid_dims <- expand.grid(1:grid_w, 1:grid_h) %>% select(h = Var2, w = Var1) %>%
@@ -86,8 +79,8 @@ transform_boxes_for_grid <- function(preds, anchors, n_class, anchors_per_grid, 
       if (sigmoid(box_data[5]) > obj_threshold) {
         box_data[1] <- (sigmoid(box_data[1]) + col) / grid_w
         box_data[2] <- (sigmoid(box_data[2]) + row) / grid_h
-        box_data[3] <- anchor[1] * exp(box_data[3]) / net_w
-        box_data[4] <- anchor[2] * exp(box_data[4]) / net_h
+        box_data[3] <- anchor[1] * exp(box_data[3])
+        box_data[4] <- anchor[2] * exp(box_data[4])
         box_data[5] <- sigmoid(box_data[5])
         box_data[6:length(box_data)] <- box_data[5] * sigmoid(box_data[6:length(box_data)])
         box_data[6:length(box_data)] <- (box_data[6:length(box_data)] == max(box_data[6:length(box_data)])) & (box_data[6:length(box_data)] > obj_threshold)
