@@ -18,9 +18,12 @@ read_annotations_from_labelme <- function(annot_paths, indices, images_path, lab
            "object" = tibble(
              label = data$shapes$label
            ) %>%
-             bind_cols(as.data.frame(do.call("cbind", data$shapes$points)) %>%
-                         transmute(x_min = min(V1, V3), y_min = min(V2, V4),
-                                x_max = max(V1, V3), y_max = max(V2, V4))) %>%
+             bind_cols(data$shapes$points %>%
+                         map_df(~ {
+                           as.data.frame(cbind(.x[1, , drop = FALSE], .x[2, , drop = FALSE])) %>%
+                             transmute(xmin = min(V1, V3), ymin = min(V2, V4),
+                                       xmax = max(V1, V3), ymax = max(V2, V4))
+                         })) %>%
              filter(label %in% labels))
     })
 }

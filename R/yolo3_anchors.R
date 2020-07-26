@@ -47,16 +47,21 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @param annot_paths List of annotations filepaths.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param n_iter Maximum number of iteration for k-mean++ algorithm.
+#' @param annot_format Annotations format. One of `pascal_voc`, `labelme`.
 #' @param seed Random seed.
 #' @param centroid_fun Function to use for centroid calculation.
 #' @return List of anchor boxes.
 #' @export
 generate_anchors <- function(anchors_per_grid, annot_paths,
-                             labels, n_iter = 10,
+                             labels, n_iter = 10, annot_format = "pascal_voc",
                              seed = 1234, centroid_fun = mean) {
   set.seed(seed)
   total_anchors <- anchors_per_grid * 3
-  annotations <- read_annotations_from_xml(annot_paths, NULL, "", labels)
+  annotations <- if (annot_format == "pascal_voc") {
+    read_annotations_from_xml(annot_paths, NULL, "", labels)
+  } else {
+    read_annotations_from_labelme(annot_paths, NULL, "", labels)
+  }
   annot_df <- annotations %>% map_df(~ {
     image_h <- .x$height
     image_w <- .x$width

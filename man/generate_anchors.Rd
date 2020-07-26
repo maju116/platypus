@@ -9,6 +9,7 @@ generate_anchors(
   annot_paths,
   labels,
   n_iter = 10,
+  annot_format = "pascal_voc",
   seed = 1234,
   centroid_fun = mean
 )
@@ -21,6 +22,8 @@ generate_anchors(
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 
 \item{n_iter}{Maximum number of iteration for k-mean++ algorithm.}
+
+\item{annot_format}{Annotations format. One of `pascal_voc`, `labelme`.}
 
 \item{seed}{Random seed.}
 
