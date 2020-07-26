@@ -10,6 +10,7 @@ yolo3_generator(
   only_images = FALSE,
   net_h = 416,
   net_w = 416,
+  annot_format = "pascal_voc",
   grayscale = FALSE,
   scale = 1/255,
   anchors = coco_anchors,
@@ -28,6 +29,8 @@ yolo3_generator(
 \item{net_h}{Input layer height. Must be divisible by `32`.}
 
 \item{net_w}{Input layer width. Must be divisible by `32`.}
+
+\item{annot_format}{Annotations format. One of `pascal_voc`, `labelme`.}
 
 \item{grayscale}{Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.}
 

@@ -1,3 +1,30 @@
+#' Reads bounding box annotations from JSON files. Each XML has to be in `labelme JSON` format.
+#' @description Reads bounding box annotations from JSON files. Each JSON has to be in `labelme JSON` format.
+#' @import jsonlite
+#' @param annot_paths List to XML annotations filepaths.
+#' @param indices Indices specifying which files to read. If `NULL` all files are loaded.
+#' @param images_path Path to directory with images.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
+#' @return List of bounding box coordinates, heights, widths and image filepaths.
+#' @export
+read_annotations_from_labelme <- function(annot_paths, indices, images_path, labels) {
+  indices <- if (is.null(indices)) 1:length(annot_paths) else indices
+  annot_paths[indices] %>%
+    map(~ {
+      data <- fromJSON(.x)
+      list("filename" = file.path(images_path, basename(data$imagePath)),
+           "height" = as.numeric(data$imageHeight),
+           "width" = as.numeric(data$imageWidth),
+           "object" = tibble(
+             label = data$shapes$label
+           ) %>%
+             bind_cols(as.data.frame(do.call("cbind", data$shapes$points)) %>%
+                         transmute(x_min = min(V1, V3), y_min = min(V2, V4),
+                                x_max = max(V1, V3), y_max = max(V2, V4))) %>%
+             filter(label %in% labels))
+    })
+}
+
 #' Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
 #' @description Reads bounding box annotations from XML files. Each XML has to be in `PASCAL VOC XML` format.
 #' @import XML
@@ -136,6 +163,7 @@ get_true_boxes_from_annotations <- function(annotations, anchors, labels, true_g
 #' @param only_images Should generator read only images (e.g. on train set for predictions).
 #' @param net_h Input layer height. Must be divisible by `32`.
 #' @param net_w Input layer width. Must be divisible by `32`.
+#' @param annot_format Annotations format. One of `pascal_voc`, `labelme`.
 #' @param grayscale Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.
 #' @param scale Scaling factor for images pixel values. Default to `1 / 255`.
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
@@ -143,14 +171,16 @@ get_true_boxes_from_annotations <- function(annotations, anchors, labels, true_g
 #' @param batch_size Batch size.
 #' @param shuffle Should data be shuffled.
 #' @export
-yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h = 416, net_w = 416,
+yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
+                            net_h = 416, net_w = 416, annot_format = "pascal_voc",
                             grayscale = FALSE, scale = 1 / 255,
                             anchors = coco_anchors, labels = coco_labels,
                             batch_size = 32, shuffle = TRUE) {
   n_class <- length(labels)
   anchors_per_grid <- length(anchors[[1]])
   downscale_grid <- c(32, 16, 8)
-  annot_paths <- list.files(annot_path, pattern = ".xml$", full.names = TRUE)
+  annot_ext <- if (annot_format == "pascal_voc") ".xml$" else ".json$"
+  annot_paths <- list.files(annot_path, pattern = annot_ext, full.names = TRUE)
   i <- 1
   function() {
     if (shuffle) {
@@ -159,7 +189,11 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE, net_h 
       indices <- c(i:min(i + batch_size - 1, length(annot_paths)))
       i <<- if (i + batch_size > length(annot_paths)) 1 else i + length(indices)
     }
-    annotations <- read_annotations_from_xml(annot_paths, indices, images_path, labels)
+    annotations <- if (annot_format == "pascal_voc") {
+      read_annotations_from_xml(annot_paths, indices, images_path, labels)
+    } else {
+      read_annotations_from_labelme(annot_paths, indices, images_path, labels)
+    }
     if (!only_images) {
       true_grid <- downscale_grid %>% map(~ {
         generate_empty_grid(batch_size, net_h, net_w, .x, anchors_per_grid, n_class)

@@ -59,9 +59,9 @@ transform_box_to_min_max <- function(box) {
 #' @return IoU between true and predicted boxes.
 calculate_iou <- function(pred_boxes, true_boxes) {
   intersection_w <- tf$maximum(tf$minimum(pred_boxes[ , , , , 3], true_boxes[ , , , , 3]) -
-                                tf$maximum(pred_boxes[ , , , , 1], true_boxes[ , , , , 1]), 0)
+                                 tf$maximum(pred_boxes[ , , , , 1], true_boxes[ , , , , 1]), 0)
   intersection_h <- tf$maximum(tf$minimum(pred_boxes[ , , , , 4], true_boxes[ , , , , 4]) -
-                                tf$maximum(pred_boxes[ , , , , 2], true_boxes[ , , , , 2]), 0)
+                                 tf$maximum(pred_boxes[ , , , , 2], true_boxes[ , , , , 2]), 0)
   intersection_area <- intersection_w * intersection_h
   pred_boxes_area <- (pred_boxes[ , , , , 3] - pred_boxes[ , , , , 1]) *
     (pred_boxes[ , , , , 4] - pred_boxes[ , , , , 2])
@@ -112,7 +112,7 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold) 
 
   max_iou <- tf$map_fn(function(x) tf$reduce_max(
     get_max_boxes_iou(x[[1]],
-                         tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
+                      tf$boolean_mask(x[[2]], tf$cast(x[[3]], tf$bool))), axis = as.integer(-1)),
     list(pred_boxes_min_max, true_boxes_min_max, obj_mask), tf$float32)
   ignore_mask <- tf$cast(max_iou < nonobj_threshold, tf$float32)
   obj_loss_bc <- tf$keras$losses$binary_crossentropy(true_boxes[[2]], pred_boxes[[2]])
