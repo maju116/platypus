@@ -4,7 +4,10 @@
 \alias{darknet53}
 \title{Creates a Darknet53 architecture.}
 \usage{
-darknet53()
+darknet53(channels)
+}
+\arguments{
+\item{channels}{Number of channels.}
 }
 \value{
 Darknet53 model.

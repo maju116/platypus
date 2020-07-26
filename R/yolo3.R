@@ -75,7 +75,7 @@ yolo3 <- function(net_h = 416, net_w = 416, grayscale = FALSE, n_class = 80, anc
   anchors_per_grid <- length(anchors[[1]])
   channels <- if (grayscale) 1 else 3
   input_img <- layer_input(shape = list(net_h, net_w, channels), name = 'input_img')
-  darknet <- darknet53()(input_img)
+  darknet <- darknet53(channels)(input_img)
   net_out <- yolo3_conv2d(darknet[[3]], 512, name = "yolo3_conv1")
   grid_1 <- yolo3_output(net_out, 512, anchors_per_grid, n_class, name = "grid1")
   net_out <- yolo3_conv2d(list(net_out, darknet[[2]]), 256, name = "yolo3_conv2")

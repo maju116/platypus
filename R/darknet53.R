@@ -53,10 +53,11 @@ darknet53_residual_block <- function(input, filters, blocks) {
 #' @import keras
 #' @import tensorflow
 #' @importFrom magrittr %>%
+#' @param channels Number of channels.
 #' @return Darknet53 model.
 #' @export
-darknet53 <- function() {
-  input <- layer_input(shape = list(NULL, NULL, 3))
+darknet53 <- function(channels) {
+  input <- layer_input(shape = list(NULL, NULL, channels))
   net_out <- input %>%
     darknet53_conv2d(strides = 1, filters = 32, kernel_size = 3,
                      batch_normalization = TRUE, leaky_relu = TRUE) %>%
