@@ -153,14 +153,23 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold,
 #' @param anchors Prediction anchors. For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
 #' @param nonobj_threshold Non-object ignore threshold.
+#' @param bbox_lambda Bounding box loss lambda.
+#' @param obj_lambda Object loss lambda.
+#' @param noobj_lambda Nonobject loss lambda.
+#' @param class_lambda Class loss lambda.
+#' @param class_weights Vector of length `n_class` with class weights.
 #' @return `Yolo3` loss function.
 #' @export
-yolo3_loss <- function(anchors, n_class, nonobj_threshold = 0.5) {
+yolo3_loss <- function(anchors, n_class, nonobj_threshold = 0.5,
+                       bbox_lambda = 1, obj_lambda = 1, noobj_lambda = 1,
+                       class_lambda = 1, class_weights = rep(1, n_class)) {
   anchors %>% imap(~ {
     grid_id <- .y
     current_anchors <- .x
     custom_metric("yolo3_loss", function(y_true, y_pred) {
-      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, nonobj_threshold)
+      yolo3_grid_loss(y_true, y_pred, current_anchors, n_class, nonobj_threshold,
+                      bbox_lambda, obj_lambda, noobj_lambda, class_lambda,
+                      class_weights)
     })
   }) %>% set_names(paste0("grid", 1:3))
 }
