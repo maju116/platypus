@@ -4,7 +4,18 @@
 \alias{yolo3_grid_loss}
 \title{Calculates loss for one `Yolo3` grid.}
 \usage{
-yolo3_grid_loss(y_true, y_pred, anchors, n_class, nonobj_threshold)
+yolo3_grid_loss(
+  y_true,
+  y_pred,
+  anchors,
+  n_class,
+  nonobj_threshold,
+  bbox_lambda = 1,
+  obj_lambda = 1,
+  noobj_lambda = 1,
+  class_lambda = 1,
+  class_weights = rep(1, n_class)
+)
 }
 \arguments{
 \item{y_true}{Tensor of true coordinates/scores.}
@@ -16,6 +27,16 @@ yolo3_grid_loss(y_true, y_pred, anchors, n_class, nonobj_threshold)
 \item{n_class}{Number of prediction classes.}
 
 \item{nonobj_threshold}{Non-object ignore threshold.}
+
+\item{bbox_lambda}{Bounding box loss lambda.}
+
+\item{obj_lambda}{Object loss lambda.}
+
+\item{noobj_lambda}{Nonobject loss lambda.}
+
+\item{class_lambda}{Class loss lambda.}
+
+\item{class_weights}{Vector of length `n_class` with class weights.}
 }
 \value{
 Loss for one `Yolo3` grid.
