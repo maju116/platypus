@@ -4,7 +4,7 @@
 \alias{plot_boxes_ggplot}
 \title{Generates raster image with bounding boxes.}
 \usage{
-plot_boxes_ggplot(image_path, boxes, correct_hw, target_size)
+plot_boxes_ggplot(image_path, boxes, correct_hw, target_size, grayscale)
 }
 \arguments{
 \item{image_path}{Image filepath.}
@@ -14,6 +14,8 @@ plot_boxes_ggplot(image_path, boxes, correct_hw, target_size)
 \item{correct_hw}{Logical. Should height/width rescaling of bounding boxes be applied.}
 
 \item{target_size}{Image target size.}
+
+\item{grayscale}{Should images be plotted in grayscale.}
 }
 \value{
 Raster image with bounding boxes.

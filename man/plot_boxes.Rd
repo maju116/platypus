@@ -4,7 +4,13 @@
 \alias{plot_boxes}
 \title{Generates raster images with bounding boxes.}
 \usage{
-plot_boxes(images_paths, boxes, correct_hw = TRUE, target_size = NULL)
+plot_boxes(
+  images_paths,
+  boxes,
+  correct_hw = TRUE,
+  target_size = NULL,
+  grayscale = FALSE
+)
 }
 \arguments{
 \item{images_paths}{Image filepaths.}
@@ -14,6 +20,8 @@ plot_boxes(images_paths, boxes, correct_hw = TRUE, target_size = NULL)
 \item{correct_hw}{Logical. Should height/width rescaling of bounding boxes be applied.}
 
 \item{target_size}{Image target size.}
+
+\item{grayscale}{Should images be plotted in grayscale.}
 }
 \value{
 Raster images with bounding boxes.
