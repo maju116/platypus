@@ -4,12 +4,14 @@
 \alias{create_plot_data}
 \title{Transforms pixel `array` into `data.frame` with raster data.}
 \usage{
-create_plot_data(xy_axis, sample_image)
+create_plot_data(xy_axis, sample_image, grayscale)
 }
 \arguments{
 \item{xy_axis}{`x` and `y` image grid.}
 
 \item{sample_image}{Pixel `array`.}
+
+\item{grayscale}{Should images be plotted in grayscale.}
 }
 \value{
 `data.frame` with raster data.
