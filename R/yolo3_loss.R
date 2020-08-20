@@ -97,9 +97,16 @@ get_max_boxes_iou <- function(pred_boxes, true_boxes) {
 #' @param anchors Prediction anchors (for one grid). For exact format check \code{\link[platypus]{coco_anchors}}.
 #' @param n_class Number of prediction classes.
 #' @param nonobj_threshold Non-object ignore threshold.
+#' @param bbox_lambda Bounding box loss lambda.
+#' @param obj_lambda Object loss lambda.
+#' @param noobj_lambda Nonobject loss lambda.
+#' @param class_lambda Class loss lambda.
+#' @param class_weights Vector of length `n_class` with class weights.
 #' @return Loss for one `Yolo3` grid.
 #' @export
-yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold) {
+yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold,
+                            bbox_lambda = 1, obj_lambda = 1, noobj_lambda = 1,
+                            class_lambda = 1, class_weights = rep(1, n_class)) {
   true_boxes <- transform_boxes_tf(y_true, anchors, n_class, transform_proba = FALSE)
   pred_boxes <- transform_boxes_tf(y_pred, anchors, n_class, transform_proba = TRUE)
   true_boxes_min_max <- transform_box_to_min_max(true_boxes[[1]])
@@ -128,14 +135,14 @@ yolo3_grid_loss <- function(y_true, y_pred, anchors, n_class, nonobj_threshold) 
     current_class_pred_false <- 1 - current_class_pred_true
     current_class_pred <- k_concatenate(list(current_class_pred_true, current_class_pred_false), axis = as.integer(-1))
     current_class_bc <- tf$keras$losses$binary_crossentropy(current_class, current_class_pred)
-    class_loss <- class_loss + current_class_bc
+    class_loss <- class_loss + class_weights[cls] * current_class_bc
   }
   class_loss <- obj_mask * class_loss
 
-  bbox_loss <- tf$reduce_sum(bbox_loss, axis = as.integer(1:3))
-  obj_loss <- tf$reduce_sum(obj_loss, axis = as.integer(1:3))
-  noobj_loss <- tf$reduce_sum(noobj_loss, axis = as.integer(1:3))
-  class_loss <- tf$reduce_sum(class_loss, axis = as.integer(1:3))
+  bbox_loss <- bbox_lambda * tf$reduce_sum(bbox_loss, axis = as.integer(1:3))
+  obj_loss <- obj_lambda * tf$reduce_sum(obj_loss, axis = as.integer(1:3))
+  noobj_loss <- noobj_lambda * tf$reduce_sum(noobj_loss, axis = as.integer(1:3))
+  class_loss <- class_lambda * tf$reduce_sum(class_loss, axis = as.integer(1:3))
   total_loss <- bbox_loss + obj_loss + noobj_loss + class_loss
   total_loss
 }
