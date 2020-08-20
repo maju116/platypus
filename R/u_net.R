@@ -6,7 +6,7 @@
 #' @param input Model or layer object.
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param kernel_size An integer or list of 2 integers, specifying the width and height of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
-#' @param batch_normalization Shoud batch normalization be used in the block.
+#' @param batch_normalization Should batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return Double convolutional U-Net block.
 u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization = TRUE, kernel_initializer = "he_normal") {
@@ -31,11 +31,11 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @param classes Number of classes. Minimum is `2` (background + other object).
 #' @param filters Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).
 #' @param dropout Dropout rate.
-#' @param batch_normalization Shoud batch normalization be used in the block.
+#' @param batch_normalization Should batch normalization be used in the block.
 #' @param kernel_initializer Initializer for the kernel weights matrix.
 #' @return U-Net model.
 #' @export
-u_net <- function(input_shape, blocks = 4, classes, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+u_net <- function(input_shape, blocks = 4, classes = 2, filters = 16, dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
   u_net_check(input_shape, blocks, classes, filters, dropout, batch_normalization)
   input_img <- layer_input(shape = input_shape, name = 'input_img')
 

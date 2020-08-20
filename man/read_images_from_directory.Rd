@@ -4,8 +4,13 @@
 \alias{read_images_from_directory}
 \title{Reads images from directory.}
 \usage{
-read_images_from_directory(paths, indices = NULL, target_size = c(256,
-  256), grayscale = FALSE, scale = 1/255)
+read_images_from_directory(
+  paths,
+  indices = NULL,
+  target_size = c(256, 256),
+  grayscale = FALSE,
+  scale = 1/255
+)
 }
 \arguments{
 \item{paths}{Images directories.}
