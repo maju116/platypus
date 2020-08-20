@@ -33,7 +33,7 @@ plot_rgb_raster <- function(plot_data){
 #' @return  Raster image with bounding boxes.
 plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size) {
   sample_image <- image_load(image_path, target_size = target_size) %>%
-    image_to_array() # %>% apply_affine_transform_to_image(theta = 90)
+    image_to_array()
   h <- dim(sample_image)[1]
   w <- dim(sample_image)[2]
   boxes <- if (correct_hw) correct_boxes(list(boxes), image_h = h, image_w = w)[[1]] else boxes
