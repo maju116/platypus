@@ -1,0 +1,34 @@
+---
+output: github_document
+params:
+  repo_name: platypus
+  repo_url: https://github.com/maju116/platypus
+  chagelog_url: https://github.com/Appsilon/platypus/blob/master/CHANGELOG.md
+  code_of_coduct: https://github.com/Appsilon/platypus/blob/develop/CODE_OF_CONDUCT.md
+---
+
+<img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
+
+#  `r params$repo_name`
+
+**R package for object detection and image segmentation**
+
+With `platypus` it is easy create advanced computer vision models like YOLOv3 and U-Net in a few lines of code.
+
+How to install?
+---------------
+
+You can install the latest version of `platypus` with `remotes`:
+
+```{r, eval=FALSE}
+remotes::install_github("maju116/platypus")
+```
+
+To install [previous versions](`r params$changelog_url`) you can run:
+
+```{r, eval=FALSE}
+remotes::install_github("maju116/platypus", ref = "0.1.0")
+```
+
+How to use it?
+-------------
