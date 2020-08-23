@@ -4,4 +4,8 @@ examples
 development
 ^\.travis\.yml$
 ^codecov\.yml$
-examples
+^README\.Rmd$
+^CHANGELOG\.md$
+^LICENSE\.md$
+^CODE_OF_CONDUCT\.md$
+^README_files$

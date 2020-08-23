@@ -24,11 +24,83 @@ You can install the latest version of `platypus` with `remotes`:
 remotes::install_github("maju116/platypus")
 ```
 
+(`master` branch contains the stable version. Use `develop` branch for latest features)
+
 To install [previous versions](`r params$changelog_url`) you can run:
 
 ```{r, eval=FALSE}
 remotes::install_github("maju116/platypus", ref = "0.1.0")
 ```
 
-How to use it?
--------------
+In order to install `platypus` you need to install `keras` and `tensorflow` packages and `Tensorflow` version `>= 2.0.0` (`Tensorflow 1.x` will not be supported!)
+
+YOLOv3 Object detection with pre-trained COCO weights:
+---------------
+
+To create YOLOv3 architecture use:
+
+```{r, message = FALSE}
+library(tidyverse)
+library(platypus)
+library(abind)
+
+test_yolo <- yolo3(
+  net_h = 416, # Input image height
+  net_w = 416, # Input image width
+  grayscale = FALSE, # Should images be loaded as grayscale or RGB
+  n_class = 80, # Number of object classes (80 for COCO dataset)
+  anchors = coco_anchors # Anchor boxes
+)
+
+test_yolo
+```
+
+You can now load [YOLOv3 Darknet](https://pjreddie.com/darknet/yolo/) weights trained on [COCO dataset](https://cocodataset.org/#home). Download pre-trained weights from [here](https://pjreddie.com/media/files/yolov3.weights) and run:
+
+```{r}
+test_yolo %>% load_darknet_weights("development/yolov3.weights")
+```
+
+Calculate predictions for new images:
+
+```{r}
+test_img_paths <- list.files(system.file("extdata", "images", package = "platypus"), full.names = TRUE)
+test_imgs <- test_img_paths %>%
+  map(~ {
+    image_load(., target_size = c(416, 416), grayscale = FALSE) %>%
+      image_to_array() %>%
+      `/`(255)
+  }) %>%
+  abind(along = 4) %>%
+  aperm(c(4, 1:3))
+test_preds <- test_yolo %>% predict(test_imgs)
+
+str(test_preds)
+```
+
+Transform raw predictions into bounding boxes:
+
+```{r}
+test_boxes <- get_boxes(
+  preds = test_preds, # Raw predictions form YOLOv3 model
+  anchors = coco_anchors, # Anchor boxes
+  labels = coco_labels, # Class labels
+  obj_threshold = 0.6, # Object threshold
+  nms = TRUE, # Should non-max suppression be applied
+  nms_threshold = 0.6, # Non-max suppression threshold
+  correct_hw = FALSE # Should height and width of bounding boxes be corrected to image height and width
+)
+
+test_boxes
+```
+
+Plot / save images:
+
+```{r}
+plot_boxes(
+  images_paths = test_img_paths, # Images paths
+  boxes = test_boxes, # Bounding boxes
+  correct_hw = TRUE # Should height and width of bounding boxes be corrected to image height and width
+)
+```
+
