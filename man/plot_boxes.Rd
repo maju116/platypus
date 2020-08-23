@@ -7,6 +7,7 @@
 plot_boxes(
   images_paths,
   boxes,
+  labels,
   correct_hw = TRUE,
   target_size = NULL,
   grayscale = FALSE
@@ -16,6 +17,8 @@ plot_boxes(
 \item{images_paths}{Image filepaths.}
 
 \item{boxes}{List of `data.frames` with bounding boxes corresponding to the images.}
+
+\item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 
 \item{correct_hw}{Logical. Should height/width rescaling of bounding boxes be applied.}
 

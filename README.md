@@ -123,21 +123,25 @@ test_boxes <- get_boxes(
 
 test_boxes
 #> [[1]]
-#>        xmin      ymin      xmax      ymax     p_obj label_id  label
-#> 1 0.2065822 0.7178876 0.2364099 0.8651962 0.9507609        1 person
-#> 2 0.8122054 0.7581823 0.8457879 0.8682902 0.9587147        1 person
-#> 3 0.3485442 0.7018576 0.4919897 0.8842886 0.9997346        3    car
-#> 4 0.4835574 0.5431118 0.4976843 0.5575383 0.8372639        3    car
-#> 5 0.5016635 0.5427939 0.5154415 0.5558958 0.8209396        3    car
-#> 6 0.4394382 0.6041225 0.4685148 0.6429721 0.8417721        3    car
-#> 7 0.5407435 0.5537741 0.6669978 0.8086006 0.9994573        6    bus
-#> 8 0.5340163 0.5701706 0.6751449 0.8193321 0.9543661        7  train
+#> # A tibble: 8 x 7
+#>    xmin  ymin  xmax  ymax p_obj label_id label 
+#>   <dbl> <dbl> <dbl> <dbl> <dbl>    <int> <chr> 
+#> 1 0.207 0.718 0.236 0.865 0.951        1 person
+#> 2 0.812 0.758 0.846 0.868 0.959        1 person
+#> 3 0.349 0.702 0.492 0.884 1.00         3 car   
+#> 4 0.484 0.543 0.498 0.558 0.837        3 car   
+#> 5 0.502 0.543 0.515 0.556 0.821        3 car   
+#> 6 0.439 0.604 0.469 0.643 0.842        3 car   
+#> 7 0.541 0.554 0.667 0.809 0.999        6 bus   
+#> 8 0.534 0.570 0.675 0.819 0.954        7 train 
 #> 
 #> [[2]]
-#>         xmin       ymin      xmax      ymax     p_obj label_id label
-#> 1 0.02362738 0.07048325 0.4544083 0.9091996 0.9999467       23 zebra
-#> 2 0.28961027 0.20582033 0.7285326 0.9007657 0.9972296       23 zebra
-#> 3 0.48607180 0.40705788 0.8476524 0.9278796 0.9995333       23 zebra
+#> # A tibble: 3 x 7
+#>     xmin   ymin  xmax  ymax p_obj label_id label
+#>    <dbl>  <dbl> <dbl> <dbl> <dbl>    <int> <chr>
+#> 1 0.0236 0.0705 0.454 0.909 1.00        23 zebra
+#> 2 0.290  0.206  0.729 0.901 0.997       23 zebra
+#> 3 0.486  0.407  0.848 0.928 1.00        23 zebra
 ```
 
 Plot / save images:
@@ -146,7 +150,8 @@ Plot / save images:
 plot_boxes(
   images_paths = test_img_paths, # Images paths
   boxes = test_boxes, # Bounding boxes
-  correct_hw = TRUE # Should height and width of bounding boxes be corrected to image height and width
+  correct_hw = TRUE, # Should height and width of bounding boxes be corrected to image height and width
+  labels = coco_labels # Class labels
 )
 ```
 
@@ -287,7 +292,8 @@ test_preds <- blood_yolo %>% predict(test_imgs)
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
-plot_boxes(images_paths = test_img_paths, boxes = test_boxes)
+plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
+  labels = blood_labels)
 ```
 
-![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)
+![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)

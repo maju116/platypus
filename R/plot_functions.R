@@ -37,13 +37,15 @@ plot_raster <- function(plot_data, grayscale) {
 #' @description Generates raster image with bounding boxes.
 #' @import ggplot2
 #' @importFrom dplyr rename
+#' @import RColorBrewer
 #' @param image_path Image filepath.
 #' @param boxes `data.frame` with bounding boxes corresponding to the image.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied.
 #' @param target_size Image target size.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster image with bounding boxes.
-plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size, grayscale) {
+plot_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_size, grayscale) {
   sample_image <- image_load(image_path, target_size = target_size, grayscale = grayscale) %>%
     image_to_array()
   h <- dim(sample_image)[1]
@@ -53,11 +55,13 @@ plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size, graysc
                  ~ mutate(., x = 0, y = 0, r = 0, g = 0, b = 0))
   xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
   plot_data <- create_plot_data(xy_axis, sample_image, grayscale)
+  boxes_colors <- colorRampPalette(brewer.pal(8, "Set2"))(length(labels))
+  names(boxes_colors) <- labels
   p <- plot_raster(plot_data, grayscale) +
     geom_rect(data = boxes, aes(xmin = xmin, ymin = h-ymin, xmax = xmax, ymax = h-ymax, colour = label),
               fill = NA, size = 1) +
     geom_label(data = boxes, aes(x = xmin, y = h-ymin, label = label, colour = label)) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") + scale_colour_manual(name = "boxes", values = boxes_colors)
   plot(p)
 }
 
@@ -66,13 +70,14 @@ plot_boxes_ggplot <- function(image_path, boxes, correct_hw, target_size, graysc
 #' @importFrom purrr walk2
 #' @param images_paths Image filepaths.
 #' @param boxes List of `data.frames` with bounding boxes corresponding to the images.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied.
 #' @param target_size Image target size.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster images with bounding boxes.
 #' @export
-plot_boxes <- function(images_paths, boxes, correct_hw = TRUE,
+plot_boxes <- function(images_paths, boxes, labels, correct_hw = TRUE,
                        target_size = NULL, grayscale = FALSE) {
-  walk2(images_paths, boxes, ~ plot_boxes_ggplot(.x, .y, correct_hw,
+  walk2(images_paths, boxes, ~ plot_boxes_ggplot(.x, .y, labels, correct_hw,
                                                  target_size, grayscale))
 }

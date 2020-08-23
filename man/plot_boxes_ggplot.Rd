@@ -4,12 +4,21 @@
 \alias{plot_boxes_ggplot}
 \title{Generates raster image with bounding boxes.}
 \usage{
-plot_boxes_ggplot(image_path, boxes, correct_hw, target_size, grayscale)
+plot_boxes_ggplot(
+  image_path,
+  boxes,
+  labels,
+  correct_hw,
+  target_size,
+  grayscale
+)
 }
 \arguments{
 \item{image_path}{Image filepath.}
 
 \item{boxes}{`data.frame` with bounding boxes corresponding to the image.}
+
+\item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 
 \item{correct_hw}{Logical. Should height/width rescaling of bounding boxes be applied.}
 

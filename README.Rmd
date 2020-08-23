@@ -110,7 +110,8 @@ Plot / save images:
 plot_boxes(
   images_paths = test_img_paths, # Images paths
   boxes = test_boxes, # Bounding boxes
-  correct_hw = TRUE # Should height and width of bounding boxes be corrected to image height and width
+  correct_hw = TRUE, # Should height and width of bounding boxes be corrected to image height and width
+  labels = coco_labels # Class labels
 )
 ```
 
@@ -209,6 +210,7 @@ test_preds <- blood_yolo %>% predict(test_imgs)
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
-plot_boxes(images_paths = test_img_paths, boxes = test_boxes)
+plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
+  labels = blood_labels)
 ```
 
