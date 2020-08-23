@@ -151,3 +151,78 @@ plot_boxes(
 ```
 
 ![](man/figures/README-unnamed-chunk-8-1.png)![](man/figures/README-unnamed-chunk-8-2.png)
+
+YOLOv3 Object detection with custom dataset:
+--------------------------------------------
+
+Download images and annotations: [BCCD
+dataset](https://www.kaggle.com/surajiiitm/bccd-dataset?)
+
+Generate custom anchor boxes:
+
+``` r
+library(tidyverse)
+library(platypus)
+library(abind)
+
+# Constants
+blood_labels <- c("Platelets", "RBC", "WBC")
+n_class <- length(blood_labels)
+net_h <- 416
+net_w <- 416
+anchors_per_grid <- 3
+annot_path <- "development/BCCD/Annotations/"
+images_path <- "development/BCCD/JPEGImages/"
+
+# Generate anchors
+blood_anchors <- generate_anchors(
+  anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
+  annot_path = annot_path, # Annotations directory
+  labels = blood_labels, # Class labels
+  n_iter = 10, # Number of k-means++ iterations
+  annot_format = "pascal_voc", # Annotations format
+  seed = 55, # Random seed
+  centroid_fun = mean # Centroid function
+)
+#>       label    n
+#> 1 Platelets  361
+#> 2       RBC 4153
+#> 3       WBC  372
+```
+
+![](man/figures/README-unnamed-chunk-9-1.png)
+
+``` r
+blood_anchors
+#> [[1]]
+#> [[1]][[1]]
+#> [1] 0.3552235 0.4417515
+#> 
+#> [[1]][[2]]
+#> [1] 0.2911290 0.3292675
+#> 
+#> [[1]][[3]]
+#> [1] 0.1971296 0.2346442
+#> 
+#> 
+#> [[2]]
+#> [[2]][[1]]
+#> [1] 0.1757463 0.1592062
+#> 
+#> [[2]][[2]]
+#> [1] 0.1652637 0.2065506
+#> 
+#> [[2]][[3]]
+#> [1] 0.1630269 0.2439239
+#> 
+#> 
+#> [[3]]
+#> [[3]][[1]]
+#> [1] 0.1391842 0.1769376
+#> 
+#> [[3]][[2]]
+#> [1] 0.1245985 0.2258089
+#> 
+#> [[3]][[3]]
+#> [1] 0.06237392 0.08062560
+```

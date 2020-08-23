@@ -8,6 +8,7 @@ params:
   chagelog_url: https://github.com/Appsilon/platypus/blob/master/CHANGELOG.md
   code_of_coduct: https://github.com/Appsilon/platypus/blob/develop/CODE_OF_CONDUCT.md
 ---
+
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -111,5 +112,40 @@ plot_boxes(
   boxes = test_boxes, # Bounding boxes
   correct_hw = TRUE # Should height and width of bounding boxes be corrected to image height and width
 )
+```
+
+YOLOv3 Object detection with custom dataset:
+---------------
+
+Download images and annotations: [BCCD dataset](https://www.kaggle.com/surajiiitm/bccd-dataset?)
+
+Generate custom anchor boxes:
+
+```{r}
+library(tidyverse)
+library(platypus)
+library(abind)
+
+# Constants
+blood_labels <- c("Platelets", "RBC", "WBC")
+n_class <- length(blood_labels)
+net_h <- 416
+net_w <- 416
+anchors_per_grid <- 3
+annot_path <- "development/BCCD/Annotations/"
+images_path <- "development/BCCD/JPEGImages/"
+
+# Generate anchors
+blood_anchors <- generate_anchors(
+  anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
+  annot_path = annot_path, # Annotations directory
+  labels = blood_labels, # Class labels
+  n_iter = 10, # Number of k-means++ iterations
+  annot_format = "pascal_voc", # Annotations format
+  seed = 55, # Random seed
+  centroid_fun = mean # Centroid function
+)
+
+blood_anchors
 ```
 

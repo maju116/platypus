@@ -44,7 +44,7 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @importFrom dplyr count group_by summarise ungroup arrange desc sample_n bind_rows
 #' @importFrom stats median
 #' @param anchors_per_grid Number of anchors per one grid.
-#' @param annot_paths List of annotations filepaths.
+#' @param annot_path Annotations directory.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param n_iter Maximum number of iteration for k-mean++ algorithm.
 #' @param annot_format Annotations format. One of `pascal_voc`, `labelme`.
@@ -52,10 +52,12 @@ initialize_anchors <- function(annot_df, total_anchors) {
 #' @param centroid_fun Function to use for centroid calculation.
 #' @return List of anchor boxes.
 #' @export
-generate_anchors <- function(anchors_per_grid, annot_paths,
+generate_anchors <- function(anchors_per_grid, annot_path,
                              labels, n_iter = 10, annot_format = "pascal_voc",
                              seed = 1234, centroid_fun = mean) {
   set.seed(seed)
+  annot_ext <- if (annot_format == "pascal_voc") ".xml$" else ".json$"
+  annot_paths <- list.files(annot_path, pattern = annot_ext, full.names = TRUE)
   total_anchors <- anchors_per_grid * 3
   annotations <- if (annot_format == "pascal_voc") {
     read_annotations_from_xml(annot_paths, NULL, "", labels)
