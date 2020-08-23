@@ -262,7 +262,8 @@ blood_yolo %>%
     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
                                                save_best_only = TRUE,
                                                save_weights_only = TRUE)
-)
+    )
+  )
 ```
 
 Predict on new images:
