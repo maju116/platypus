@@ -1,7 +1,7 @@
 ---
 output:
-  github_document:
-    pandoc_args: --webtex
+ md_document:
+  variant: markdown_github
 params:
   repo_name: platypus
   repo_url: https://github.com/maju116/platypus
