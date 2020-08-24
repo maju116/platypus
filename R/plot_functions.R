@@ -55,12 +55,16 @@ plot_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_size
                  ~ mutate(., x = 0, y = 0, r = 0, g = 0, b = 0))
   xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
   plot_data <- create_plot_data(xy_axis, sample_image, grayscale)
-  boxes_colors <- colorRampPalette(brewer.pal(8, "Set2"))(length(labels))
+  boxes_colors <- if (length(labels) > 8) {
+    colorRampPalette(brewer.pal(8, "Set2"))(length(labels))
+  } else {
+    brewer.pal(length(labels), "Set2")
+  }
   names(boxes_colors) <- labels
   p <- plot_raster(plot_data, grayscale) +
     geom_rect(data = boxes, aes(xmin = xmin, ymin = h-ymin, xmax = xmax, ymax = h-ymax, colour = label),
               fill = NA, size = 1) +
-    geom_label(data = boxes, aes(x = xmin, y = h-ymin, label = label, colour = label)) +
+    geom_label(data = boxes, aes(x = xmin, y = h-ymin, label = paste(label, round(p_obj * 100, 2), "%"), colour = label)) +
     theme(legend.position = "none") + scale_colour_manual(name = "boxes", values = boxes_colors)
   plot(p)
 }
