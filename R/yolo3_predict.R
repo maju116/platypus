@@ -172,7 +172,12 @@ clean_boxes <- function(boxes, labels) {
       set_names(c("xmin", "ymin", "xmax", "ymax", "p_obj", paste0("class", 1:length(labels))))
     boxes_data$label_id = apply(boxes_data %>% select(starts_with("class")), 1, which.max)
     boxes_data %>% select(-starts_with("class")) %>%
-      mutate(label = labels[label_id])
+      mutate(label = labels[label_id]) %>%
+      rowwise() %>%
+      mutate_at(vars("xmin", "ymin", "xmax", "ymax"), ~ max(., 0)) %>%
+      mutate_at(vars("xmin", "ymin", "xmax", "ymax"), ~ min(., 1)) %>%
+      filter(xmax > xmin, ymax > ymin) %>%
+      ungroup()
   })
 }
 
