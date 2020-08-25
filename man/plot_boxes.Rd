@@ -10,7 +10,9 @@ plot_boxes(
   labels,
   correct_hw = TRUE,
   target_size = NULL,
-  grayscale = FALSE
+  grayscale = FALSE,
+  save_dir = NULL,
+  plot_images = TRUE
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ plot_boxes(
 \item{target_size}{Image target size.}
 
 \item{grayscale}{Should images be plotted in grayscale.}
+
+\item{save_dir}{Directory in which to save generated images.}
+
+\item{plot_images}{Should images be plotted.}
 }
 \value{
 Raster images with bounding boxes.

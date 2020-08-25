@@ -139,7 +139,7 @@ blood_anchors <- generate_anchors(
   anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
   annot_path = annot_path, # Annotations directory
   labels = blood_labels, # Class labels
-  n_iter = 10, # Number of k-means++ iterations
+  n_iter = 1000, # Number of k-means++ iterations
   annot_format = "pascal_voc", # Annotations format
   seed = 55, # Random seed
   centroid_fun = mean # Centroid function
@@ -211,6 +211,6 @@ test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
 plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
-  labels = blood_labels)
+  labels = blood_labels, save_dir = "development")
 ```
 

@@ -45,7 +45,7 @@ plot_raster <- function(plot_data, grayscale) {
 #' @param target_size Image target size.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster image with bounding boxes.
-plot_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_size, grayscale) {
+create_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_size, grayscale) {
   sample_image <- image_load(image_path, target_size = target_size, grayscale = grayscale) %>%
     image_to_array()
   h <- dim(sample_image)[1]
@@ -61,27 +61,33 @@ plot_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_size
     brewer.pal(length(labels), "Set2")
   }
   names(boxes_colors) <- labels
-  p <- plot_raster(plot_data, grayscale) +
+  plot_raster(plot_data, grayscale) +
     geom_rect(data = boxes, aes(xmin = xmin, ymin = h-ymin, xmax = xmax, ymax = h-ymax, colour = label),
               fill = NA, size = 1) +
     geom_label(data = boxes, aes(x = xmin, y = h-ymin, label = paste(label, round(p_obj * 100, 2), "%"), colour = label)) +
     theme(legend.position = "none") + scale_colour_manual(name = "boxes", values = boxes_colors)
-  plot(p)
 }
 
 #' Generates raster images with bounding boxes.
 #' @description Generates raster images with bounding boxes.
 #' @importFrom purrr walk2
+#' @importFrom ggplot2 ggsave
 #' @param images_paths Image filepaths.
 #' @param boxes List of `data.frames` with bounding boxes corresponding to the images.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.
 #' @param correct_hw Logical. Should height/width rescaling of bounding boxes be applied.
 #' @param target_size Image target size.
 #' @param grayscale Should images be plotted in grayscale.
+#' @param save_dir Directory in which to save generated images.
+#' @param plot_images Should images be plotted.
 #' @return  Raster images with bounding boxes.
 #' @export
 plot_boxes <- function(images_paths, boxes, labels, correct_hw = TRUE,
-                       target_size = NULL, grayscale = FALSE) {
-  walk2(images_paths, boxes, ~ plot_boxes_ggplot(.x, .y, labels, correct_hw,
-                                                 target_size, grayscale))
+                       target_size = NULL, grayscale = FALSE,
+                       save_dir = NULL, plot_images = TRUE) {
+  walk2(images_paths, boxes, ~ {
+    p <- create_boxes_ggplot(.x, .y, labels, correct_hw, target_size, grayscale)
+    if (plot_images) plot(p)
+    if (!is.null(save_dir)) ggsave(filename = basename(.x), plot = p, path = save_dir)
+  })
 }
