@@ -4,7 +4,14 @@
 \alias{yolo3_fit_generator}
 \title{Fits `YOLOv3` model using data generator.}
 \usage{
-yolo3_fit_generator(model, generator, epochs, steps_per_epoch)
+yolo3_fit_generator(
+  model,
+  generator,
+  epochs,
+  steps_per_epoch,
+  validation_generator = NULL,
+  validation_steps_per_epoch = NULL
+)
 }
 \arguments{
 \item{model}{`YOLOv3` Model.}
@@ -14,6 +21,10 @@ yolo3_fit_generator(model, generator, epochs, steps_per_epoch)
 \item{epochs}{Number of epochs.}
 
 \item{steps_per_epoch}{Steps per epoch.}
+
+\item{validation_generator}{Validation data generator.}
+
+\item{validation_steps_per_epoch}{Validation steps per epoch.}
 }
 \description{
 Fits `YOLOv3` model using data generator.
