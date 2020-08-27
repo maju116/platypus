@@ -56,3 +56,21 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
     when(!is.null(validation_generator) ~ bind_cols(., val_results), ~ .)
   return(results)
 }
+
+#' Calculates predictions on new samples using data generator.
+#' @description Calculates predictions on new samples using data generator.
+#' @param model Model.
+#' @param generator Data generator.
+#' @param steps Steps in epoch.
+#' @import progress
+#' @export
+custom_predict_generator <- function(model, generator, steps) {
+  pb_format <- "[:bar] :percent eta: :eta"
+  pb <- progress_bar$new(total = steps, format = pb_format)
+  map(1:steps, function(x) {
+    current_batch <- generator()
+    predictions <- predict(model, current_batch[[1]])
+    pb$tick()
+    predictions
+  })
+}

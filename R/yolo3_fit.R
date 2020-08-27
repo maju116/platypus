@@ -20,3 +20,21 @@ yolo3_fit_generator <- function(model, generator, epochs, steps_per_epoch,
                        validation_steps_per_epoch,
                        model_filepath)
 }
+
+#' Calculates predictions on new samples using `YOLOv3` data generator.
+#' @description Calculates predictions on new samples using `YOLOv3` data generator.
+#' @param model `YOLOv3` Model.
+#' @param generator `YOLOv3` Data generator.
+#' @param steps Steps in epoch.
+#' @import progress
+#' @export
+yolo3_predict_generator <- function(model, generator, steps) {
+  predictions <- custom_predict_generator(model, generator, steps)
+  grid1 <- predictions %>% map(~ .[[1]]) %>%
+    abind(along = 1)
+  grid2 <- predictions %>% map(~ .[[2]]) %>%
+    abind(along = 1)
+  grid3 <- predictions %>% map(~ .[[3]]) %>%
+    abind(along = 1)
+  list(grid1, grid2, grid3)
+}
