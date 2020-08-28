@@ -182,7 +182,7 @@ blood_anchors <- generate_anchors(
   anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
   annot_path = annot_path, # Annotations directory
   labels = blood_labels, # Class labels
-  n_iter = 1000, # Number of k-means++ iterations
+  n_iter = 10, # Number of k-means++ iterations
   annot_format = "pascal_voc", # Annotations format
   seed = 55, # Random seed
   centroid_fun = mean # Centroid function
@@ -199,32 +199,32 @@ blood_anchors <- generate_anchors(
 blood_anchors
 #> [[1]]
 #> [[1]][[1]]
-#> [1] 0.3548552 0.4395951
+#> [1] 0.3552235 0.4417515
 #> 
 #> [[1]][[2]]
-#> [1] 0.2826833 0.3241228
+#> [1] 0.2911290 0.3292675
 #> 
 #> [[1]][[3]]
-#> [1] 0.1954375 0.2319032
+#> [1] 0.1971296 0.2346442
 #> 
 #> 
 #> [[2]]
 #> [[2]][[1]]
-#> [1] 0.1760417 0.1572016
+#> [1] 0.1757463 0.1592062
 #> 
 #> [[2]][[2]]
-#> [1] 0.1642789 0.2367366
+#> [1] 0.1652637 0.2065506
 #> 
 #> [[2]][[3]]
-#> [1] 0.1631230 0.2017863
+#> [1] 0.1630269 0.2439239
 #> 
 #> 
 #> [[3]]
 #> [[3]][[1]]
-#> [1] 0.1364492 0.1733593
+#> [1] 0.1391842 0.1769376
 #> 
 #> [[3]][[2]]
-#> [1] 0.1261678 0.2273329
+#> [1] 0.1245985 0.2258089
 #> 
 #> [[3]][[3]]
 #> [1] 0.06237392 0.08062560
@@ -278,7 +278,7 @@ history <- yolo3_fit_generator(
   generator = blood_yolo_generator,
   epochs = 1000,
   steps_per_epoch = 23,
-  model_filepath = "development/BCCD/blood_w2.hdf5")
+  model_filepath = "development/BCCD/blood_w.hdf5")
 ```
 
 Predict on new images:
