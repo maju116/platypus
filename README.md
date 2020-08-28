@@ -256,19 +256,29 @@ blood_yolo_generator <- yolo3_generator(
 )
 ```
 
-Fit the model:
+Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
+generators dosen’t work. Please see
+[issue](https://github.com/rstudio/keras/issues/1090) and
+[issue](https://github.com/rstudio/keras/issues/1073)):
 
 ``` r
-blood_yolo %>%
-  fit_generator(
-    blood_yolo_generator,
-    epochs = 100,
-    steps_per_epoch = 23,
-    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-                                               save_best_only = TRUE,
-                                               save_weights_only = TRUE)
-    )
-  )
+# blood_yolo %>%
+#   fit_generator(
+#     blood_yolo_generator,
+#     epochs = 1000,
+#     steps_per_epoch = 23,
+#     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
+#                                                save_best_only = TRUE,
+#                                                save_weights_only = TRUE)
+#     )
+#   )
+
+history <- yolo3_fit_generator(
+  model = blood_yolo,
+  generator = blood_yolo_generator,
+  epochs = 1000,
+  steps_per_epoch = 23,
+  model_filepath = "development/BCCD/blood_w2.hdf5")
 ```
 
 Predict on new images:
