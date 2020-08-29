@@ -307,3 +307,6 @@ plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
 ```
 
 ![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)
+
+See full example
+[here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)

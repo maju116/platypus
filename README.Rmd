@@ -198,7 +198,7 @@ history <- yolo3_fit_generator(
 
 Predict on new images:
 
-```{r message = FALSE}
+```{r, message = FALSE}
 blood_yolo <- yolo3(net_h = net_h, net_w = net_w, n_class = n_class)
 blood_yolo %>% load_model_weights_hdf5("development/BCCD/blood_w.hdf5")
 
@@ -221,3 +221,4 @@ plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
   labels = blood_labels, save_dir = "development")
 ```
 
+See full example [here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
