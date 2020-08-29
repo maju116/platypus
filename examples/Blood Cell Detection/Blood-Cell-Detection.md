@@ -1,15 +1,9 @@
----
-title: "Blood Cell Detection"
-author: "Michał Maj"
-date: "8/28/2020"
-output: html_document
----
-
-Download images and annotations: [BCCD dataset](https://www.kaggle.com/surajiiitm/bccd-dataset?).
+Download images and annotations: [BCCD
+dataset](https://www.kaggle.com/surajiiitm/bccd-dataset?).
 
 Split dataset into train, validation and test set
 
-```{r, message = FALSE, warning = FALSE}
+``` r
 library(tidyverse)
 library(platypus)
 library(abind)
@@ -45,7 +39,7 @@ walk2(c("train", "valid", "test"), list(train_ids, valid_ids, test_ids), ~ {
 
 Generate custom anchor boxes:
 
-```{r}
+``` r
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
 net_h <- 416
@@ -61,13 +55,57 @@ blood_anchors <- generate_anchors(
   seed = 55, # Random seed
   centroid_fun = mean # Centroid function
 )
+```
 
+    ##       label    n
+    ## 1 Platelets  361
+    ## 2       RBC 4153
+    ## 3       WBC  372
+
+![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
+``` r
 blood_anchors
 ```
 
-Build `YOLOv3` model (you can load [YOLOv3 Darknet](https://pjreddie.com/darknet/yolo/) weights trained on [COCO dataset](https://cocodataset.org/#home). Download pre-trained weights from [here](https://pjreddie.com/media/files/yolov3.weights)):
+    ## [[1]]
+    ## [[1]][[1]]
+    ## [1] 0.3552235 0.4417515
+    ## 
+    ## [[1]][[2]]
+    ## [1] 0.2911290 0.3292675
+    ## 
+    ## [[1]][[3]]
+    ## [1] 0.1971296 0.2346442
+    ## 
+    ## 
+    ## [[2]]
+    ## [[2]][[1]]
+    ## [1] 0.1757463 0.1592062
+    ## 
+    ## [[2]][[2]]
+    ## [1] 0.1652637 0.2065506
+    ## 
+    ## [[2]][[3]]
+    ## [1] 0.1630269 0.2439239
+    ## 
+    ## 
+    ## [[3]]
+    ## [[3]][[1]]
+    ## [1] 0.1391842 0.1769376
+    ## 
+    ## [[3]][[2]]
+    ## [1] 0.1245985 0.2258089
+    ## 
+    ## [[3]][[3]]
+    ## [1] 0.06237392 0.08062560
 
-```{r}
+Build `YOLOv3` model (you can load [YOLOv3
+Darknet](https://pjreddie.com/darknet/yolo/) weights trained on [COCO
+dataset](https://cocodataset.org/#home). Download pre-trained weights
+from [here](https://pjreddie.com/media/files/yolov3.weights)):
+
+``` r
 blood_yolo <- yolo3(
   net_h = net_h, # Input image height
   net_w = net_w, # Input image width
@@ -80,9 +118,37 @@ blood_yolo %>% load_darknet_weights(here("development/yolov3.weights")) # Option
 blood_yolo
 ```
 
+    ## Model
+    ## Model: "yolo3"
+    ## ________________________________________________________________________________
+    ## Layer (type)              Output Shape      Param #  Connected to               
+    ## ================================================================================
+    ## input_img (InputLayer)    [(None, 416, 416, 0                                   
+    ## ________________________________________________________________________________
+    ## darknet53 (Model)         multiple          40620640 input_img[0][0]            
+    ## ________________________________________________________________________________
+    ## yolo3_conv1 (Model)       (None, 13, 13, 51 11024384 darknet53[1][2]            
+    ## ________________________________________________________________________________
+    ## yolo3_conv2 (Model)       (None, 26, 26, 25 2957312  yolo3_conv1[1][0]          
+    ##                                                      darknet53[1][1]            
+    ## ________________________________________________________________________________
+    ## yolo3_conv3 (Model)       (None, 52, 52, 12 741376   yolo3_conv2[1][0]          
+    ##                                                      darknet53[1][0]            
+    ## ________________________________________________________________________________
+    ## grid1 (Model)             (None, 13, 13, 3, 4747288  yolo3_conv1[1][0]          
+    ## ________________________________________________________________________________
+    ## grid2 (Model)             (None, 26, 26, 3, 1194008  yolo3_conv2[1][0]          
+    ## ________________________________________________________________________________
+    ## grid3 (Model)             (None, 52, 52, 3, 302104   yolo3_conv3[1][0]          
+    ## ================================================================================
+    ## Total params: 61,587,112
+    ## Trainable params: 61,534,504
+    ## Non-trainable params: 52,608
+    ## ________________________________________________________________________________
+
 Compile the model with correct loss and metrics:
 
-```{r}
+``` r
 blood_yolo %>% compile(
   optimizer = optimizer_adam(lr = 1e-5),
   loss = yolo3_loss(blood_anchors, n_class = n_class),
@@ -92,7 +158,7 @@ blood_yolo %>% compile(
 
 Create data generators:
 
-```{r}
+``` r
 train_blood_yolo_generator <- yolo3_generator(
   annot_path = file.path(BCCD_path, "train", "Annotations/"),
   images_path = file.path(BCCD_path, "train", "JPEGImages/"),
@@ -114,9 +180,12 @@ valid_blood_yolo_generator <- yolo3_generator(
 )
 ```
 
-Fit the model (starting from `tensorflow >= 2.1` fitting custom `R` generators dosen't work. Please see [issue](https://github.com/rstudio/keras/issues/1090) and [issue](https://github.com/rstudio/keras/issues/1073)):
+Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
+generators dosen’t work. Please see
+[issue](https://github.com/rstudio/keras/issues/1090) and
+[issue](https://github.com/rstudio/keras/issues/1073)):
 
-```{r, eval = FALSE}
+``` r
 # blood_yolo %>%
 #   fit_generator(
 #     blood_yolo_generator,
@@ -140,7 +209,7 @@ history <- yolo3_fit_generator(
 
 Predict on new images:
 
-```{r, message = FALSE}
+``` r
 blood_yolo <- yolo3(
   net_h = net_h,
   net_w = net_w,
@@ -170,3 +239,5 @@ plot_boxes(images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/")
            labels = blood_labels,
            save_dir = here("development/BCCD/"))
 ```
+
+![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-1.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-2.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-3.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-4.png)
