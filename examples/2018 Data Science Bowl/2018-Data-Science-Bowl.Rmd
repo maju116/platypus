@@ -1,0 +1,115 @@
+---
+title: "2018 Data Science Bowl"
+author: "Michał Maj"
+date: "8/29/2020"
+output:
+ md_document:
+  variant: markdown_github
+---
+
+Download images and masks: [2018 Data Science Bowl](https://www.kaggle.com/c/data-science-bowl-2018).
+
+Build `U-Net` model and compile it with correct loss and metric:
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(platypus)
+library(abind)
+library(here)
+
+train_DCB2018_path <- here("development/data-science-bowl-2018/stage1_train")
+test_DCB2018_path <- here("development/data-science-bowl-2018/stage1_test")
+
+blocks <- 4 # Number of U-Net convolutional blocks
+classes <- 2 # Number of classes
+net_h <- 256 # Must be in a form of 2^N
+net_w <- 256 # Must be in a form of 2^N
+
+DCB2018_u_net <- u_net(
+  input_shape = c(net_h, net_w, 3),
+  blocks = blocks,
+  classes = classes,
+  filters = 16,
+  dropout = 0.1,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
+
+DCB2018_u_net %>%
+  compile(
+    optimizer = optimizer_adam(lr = 1e-5),
+    loss = loss_dice(),
+    metrics = metric_dice_coef()
+  )
+
+DCB2018_u_net
+```
+
+Create data generator:
+
+```{r}
+train_DCB2018_generator <- segmentation_generator(
+  path = train_DCB2018_path, # directory with images and masks
+  mode = "nested_dirs", # Each image with masks in separate folder
+  classes = classes,
+  only_images = FALSE,
+  target_size = c(net_h, net_w),
+  grayscale = FALSE,
+  scale = 1 / 255,
+  batch_size = 32,
+  shuffle = TRUE,
+  subdirs = c("images", "masks") # Names of subdirs with images and masks
+)
+```
+
+Fit the model (starting from `tensorflow >= 2.1` fitting custom `R` generators dosen't work. Please see [issue](https://github.com/rstudio/keras/issues/1090) and [issue](https://github.com/rstudio/keras/issues/1073)):
+
+```{r, eval = FALSE}
+# DCB2018_u_net %>%
+#   fit_generator(
+#     train_DCB2018_generator,
+#     epochs = 100,
+#     steps_per_epoch = 21,
+#     callbacks = list(callback_model_checkpoint("development/data-science-bowl-2018/DSB2018_w.hdf5",
+#                                                save_best_only = TRUE,
+#                                                save_weights_only = TRUE)
+#     )
+#   )
+
+history <- segmentation_fit_generator(
+  model = DCB2018_u_net,
+  generator = train_DCB2018_generator,
+  epochs = 100,
+  steps_per_epoch = 21,
+  model_filepath = here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
+```
+
+Predict on new images:
+
+```{r, message = FALSE}
+DCB2018_u_net <- u_net(
+  input_shape = c(net_h, net_w, 3),
+  blocks = blocks,
+  classes = classes,
+  filters = 16,
+  dropout = 0.1,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
+DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
+
+test_DCB2018_generator <- segmentation_generator(
+  path = test_DCB2018_path, # directory with images and masks
+  mode = "nested_dirs", # Each image with masks in separate folder
+  classes = classes,
+  only_images = TRUE,
+  target_size = c(net_h, net_w),
+  grayscale = FALSE,
+  scale = 1 / 255,
+  batch_size = 32,
+  shuffle = FALSE,
+  subdirs = c("images", "masks") # Names of subdirs with images and masks
+)
+
+test_preds <- segmentation_predict_generator(DCB2018_u_net, test_DCB2018_generator, 3)
+```

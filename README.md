@@ -41,8 +41,8 @@ library(platypus)
 library(abind)
 
 test_yolo <- yolo3(
-  net_h = 416, # Input image height
-  net_w = 416, # Input image width
+  net_h = 416, # Input image height. Must be divisible by 32
+  net_w = 416, # Input image width. Must be divisible by 32
   grayscale = FALSE, # Should images be loaded as grayscale or RGB
   n_class = 80, # Number of object classes (80 for COCO dataset)
   anchors = coco_anchors # Anchor boxes
@@ -172,8 +172,8 @@ library(abind)
 
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
-net_h <- 416
-net_w <- 416
+net_h <- 416 # Must be divisible by 32
+net_w <- 416 # Must be divisible by 32
 anchors_per_grid <- 3
 annot_path <- "development/BCCD/Annotations/"
 images_path <- "development/BCCD/JPEGImages/"
@@ -182,7 +182,7 @@ blood_anchors <- generate_anchors(
   anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
   annot_path = annot_path, # Annotations directory
   labels = blood_labels, # Class labels
-  n_iter = 1000, # Number of k-means++ iterations
+  n_iter = 10, # Number of k-means++ iterations
   annot_format = "pascal_voc", # Annotations format
   seed = 55, # Random seed
   centroid_fun = mean # Centroid function
@@ -199,32 +199,32 @@ blood_anchors <- generate_anchors(
 blood_anchors
 #> [[1]]
 #> [[1]][[1]]
-#> [1] 0.3548552 0.4395951
+#> [1] 0.3552235 0.4417515
 #> 
 #> [[1]][[2]]
-#> [1] 0.2826833 0.3241228
+#> [1] 0.2911290 0.3292675
 #> 
 #> [[1]][[3]]
-#> [1] 0.1954375 0.2319032
+#> [1] 0.1971296 0.2346442
 #> 
 #> 
 #> [[2]]
 #> [[2]][[1]]
-#> [1] 0.1760417 0.1572016
+#> [1] 0.1757463 0.1592062
 #> 
 #> [[2]][[2]]
-#> [1] 0.1642789 0.2367366
+#> [1] 0.1652637 0.2065506
 #> 
 #> [[2]][[3]]
-#> [1] 0.1631230 0.2017863
+#> [1] 0.1630269 0.2439239
 #> 
 #> 
 #> [[3]]
 #> [[3]][[1]]
-#> [1] 0.1364492 0.1733593
+#> [1] 0.1391842 0.1769376
 #> 
 #> [[3]][[2]]
-#> [1] 0.1261678 0.2273329
+#> [1] 0.1245985 0.2258089
 #> 
 #> [[3]][[3]]
 #> [1] 0.06237392 0.08062560
@@ -256,19 +256,29 @@ blood_yolo_generator <- yolo3_generator(
 )
 ```
 
-Fit the model:
+Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
+generators dosen’t work. Please see
+[issue](https://github.com/rstudio/keras/issues/1090) and
+[issue](https://github.com/rstudio/keras/issues/1073)):
 
 ``` r
-blood_yolo %>%
-  fit_generator(
-    blood_yolo_generator,
-    epochs = 100,
-    steps_per_epoch = 23,
-    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-                                               save_best_only = TRUE,
-                                               save_weights_only = TRUE)
-    )
-  )
+# blood_yolo %>%
+#   fit_generator(
+#     blood_yolo_generator,
+#     epochs = 1000,
+#     steps_per_epoch = 23,
+#     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
+#                                                save_best_only = TRUE,
+#                                                save_weights_only = TRUE)
+#     )
+#   )
+
+history <- yolo3_fit_generator(
+  model = blood_yolo,
+  generator = blood_yolo_generator,
+  epochs = 1000,
+  steps_per_epoch = 23,
+  model_filepath = "development/BCCD/blood_w.hdf5")
 ```
 
 Predict on new images:
@@ -297,3 +307,6 @@ plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
 ```
 
 ![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)
+
+See full example
+[here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
