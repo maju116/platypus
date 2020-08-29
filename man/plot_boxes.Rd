@@ -7,9 +7,12 @@
 plot_boxes(
   images_paths,
   boxes,
+  labels,
   correct_hw = TRUE,
   target_size = NULL,
-  grayscale = FALSE
+  grayscale = FALSE,
+  save_dir = NULL,
+  plot_images = TRUE
 )
 }
 \arguments{
@@ -17,11 +20,17 @@ plot_boxes(
 
 \item{boxes}{List of `data.frames` with bounding boxes corresponding to the images.}
 
+\item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
+
 \item{correct_hw}{Logical. Should height/width rescaling of bounding boxes be applied.}
 
 \item{target_size}{Image target size.}
 
 \item{grayscale}{Should images be plotted in grayscale.}
+
+\item{save_dir}{Directory in which to save generated images.}
+
+\item{plot_images}{Should images be plotted.}
 }
 \value{
 Raster images with bounding boxes.

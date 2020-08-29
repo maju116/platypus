@@ -6,7 +6,7 @@
 \usage{
 generate_anchors(
   anchors_per_grid,
-  annot_paths,
+  annot_path,
   labels,
   n_iter = 10,
   annot_format = "pascal_voc",
@@ -17,7 +17,7 @@ generate_anchors(
 \arguments{
 \item{anchors_per_grid}{Number of anchors per one grid.}
 
-\item{annot_paths}{List of annotations filepaths.}
+\item{annot_path}{Annotations directory.}
 
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{coco_labels}}.}
 

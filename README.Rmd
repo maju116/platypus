@@ -1,11 +1,21 @@
 ---
-output: github_document
+output:
+ md_document:
+  variant: markdown_github
 params:
   repo_name: platypus
   repo_url: https://github.com/maju116/platypus
   chagelog_url: https://github.com/Appsilon/platypus/blob/master/CHANGELOG.md
   code_of_coduct: https://github.com/Appsilon/platypus/blob/develop/CODE_OF_CONDUCT.md
 ---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
+```
 
 <img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
 
@@ -24,11 +34,191 @@ You can install the latest version of `platypus` with `remotes`:
 remotes::install_github("maju116/platypus")
 ```
 
+(`master` branch contains the stable version. Use `develop` branch for latest features)
+
 To install [previous versions](`r params$changelog_url`) you can run:
 
 ```{r, eval=FALSE}
 remotes::install_github("maju116/platypus", ref = "0.1.0")
 ```
 
-How to use it?
--------------
+In order to install `platypus` you need to install `keras` and `tensorflow` packages and `Tensorflow` version `>= 2.0.0` (`Tensorflow 1.x` will not be supported!)
+
+YOLOv3 Object detection with pre-trained COCO weights:
+---------------
+
+To create `YOLOv3` architecture use:
+
+```{r, message = FALSE}
+library(tidyverse)
+library(platypus)
+library(abind)
+
+test_yolo <- yolo3(
+  net_h = 416, # Input image height. Must be divisible by 32
+  net_w = 416, # Input image width. Must be divisible by 32
+  grayscale = FALSE, # Should images be loaded as grayscale or RGB
+  n_class = 80, # Number of object classes (80 for COCO dataset)
+  anchors = coco_anchors # Anchor boxes
+)
+
+test_yolo
+```
+
+You can now load [YOLOv3 Darknet](https://pjreddie.com/darknet/yolo/) weights trained on [COCO dataset](https://cocodataset.org/#home). Download pre-trained weights from [here](https://pjreddie.com/media/files/yolov3.weights) and run:
+
+```{r}
+test_yolo %>% load_darknet_weights("development/yolov3.weights")
+```
+
+Calculate predictions for new images:
+
+```{r}
+test_img_paths <- list.files(system.file("extdata", "images", package = "platypus"), full.names = TRUE, pattern = "coco")
+test_imgs <- test_img_paths %>%
+  map(~ {
+    image_load(., target_size = c(416, 416), grayscale = FALSE) %>%
+      image_to_array() %>%
+      `/`(255)
+  }) %>%
+  abind(along = 4) %>%
+  aperm(c(4, 1:3))
+test_preds <- test_yolo %>% predict(test_imgs)
+
+str(test_preds)
+```
+
+Transform raw predictions into bounding boxes:
+
+```{r}
+test_boxes <- get_boxes(
+  preds = test_preds, # Raw predictions form YOLOv3 model
+  anchors = coco_anchors, # Anchor boxes
+  labels = coco_labels, # Class labels
+  obj_threshold = 0.6, # Object threshold
+  nms = TRUE, # Should non-max suppression be applied
+  nms_threshold = 0.6, # Non-max suppression threshold
+  correct_hw = FALSE # Should height and width of bounding boxes be corrected to image height and width
+)
+
+test_boxes
+```
+
+Plot / save images:
+
+```{r}
+plot_boxes(
+  images_paths = test_img_paths, # Images paths
+  boxes = test_boxes, # Bounding boxes
+  correct_hw = TRUE, # Should height and width of bounding boxes be corrected to image height and width
+  labels = coco_labels # Class labels
+)
+```
+
+YOLOv3 Object detection with custom dataset:
+---------------
+
+Download images and annotations: [BCCD dataset](https://www.kaggle.com/surajiiitm/bccd-dataset?)
+
+Generate custom anchor boxes:
+
+```{r}
+library(tidyverse)
+library(platypus)
+library(abind)
+
+blood_labels <- c("Platelets", "RBC", "WBC")
+n_class <- length(blood_labels)
+net_h <- 416 # Must be divisible by 32
+net_w <- 416 # Must be divisible by 32
+anchors_per_grid <- 3
+annot_path <- "development/BCCD/Annotations/"
+images_path <- "development/BCCD/JPEGImages/"
+
+blood_anchors <- generate_anchors(
+  anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
+  annot_path = annot_path, # Annotations directory
+  labels = blood_labels, # Class labels
+  n_iter = 10, # Number of k-means++ iterations
+  annot_format = "pascal_voc", # Annotations format
+  seed = 55, # Random seed
+  centroid_fun = mean # Centroid function
+)
+
+blood_anchors
+```
+
+Build `YOLOv3` model and compile it with correct loss and metric:
+
+```{r}
+blood_yolo <- yolo3(net_h = net_h, net_w = net_w, n_class = n_class)
+blood_yolo %>% load_darknet_weights("development/yolov3.weights") # Optional
+
+blood_yolo %>% compile(
+  optimizer = optimizer_adam(lr = 1e-5),
+  loss = yolo3_loss(blood_anchors, n_class = n_class),
+  metrics = yolo3_metrics(blood_anchors, n_class = n_class)
+)
+```
+
+Create data generator:
+
+```{r}
+blood_yolo_generator <- yolo3_generator(
+  annot_path = annot_path,
+  images_path = images_path,
+  net_h = net_h, net_w = net_w,
+  batch_size = 16,
+  shuffle = FALSE,
+  labels = blood_labels
+)
+```
+
+Fit the model (starting from `tensorflow >= 2.1` fitting custom `R` generators dosen't work. Please see [issue](https://github.com/rstudio/keras/issues/1090) and [issue](https://github.com/rstudio/keras/issues/1073)):
+
+```{r, eval = FALSE}
+# blood_yolo %>%
+#   fit_generator(
+#     blood_yolo_generator,
+#     epochs = 1000,
+#     steps_per_epoch = 23,
+#     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
+#                                                save_best_only = TRUE,
+#                                                save_weights_only = TRUE)
+#     )
+#   )
+
+history <- yolo3_fit_generator(
+  model = blood_yolo,
+  generator = blood_yolo_generator,
+  epochs = 1000,
+  steps_per_epoch = 23,
+  model_filepath = "development/BCCD/blood_w.hdf5")
+```
+
+Predict on new images:
+
+```{r, message = FALSE}
+blood_yolo <- yolo3(net_h = net_h, net_w = net_w, n_class = n_class)
+blood_yolo %>% load_model_weights_hdf5("development/BCCD/blood_w.hdf5")
+
+test_img_paths <- list.files(system.file("extdata", "images", package = "platypus"), full.names = TRUE, pattern = "blood")
+
+test_imgs <- test_img_paths %>%
+  map(~ {
+    image_load(., target_size = c(net_h, net_w), grayscale = FALSE) %>%
+      image_to_array() %>%
+      `/`(255)
+  }) %>%
+  abind(along = 4) %>%
+  aperm(c(4, 1:3))
+test_preds <- blood_yolo %>% predict(test_imgs)
+
+test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
+                        obj_threshold = 0.6)
+
+plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
+  labels = blood_labels, save_dir = "development")
+```
+
+See full example [here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
