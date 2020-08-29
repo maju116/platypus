@@ -23,7 +23,7 @@ c("train", "valid", "test") %>%
 annot_paths <- list.files(annot_path, full.names = TRUE)
 images_paths <- list.files(images_path, full.names = TRUE)
 n_samples <- length(annot_paths)
-set.seed(1234)
+set.seed(111)
 train_ids <- sample(1:n_samples, round(0.8 * n_samples))
 valid_ids <- sample(setdiff(1:n_samples, train_ids), round(0.19 * n_samples))
 test_ids <- setdiff(1:n_samples, c(train_ids, valid_ids))
@@ -237,7 +237,7 @@ test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
 plot_boxes(images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/"), full.names = TRUE),
            boxes = test_boxes,
            labels = blood_labels,
-           save_dir = here("development/BCCD/"))
+           save_dir = BCCD_path)
 ```
 
 ![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-1.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-2.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-3.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-4.png)
