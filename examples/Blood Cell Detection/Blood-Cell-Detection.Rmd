@@ -50,8 +50,8 @@ Generate custom anchor boxes:
 ```{r}
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
-net_h <- 416
-net_w <- 416
+net_h <- 416 # Must be divisible by 32
+net_w <- 416 # Must be divisible by 32
 anchors_per_grid <- 3
 
 blood_anchors <- generate_anchors(
@@ -123,7 +123,7 @@ Fit the model (starting from `tensorflow >= 2.1` fitting custom `R` generators d
 #   fit_generator(
 #     blood_yolo_generator,
 #     epochs = 1000,
-#     steps_per_epoch = 23,
+#     steps_per_epoch = 19,
 #     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
 #                                                save_best_only = TRUE,
 #                                                save_weights_only = TRUE)

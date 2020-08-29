@@ -41,8 +41,8 @@ library(platypus)
 library(abind)
 
 test_yolo <- yolo3(
-  net_h = 416, # Input image height
-  net_w = 416, # Input image width
+  net_h = 416, # Input image height. Must be divisible by 32
+  net_w = 416, # Input image width. Must be divisible by 32
   grayscale = FALSE, # Should images be loaded as grayscale or RGB
   n_class = 80, # Number of object classes (80 for COCO dataset)
   anchors = coco_anchors # Anchor boxes
@@ -172,8 +172,8 @@ library(abind)
 
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
-net_h <- 416
-net_w <- 416
+net_h <- 416 # Must be divisible by 32
+net_w <- 416 # Must be divisible by 32
 anchors_per_grid <- 3
 annot_path <- "development/BCCD/Annotations/"
 images_path <- "development/BCCD/JPEGImages/"
