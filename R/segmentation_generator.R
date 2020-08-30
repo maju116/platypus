@@ -66,7 +66,8 @@ segmentation_generator <- function(path, mode = "dir", n_class = 2, only_images 
                                    column_sep = ";") {
   segmentation_generator_check(mode, n_class, only_images, target_size, grayscale, shuffle)
   config <- create_images_masks_paths(path, mode, only_images, subdirs, column_sep)
-  print(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!"))
+  cat(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!\n"))
+  cat(paste0("Set 'steps_per_epoch' to: ", ceiling(length(config$images_paths) / batch_size), "\n"))
   i <- 1
   function() {
     if (shuffle) {

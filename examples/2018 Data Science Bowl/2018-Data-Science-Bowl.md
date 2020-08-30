@@ -18,7 +18,9 @@ net_h <- 256 # Must be in a form of 2^N
 net_w <- 256 # Must be in a form of 2^N
 
 DCB2018_u_net <- u_net(
-  input_shape = c(net_h, net_w, 3),
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
   blocks = blocks,
   n_class = n_class,
   filters = 16,
@@ -220,7 +222,8 @@ train_DCB2018_generator <- segmentation_generator(
 )
 ```
 
-    ## [1] "670 images with corresponding masks detected!"
+    ## 670 images with corresponding masks detected!
+    ## Set 'steps_per_epoch' to: 21
 
 Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
 generators dosen’t work. Please see
@@ -251,7 +254,9 @@ Predict on new images:
 
 ``` r
 DCB2018_u_net <- u_net(
-  input_shape = c(net_h, net_w, 3),
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
   blocks = blocks,
   n_class = n_class,
   filters = 16,
@@ -275,7 +280,8 @@ test_DCB2018_generator <- segmentation_generator(
 )
 ```
 
-    ## [1] "65 images detected!"
+    ## 65 images detected!
+    ## Set 'steps_per_epoch' to: 3
 
 ``` r
 test_preds <- segmentation_predict_generator(DCB2018_u_net, test_DCB2018_generator, 3)

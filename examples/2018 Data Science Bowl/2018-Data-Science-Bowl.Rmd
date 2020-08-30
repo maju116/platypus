@@ -26,7 +26,9 @@ net_h <- 256 # Must be in a form of 2^N
 net_w <- 256 # Must be in a form of 2^N
 
 DCB2018_u_net <- u_net(
-  input_shape = c(net_h, net_w, 3),
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
   blocks = blocks,
   n_class = n_class,
   filters = 16,
@@ -88,7 +90,9 @@ Predict on new images:
 
 ```{r, message = FALSE}
 DCB2018_u_net <- u_net(
-  input_shape = c(net_h, net_w, 3),
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
   blocks = blocks,
   n_class = n_class,
   filters = 16,
