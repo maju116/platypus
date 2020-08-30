@@ -136,7 +136,7 @@ history <- yolo3_fit_generator(
   epochs = 1000,
   steps_per_epoch = 19,
   validation_generator = valid_blood_yolo_generator,
-  validation_steps_per_epoch = 4,
+  validation_steps_per_epoch = 5,
   model_filepath = here("development/BCCD/blood_w.hdf5"))
 ```
 
