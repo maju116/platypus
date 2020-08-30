@@ -91,13 +91,13 @@ voc_colormap <- list(c(0, 0, 0), c(128, 0, 0), c(0, 128, 0), c(128, 128, 0),
                 c(64, 0, 0), c(192, 0, 0), c(64, 128, 0), c(192, 128, 0),
                 c(64, 0, 128), c(192, 0, 128), c(64, 128, 128), c(192, 128, 128),
                 c(0, 64, 0), c(128, 64, 0), c(0, 192, 0), c(128, 192, 0),
-                c(0, 64, 128)) %>% map(~ . / 255)
+                c(0, 64, 128))
 
 #' Binary segmentation color map.
 #' @description Binary segmentation color map.
 #' @return Binary segmentation color map.
 #' @export
-binary_colormap <- list(c(0, 0, 0), c(1, 1, 1))
+binary_colormap <- list(c(0, 0, 0), c(255, 255, 255))
 
 #' Binary segmentation labels.
 #' @description Binary segmentation labels.

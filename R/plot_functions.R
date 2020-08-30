@@ -52,7 +52,7 @@ create_boxes_ggplot <- function(image_path, boxes, labels, correct_hw, target_si
   w <- dim(sample_image)[2]
   boxes <- if (correct_hw) correct_boxes(list(boxes), image_h = h, image_w = w)[[1]] else boxes
   boxes <- boxes %>% when(grayscale ~ mutate(., x = 0, y = 0, gray = 0),
-                 ~ mutate(., x = 0, y = 0, r = 0, g = 0, b = 0))
+                          ~ mutate(., x = 0, y = 0, r = 0, g = 0, b = 0))
   xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
   plot_data <- create_plot_data(xy_axis, sample_image, grayscale)
   boxes_colors <- if (length(labels) > 8) {
@@ -87,6 +87,59 @@ plot_boxes <- function(images_paths, boxes, labels, correct_hw = TRUE,
                        save_dir = NULL, plot_images = TRUE) {
   walk2(images_paths, boxes, ~ {
     p <- create_boxes_ggplot(.x, .y, labels, correct_hw, target_size, grayscale)
+    if (plot_images) plot(p)
+    if (!is.null(save_dir)) ggsave(filename = basename(.x), plot = p, path = save_dir)
+  })
+}
+
+#' Generates raster image with segmentation masks.
+#' @description Generates raster image with segmentation masks.
+#' @import ggplot2
+#' @importFrom dplyr rename
+#' @import RColorBrewer
+#' @param image_path Image filepath.
+#' @param masks Predicted segmentation masks.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.
+#' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
+#' @param grayscale Should images be plotted in grayscale.
+#' @return  Raster image with segmentation masks.
+create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, target_size, grayscale) {
+  colormap_df <- do.call("rbind", colormap) %>%
+    as_tibble() %>%
+    set_names(., c("r", "g", "b")) %>%
+    mutate(label = labels)
+  sample_image <- image_load(image_path, target_size = target_size, grayscale = grayscale) %>%
+    image_to_array()
+  h <- dim(sample_image)[1]
+  w <- dim(sample_image)[2]
+  xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
+  segmentation_mask <- unite_binary_masks(masks, colormap) %>%
+    create_plot_data(xy_axis, ., FALSE) %>%
+    left_join(colormap_df, by = c("r", "g", "b"))
+  plot_data <- create_plot_data(xy_axis, sample_image, grayscale)
+  plot_raster(plot_data, grayscale) +
+    geom_raster(data = segmentation_mask, hjust = 0, vjust = 0, alpha = 0.5)
+}
+
+#' Generates raster images with segmentation masks.
+#' @description Generates raster images with segmentation masks.
+#' @importFrom purrr iwalk
+#' @importFrom ggplot2 ggsave
+#' @param images_paths Image filepaths.
+#' @param binary_masks Predicted segmentation masks.
+#' @param labels Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.
+#' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
+#' @param grayscale Should images be plotted in grayscale.
+#' @param save_dir Directory in which to save generated images.
+#' @param plot_images Should images be plotted.
+#' @return  Raster images with segmentation masks.
+#' @export
+plot_masks <- function(images_paths, binary_masks, labels, colormap,
+                       grayscale = FALSE, save_dir = NULL, plot_images = TRUE) {
+  target_size <- dim(binary_masks)[2:3]
+  iwalk(images_paths ~ {
+    bin_mask <- binary_masks[.y, , , , drop = TRUE]
+    p <- create_segmentation_map_ggplot(.x, bin_mask, labels, colormap, target_size, grayscale)
     if (plot_images) plot(p)
     if (!is.null(save_dir)) ggsave(filename = basename(.x), plot = p, path = save_dir)
   })
