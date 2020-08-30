@@ -211,9 +211,10 @@ Create data generator:
 train_DCB2018_generator <- segmentation_generator(
   path = train_DCB2018_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
-  n_class = n_class,
+  colormap = binary_colormap,
   only_images = FALSE,
-  target_size = c(net_h, net_w),
+  net_h = net_h,
+  net_w = net_w,
   grayscale = FALSE,
   scale = 1 / 255,
   batch_size = 32,
@@ -258,7 +259,6 @@ DCB2018_u_net <- u_net(
   net_w = net_w,
   grayscale = FALSE,
   blocks = blocks,
-  n_class = n_class,
   filters = 16,
   dropout = 0.1,
   batch_normalization = TRUE,
@@ -269,9 +269,10 @@ DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-20
 test_DCB2018_generator <- segmentation_generator(
   path = test_DCB2018_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
-  n_class = n_class,
+  colormap = binary_colormap,
   only_images = TRUE,
-  target_size = c(net_h, net_w),
+  net_h = net_h,
+  net_w = net_w,
   grayscale = FALSE,
   scale = 1 / 255,
   batch_size = 32,
