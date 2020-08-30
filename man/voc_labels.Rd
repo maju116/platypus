@@ -3,7 +3,7 @@
 \docType{data}
 \name{voc_labels}
 \alias{voc_labels}
-\title{VOC dataset labels.}
+\title{`VOC` dataset labels.}
 \format{
 An object of class \code{character} of length 21.
 }
@@ -11,9 +11,9 @@ An object of class \code{character} of length 21.
 voc_labels
 }
 \value{
-VOC dataset labels.
+`VOC` dataset labels.
 }
 \description{
-VOC dataset labels.
+`VOC` dataset labels.
 }
 \keyword{datasets}

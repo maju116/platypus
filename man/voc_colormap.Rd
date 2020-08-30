@@ -3,7 +3,7 @@
 \docType{data}
 \name{voc_colormap}
 \alias{voc_colormap}
-\title{VOC dataset segmentation color map.}
+\title{`VOC` dataset segmentation color map.}
 \format{
 An object of class \code{list} of length 21.
 }
@@ -11,9 +11,9 @@ An object of class \code{list} of length 21.
 voc_colormap
 }
 \value{
-VOC dataset segmentation color map.
+`VOC` dataset segmentation color map.
 }
 \description{
-VOC dataset segmentation color map.
+`VOC` dataset segmentation color map.
 }
 \keyword{datasets}

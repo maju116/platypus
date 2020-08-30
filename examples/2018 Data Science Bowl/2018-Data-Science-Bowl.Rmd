@@ -55,7 +55,8 @@ train_DCB2018_generator <- segmentation_generator(
   mode = "nested_dirs", # Each image with masks in separate folder
   n_class = n_class,
   only_images = FALSE,
-  target_size = c(net_h, net_w),
+  net_h = net_h,
+  net_w = net_w,
   grayscale = FALSE,
   scale = 1 / 255,
   batch_size = 32,
@@ -107,7 +108,8 @@ test_DCB2018_generator <- segmentation_generator(
   mode = "nested_dirs", # Each image with masks in separate folder
   n_class = n_class,
   only_images = TRUE,
-  target_size = c(net_h, net_w),
+  net_h = net_h,
+  net_w = net_w,
   grayscale = FALSE,
   scale = 1 / 255,
   batch_size = 32,

@@ -24,5 +24,5 @@ create_images_masks_paths(
 \item{column_sep}{Character. Configuration file separator.}
 }
 \description{
-Generates images/masks path from selected cofiguration.
+Generates images/masks path from selected configuration.
 }
