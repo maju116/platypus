@@ -45,9 +45,9 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
   map(paths[indices], ~ {
     current_paths <- .x
     current_paths %>% map(~ image_to_array(image_load(.x, grayscale = grayscale, target_size = target_size))) %>%
-      reduce(`+`) %>% `*`(scale) %>%
+      reduce(`+`) %>%
       when(!is.null(colormap) ~ split_masks_into_binary(., colormap) %>%
-             abind(along = 3), ~ .)
+             abind(along = 3), ~ .) %>% `*`(scale)
   }) %>%
     abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 }

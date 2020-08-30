@@ -137,7 +137,7 @@ create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, 
 plot_masks <- function(images_paths, binary_masks, labels, colormap,
                        grayscale = FALSE, save_dir = NULL, plot_images = TRUE) {
   target_size <- dim(binary_masks)[2:3]
-  iwalk(images_paths ~ {
+  iwalk(images_paths, ~ {
     bin_mask <- binary_masks[.y, , , , drop = TRUE]
     p <- create_segmentation_map_ggplot(.x, bin_mask, labels, colormap, target_size, grayscale)
     if (plot_images) plot(p)
