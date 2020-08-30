@@ -72,3 +72,23 @@ u_net <- function(net_h, net_w, grayscale, blocks = 4, n_class = 2, filters = 16
   output <- layer_conv_2d(conv_layers[[2 * blocks + 1]], n_class, 1, activation = "softmax")
   keras_model(inputs = input_img, outputs = output)
 }
+
+#' VOC dataset labels.
+#' @description VOC dataset labels.
+#' @return VOC dataset labels.
+#' @export
+voc_labels <- c('background', 'aeroplane', 'bicycle', 'bird', 'boat',
+                'bottle', 'bus', 'car', 'cat', 'chair', 'cow',
+                'diningtable', 'dog', 'horse', 'motorbike', 'person',
+                'potted plant', 'sheep', 'sofa', 'train', 'tv/monitor')
+
+#' VOC dataset segmentation color map.
+#' @description VOC dataset segmentation color map.
+#' @return VOC dataset segmentation color map.
+#' @export
+voc_colormap = list(c(0, 0, 0), c(128, 0, 0), c(0, 128, 0), c(128, 128, 0),
+                c(0, 0, 128), c(128, 0, 128), c(0, 128, 128), c(128, 128, 128),
+                c(64, 0, 0), c(192, 0, 0), c(64, 128, 0), c(192, 128, 0),
+                c(64, 0, 128), c(192, 0, 128), c(64, 128, 128), c(192, 128, 128),
+                c(0, 64, 0), c(128, 64, 0), c(0, 192, 0), c(128, 192, 0),
+                c(0, 64, 128))
