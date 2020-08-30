@@ -37,18 +37,18 @@ check_input_shape_u_net <- function(input_shape, dims = 3) {
   }
 }
 
-u_net_check <- function(input_shape, blocks, classes, filters, dropout, batch_normalization) {
+u_net_check <- function(input_shape, blocks, n_class, filters, dropout, batch_normalization) {
   check_input_shape_u_net(input_shape, 3)
   check_input_greater_than_min(blocks, min_value = 1)
-  check_input_greater_than_min(classes, min_value = 2, "You need background and at least one other class.")
+  check_input_greater_than_min(n_class, min_value = 2, "You need background and at least one other class.")
   check_input_greater_than_min(filters, min_value = 1)
   check_input_between(dropout, bounds = c(0, 1))
   check_input_in_set(batch_normalization, c(TRUE, FALSE))
 }
 
-segmentation_generator_check <- function(mode, classes, only_images, target_size, grayscale, shuffle) {
+segmentation_generator_check <- function(mode, n_class, only_images, target_size, grayscale, shuffle) {
   check_input_in_set(mode, c("dir", "nested_dirs", "config_file", 1:3))
-  check_input_greater_than_min(classes, min_value = 2, "You need background and at least one other class.")
+  check_input_greater_than_min(n_class, min_value = 2, "You need background and at least one other class.")
   check_input_shape_u_net(target_size, 2)
   check_input_in_set(only_images, c(TRUE, FALSE))
   check_input_in_set(grayscale, c(TRUE, FALSE))

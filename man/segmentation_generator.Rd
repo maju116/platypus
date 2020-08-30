@@ -7,7 +7,7 @@
 segmentation_generator(
   path,
   mode = "dir",
-  classes = 2,
+  n_class = 2,
   only_images = FALSE,
   target_size = c(256, 256),
   grayscale = FALSE,
@@ -23,7 +23,7 @@ segmentation_generator(
 
 \item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")`}
 
-\item{classes}{Number of classes. Minimum is `2` (background + other object).}
+\item{n_class}{Number of classes. Minimum is `2` (background + other object).}
 
 \item{only_images}{Should generator read only images (e.g. on train set for predictions).}
 

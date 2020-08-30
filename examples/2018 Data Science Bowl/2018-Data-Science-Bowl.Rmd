@@ -21,14 +21,14 @@ train_DCB2018_path <- here("development/data-science-bowl-2018/stage1_train")
 test_DCB2018_path <- here("development/data-science-bowl-2018/stage1_test")
 
 blocks <- 4 # Number of U-Net convolutional blocks
-classes <- 2 # Number of classes
+n_class <- 2 # Number of classes
 net_h <- 256 # Must be in a form of 2^N
 net_w <- 256 # Must be in a form of 2^N
 
 DCB2018_u_net <- u_net(
   input_shape = c(net_h, net_w, 3),
   blocks = blocks,
-  classes = classes,
+  n_class = n_class,
   filters = 16,
   dropout = 0.1,
   batch_normalization = TRUE,
@@ -51,7 +51,7 @@ Create data generator:
 train_DCB2018_generator <- segmentation_generator(
   path = train_DCB2018_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
-  classes = classes,
+  n_class = n_class,
   only_images = FALSE,
   target_size = c(net_h, net_w),
   grayscale = FALSE,
@@ -90,7 +90,7 @@ Predict on new images:
 DCB2018_u_net <- u_net(
   input_shape = c(net_h, net_w, 3),
   blocks = blocks,
-  classes = classes,
+  n_class = n_class,
   filters = 16,
   dropout = 0.1,
   batch_normalization = TRUE,
@@ -101,7 +101,7 @@ DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-20
 test_DCB2018_generator <- segmentation_generator(
   path = test_DCB2018_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
-  classes = classes,
+  n_class = n_class,
   only_images = TRUE,
   target_size = c(net_h, net_w),
   grayscale = FALSE,
