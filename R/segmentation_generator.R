@@ -105,7 +105,7 @@ segmentation_generator <- function(path, colormap, mode = "dir", only_images = F
   cat(paste0(length(config$images_paths), " images", if (!only_images) " with corresponding masks", " detected!\n"))
   cat(paste0("Set 'steps_per_epoch' to: ", ceiling(length(config$images_paths) / batch_size), "\n"))
   i <- 1
-  function() {
+  keras:::as_generator.function(function() {
     if (shuffle) {
       indices <- sample(1:length(config$images_paths), size = batch_size)
     } else {
@@ -117,5 +117,5 @@ segmentation_generator <- function(path, colormap, mode = "dir", only_images = F
     if (!only_images) masks <- read_images_from_directory(config$masks_paths, indices = indices, target_size = c(net_h, net_w),
                                                           grayscale = FALSE, scale = 1 / 255, colormap = colormap)
     if (!only_images) list(images, masks) else list(images)
-  }
+  })
 }
