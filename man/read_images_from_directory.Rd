@@ -9,7 +9,8 @@ read_images_from_directory(
   indices = NULL,
   target_size = c(256, 256),
   grayscale = FALSE,
-  scale = 1/255
+  scale = 1/255,
+  colormap = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ read_images_from_directory(
 \item{grayscale}{Boolean, whether to load the image as grayscale.}
 
 \item{scale}{Scaling factor for images pixel values. Default to `1 / 255`.}
+
+\item{colormap}{Class color map. For example \code{\link[platypus]{voc_colormap}}.}
 }
 \description{
 Reads images from directory.

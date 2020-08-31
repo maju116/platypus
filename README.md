@@ -254,6 +254,8 @@ blood_yolo_generator <- yolo3_generator(
   shuffle = FALSE,
   labels = blood_labels
 )
+#> 364 images with corresponding annotations detected!
+#> Set 'steps_per_epoch' to: 23
 ```
 
 Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`

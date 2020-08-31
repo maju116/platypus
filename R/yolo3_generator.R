@@ -184,8 +184,10 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
   downscale_grid <- c(32, 16, 8)
   annot_ext <- if (annot_format == "pascal_voc") ".xml$" else ".json$"
   annot_paths <- list.files(annot_path, pattern = annot_ext, full.names = TRUE)
+  cat(paste0(length(annot_paths), " images", if (!only_images) " with corresponding annotations", " detected!\n"))
+  cat(paste0("Set 'steps_per_epoch' to: ", ceiling(length(annot_paths) / batch_size), "\n"))
   i <- 1
-  function() {
+  keras:::as_generator.function(function() {
     if (shuffle) {
       indices <- sample(1:length(annot_paths), size = batch_size)
     } else {
@@ -221,5 +223,5 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
                                                                target_size = c(net_h, net_w))) * scale) %>%
       abind(along = 4) %>% aperm(c(4, 1, 2, 3))
     if (!only_images) list(images, true_grid) else list(images)
-  }
+  })
 }

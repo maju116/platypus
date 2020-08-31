@@ -42,8 +42,8 @@ Generate custom anchor boxes:
 ``` r
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
-net_h <- 416
-net_w <- 416
+net_h <- 416 # Must be divisible by 32
+net_w <- 416 # Must be divisible by 32
 anchors_per_grid <- 3
 
 blood_anchors <- generate_anchors(
@@ -168,7 +168,12 @@ train_blood_yolo_generator <- yolo3_generator(
   shuffle = FALSE,
   labels = blood_labels
 )
+```
 
+    ## 291 images with corresponding annotations detected!
+    ## Set 'steps_per_epoch' to: 19
+
+``` r
 valid_blood_yolo_generator <- yolo3_generator(
   annot_path = file.path(BCCD_path, "valid", "Annotations/"),
   images_path = file.path(BCCD_path, "valid", "JPEGImages/"),
@@ -180,31 +185,24 @@ valid_blood_yolo_generator <- yolo3_generator(
 )
 ```
 
-Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
-generators dosen’t work. Please see
-[issue](https://github.com/rstudio/keras/issues/1090) and
-[issue](https://github.com/rstudio/keras/issues/1073)):
+    ## 69 images with corresponding annotations detected!
+    ## Set 'steps_per_epoch' to: 5
+
+Fit the model:
 
 ``` r
-# blood_yolo %>%
-#   fit_generator(
-#     blood_yolo_generator,
-#     epochs = 1000,
-#     steps_per_epoch = 23,
-#     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-#                                                save_best_only = TRUE,
-#                                                save_weights_only = TRUE)
-#     )
-#   )
-
-history <- yolo3_fit_generator(
-  model = blood_yolo,
-  generator = train_blood_yolo_generator,
-  epochs = 1000,
-  steps_per_epoch = 19,
-  validation_generator = valid_blood_yolo_generator,
-  validation_steps_per_epoch = 4,
-  model_filepath = here("development/BCCD/blood_w.hdf5"))
+blood_yolo %>%
+  fit_generator(
+    generator = blood_yolo_generator,
+    epochs = 1000,
+    steps_per_epoch = 19,
+    validation_data = valid_blood_yolo_generator,
+    validation_steps = 5,
+    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
+                                               save_best_only = TRUE,
+                                               save_weights_only = TRUE)
+    )
+  )
 ```
 
 Predict on new images:
@@ -228,8 +226,13 @@ test_blood_yolo_generator <- yolo3_generator(
   shuffle = FALSE,
   labels = blood_labels
 )
+```
 
-test_preds <- yolo3_predict_generator(blood_yolo, test_blood_yolo_generator, 1)
+    ## 4 images with corresponding annotations detected!
+    ## Set 'steps_per_epoch' to: 1
+
+``` r
+test_preds <- predict_generator(blood_yolo, test_blood_yolo_generator, 1)
 
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
