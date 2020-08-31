@@ -1,5 +1,8 @@
 #' Fits model using data generator.
 #' @description Fits model using data generator.
+#' @import progress
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr summarise_all
 #' @param metric_names Metric names.
 #' @param model Model.
 #' @param generator Data generator.
@@ -8,7 +11,6 @@
 #' @param validation_generator Validation data generator.
 #' @param validation_steps_per_epoch Validation steps per epoch.
 #' @param model_filepath Path to save the model.
-#' @import progress
 #' @export
 custom_fit_generator <- function(metric_names, model, generator, epochs, steps_per_epoch,
                                 validation_generator = NULL,
@@ -63,6 +65,7 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
 #' @param generator Data generator.
 #' @param steps Steps in epoch.
 #' @import progress
+#' @importFrom stats predict
 #' @export
 custom_predict_generator <- function(model, generator, steps) {
   pb_format <- "[:bar] :percent eta: :eta"

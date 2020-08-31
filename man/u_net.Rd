@@ -5,9 +5,11 @@
 \title{Creates a U-Net architecture.}
 \usage{
 u_net(
-  input_shape,
+  net_h,
+  net_w,
+  grayscale,
   blocks = 4,
-  classes = 2,
+  n_class = 2,
   filters = 16,
   dropout = 0.1,
   batch_normalization = TRUE,
@@ -15,11 +17,15 @@ u_net(
 )
 }
 \arguments{
-\item{input_shape}{Input layer shape (`HxWxC`). `H` and `W` must be equal to `2^x, x - natural`.}
+\item{net_h}{Input layer height. Must be equal to `2^x, x - natural`..}
+
+\item{net_w}{Input layer width. Must be equal to `2^x, x - natural`.}
+
+\item{grayscale}{Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.}
 
 \item{blocks}{Number of blocks in the model.}
 
-\item{classes}{Number of classes. Minimum is `2` (background + other object).}
+\item{n_class}{Number of classes. Minimum is `2` (background + other object).}
 
 \item{filters}{Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution).}
 

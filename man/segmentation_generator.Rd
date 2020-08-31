@@ -6,10 +6,11 @@
 \usage{
 segmentation_generator(
   path,
+  colormap,
   mode = "dir",
-  classes = 2,
   only_images = FALSE,
-  target_size = c(256, 256),
+  net_h = 256,
+  net_w = 256,
   grayscale = FALSE,
   scale = 1/255,
   batch_size = 32,
@@ -21,15 +22,17 @@ segmentation_generator(
 \arguments{
 \item{path}{Images and masks directory.}
 
-\item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")`}
+\item{colormap}{Class color map. For example \code{\link[platypus]{voc_colormap}}.}
 
-\item{classes}{Number of classes. Minimum is `2` (background + other object).}
+\item{mode}{Character. One of `c("dir", "nested_dirs", "config_file")`}
 
 \item{only_images}{Should generator read only images (e.g. on train set for predictions).}
 
-\item{target_size}{Images / mask size (height, width). Default to `c(256, 256)`.}
+\item{net_h}{Input layer height. Must be equal to `2^x, x - natural`.}
 
-\item{grayscale}{Boolean, whether to load the image as grayscale.}
+\item{net_w}{Input layer width. Must be equal to `2^x, x - natural`.}
+
+\item{grayscale}{Defines input layer color channels -  `1` if `TRUE`, `3` if `FALSE`.}
 
 \item{scale}{Scaling factor for images pixel values. Default to `1 / 255`.}
 
