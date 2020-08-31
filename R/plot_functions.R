@@ -19,7 +19,7 @@ create_plot_data <- function(xy_axis, sample_image, grayscale) {
 #' Generates raster image.
 #' @description Generates raster image.
 #' @import ggplot2
-#' @importFrom grDevices rgb
+#' @importFrom grDevices rgb gray
 #' @param plot_data `data.frame` with `x`, `y` coordinates and color values.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster image.
@@ -37,6 +37,7 @@ plot_raster <- function(plot_data, grayscale) {
 #' @description Generates raster image with bounding boxes.
 #' @import ggplot2
 #' @importFrom dplyr rename
+#' @importFrom grDevices colorRampPalette
 #' @import RColorBrewer
 #' @param image_path Image filepath.
 #' @param boxes `data.frame` with bounding boxes corresponding to the image.
@@ -95,13 +96,15 @@ plot_boxes <- function(images_paths, boxes, labels, correct_hw = TRUE,
 #' Generates raster image with segmentation masks.
 #' @description Generates raster image with segmentation masks.
 #' @import ggplot2
-#' @importFrom dplyr rename
+#' @importFrom dplyr rename left_join
+#' @importFrom tibble as_tibble
 #' @import RColorBrewer
 #' @param image_path Image filepath.
 #' @param masks Predicted segmentation masks.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.
 #' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
 #' @param grayscale Should images be plotted in grayscale.
+#' @param target_size Image target size.
 #' @return  Raster image with segmentation masks.
 create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, target_size, grayscale) {
   colormap_df <- do.call("rbind", colormap) %>%

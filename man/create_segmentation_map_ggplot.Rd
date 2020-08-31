@@ -22,6 +22,8 @@ create_segmentation_map_ggplot(
 
 \item{colormap}{Class color map. For example \code{\link[platypus]{voc_colormap}}.}
 
+\item{target_size}{Image target size.}
+
 \item{grayscale}{Should images be plotted in grayscale.}
 }
 \value{
