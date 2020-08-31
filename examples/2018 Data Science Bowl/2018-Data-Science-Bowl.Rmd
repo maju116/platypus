@@ -41,7 +41,7 @@ DCB2018_u_net %>%
   compile(
     optimizer = optimizer_adam(lr = 1e-5),
     loss = loss_dice(),
-    metrics = metric_dice_coef()
+    metrics = metric_dice_coeff()
   )
 
 DCB2018_u_net
@@ -65,26 +65,22 @@ train_DCB2018_generator <- segmentation_generator(
 )
 ```
 
-Fit the model (starting from `tensorflow >= 2.1` fitting custom `R` generators dosen't work. Please see [issue](https://github.com/rstudio/keras/issues/1090) and [issue](https://github.com/rstudio/keras/issues/1073)):
+Fit the model:
 
 ```{r, eval = FALSE}
-# DCB2018_u_net %>%
-#   fit_generator(
-#     train_DCB2018_generator,
-#     epochs = 100,
-#     steps_per_epoch = 21,
-#     callbacks = list(callback_model_checkpoint("development/data-science-bowl-2018/DSB2018_w.hdf5",
-#                                                save_best_only = TRUE,
-#                                                save_weights_only = TRUE)
-#     )
-#   )
-
-history <- segmentation_fit_generator(
-  model = DCB2018_u_net,
-  generator = train_DCB2018_generator,
-  epochs = 100,
-  steps_per_epoch = 21,
-  model_filepath = here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
+history <- DCB2018_u_net %>%
+  fit_generator(
+    train_DCB2018_generator,
+    epochs = 100,
+    steps_per_epoch = 21,
+    callbacks = list(callback_model_checkpoint("development/data-science-bowl-2018/DSB2018_w.hdf5",
+                                               save_best_only = TRUE,
+                                               save_weights_only = TRUE,
+                                               monitor = "dice_coeff",
+                                               mode = "max",
+                                               verbose = 1)
+    )
+  )
 ```
 
 Predict on new images:
