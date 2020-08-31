@@ -23,7 +23,7 @@ create_plot_data <- function(xy_axis, sample_image, grayscale) {
 #' @param plot_data `data.frame` with `x`, `y` coordinates and color values.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster image.
-plot_raster <- function(plot_data, grayscale) {
+plot_raster <- function(plot_data, grayscale, fill_guide = FALSE) {
   base_plot <- if (grayscale) {
     ggplot(plot_data, aes(x, y, fill = gray(gray)))
   } else {
@@ -99,14 +99,17 @@ plot_boxes <- function(images_paths, boxes, labels, correct_hw = TRUE,
 #' @importFrom dplyr rename left_join
 #' @importFrom tibble as_tibble
 #' @import RColorBrewer
+#' @importFrom gridExtra grid.arrange
 #' @param image_path Image filepath.
 #' @param masks Predicted segmentation masks.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.
 #' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
-#' @param grayscale Should images be plotted in grayscale.
 #' @param target_size Image target size.
+#' @param grayscale Should images be plotted in grayscale.
+#' @param background_label Name of the background class label to filter out.
 #' @return  Raster image with segmentation masks.
-create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, target_size, grayscale) {
+create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, target_size,
+                                           grayscale, background_label) {
   colormap_df <- do.call("rbind", colormap) %>%
     as_tibble() %>%
     set_names(., c("r", "g", "b")) %>%
@@ -116,17 +119,18 @@ create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, 
   h <- dim(sample_image)[1]
   w <- dim(sample_image)[2]
   xy_axis <- expand.grid(1:w, h:1) %>% rename(x = Var1, y = Var2)
-  segmentation_mask <- unite_binary_masks(masks, colormap) %>%
+  segmentation_mask <- masks %>%
     create_plot_data(xy_axis, ., FALSE) %>%
     left_join(colormap_df, by = c("r", "g", "b"))
   plot_data <- create_plot_data(xy_axis, sample_image, grayscale)
-  plot_raster(plot_data, grayscale) +
-    geom_raster(data = segmentation_mask, hjust = 0, vjust = 0, alpha = 0.5)
+  true_plot <- plot_raster(plot_data, grayscale)
+  predicted_mask <- plot_raster(segmentation_mask, FALSE)
+  list(true_plot = true_plot, predicted_mask = predicted_mask)
 }
 
 #' Generates raster images with segmentation masks.
 #' @description Generates raster images with segmentation masks.
-#' @importFrom purrr iwalk
+#' @importFrom purrr walk2
 #' @importFrom ggplot2 ggsave
 #' @param images_paths Image filepaths.
 #' @param binary_masks Predicted segmentation masks.
@@ -135,15 +139,17 @@ create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, 
 #' @param grayscale Should images be plotted in grayscale.
 #' @param save_dir Directory in which to save generated images.
 #' @param plot_images Should images be plotted.
+#' @param background_label Name of the background class label to filter out.
 #' @return  Raster images with segmentation masks.
 #' @export
-plot_masks <- function(images_paths, binary_masks, labels, colormap,
-                       grayscale = FALSE, save_dir = NULL, plot_images = TRUE) {
-  target_size <- dim(binary_masks)[2:3]
-  iwalk(images_paths, ~ {
-    bin_mask <- binary_masks[.y, , , , drop = TRUE]
-    p <- create_segmentation_map_ggplot(.x, bin_mask, labels, colormap, target_size, grayscale)
-    if (plot_images) plot(p)
+plot_masks <- function(images_paths, masks, labels, colormap,
+                       grayscale = FALSE, save_dir = NULL, plot_images = TRUE,
+                       background_label = "background") {
+  target_size <- dim(masks[[1]])[1:2]
+  walk2(images_paths, masks, ~ {
+    p <- create_segmentation_map_ggplot(.x, .y, labels, colormap, target_size,
+                                        grayscale, background_label)
+    if (plot_images) grid.arrange(p$true_plot, p$predicted_mask, nrow = 1)
     if (!is.null(save_dir)) ggsave(filename = basename(.x), plot = p, path = save_dir)
   })
 }

@@ -12,21 +12,6 @@ split_masks_into_binary <- function(mask, colormap) {
   })
 }
 
-#' Unites binary masks into multi-class mask.
-#' @description Unites binary masks into multi-class mask.
-#' @param masks Segmentation masks.
-#' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
-#' @export
-unite_binary_masks <- function(masks, colormap) {
-  colormap %>% imap(~ {
-    current_color <- .x
-    color_index <- .y
-    current_color %>% map(~ {
-      masks[ , , color_index, drop = FALSE] * .x
-    }) %>% abind(along = 3)
-  }) %>% reduce(`+`)
-}
-
 #' Reads images from directory.
 #' @description Reads images from directory.
 #' @import keras
@@ -47,7 +32,7 @@ read_images_from_directory <- function(paths, indices = NULL, target_size = c(25
     current_paths %>% map(~ image_to_array(image_load(.x, grayscale = grayscale, target_size = target_size))) %>%
       reduce(`+`) %>%
       when(!is.null(colormap) ~ split_masks_into_binary(., colormap) %>%
-             abind(along = 3), ~ .) %>% `*`(scale)
+             abind(along = 3), ~ . * scale)
   }) %>%
     abind(along = 4) %>% aperm(c(4, 1, 2, 3))
 }

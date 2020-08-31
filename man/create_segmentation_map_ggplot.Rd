@@ -10,7 +10,8 @@ create_segmentation_map_ggplot(
   labels,
   colormap,
   target_size,
-  grayscale
+  grayscale,
+  background_label
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ create_segmentation_map_ggplot(
 \item{target_size}{Image target size.}
 
 \item{grayscale}{Should images be plotted in grayscale.}
+
+\item{background_label}{Name of the background class label to filter out.}
 }
 \value{
 Raster image with segmentation masks.

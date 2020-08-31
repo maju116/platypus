@@ -6,18 +6,17 @@
 \usage{
 plot_masks(
   images_paths,
-  binary_masks,
+  masks,
   labels,
   colormap,
   grayscale = FALSE,
   save_dir = NULL,
-  plot_images = TRUE
+  plot_images = TRUE,
+  background_label = "background"
 )
 }
 \arguments{
 \item{images_paths}{Image filepaths.}
-
-\item{binary_masks}{Predicted segmentation masks.}
 
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.}
 
@@ -28,6 +27,10 @@ plot_masks(
 \item{save_dir}{Directory in which to save generated images.}
 
 \item{plot_images}{Should images be plotted.}
+
+\item{background_label}{Name of the background class label to filter out.}
+
+\item{binary_masks}{Predicted segmentation masks.}
 }
 \value{
 Raster images with segmentation masks.
