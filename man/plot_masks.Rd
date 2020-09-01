@@ -18,6 +18,8 @@ plot_masks(
 \arguments{
 \item{images_paths}{Image filepaths.}
 
+\item{masks}{Predicted segmentation masks.}
+
 \item{labels}{Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.}
 
 \item{colormap}{Class color map. For example \code{\link[platypus]{voc_colormap}}.}
@@ -29,8 +31,6 @@ plot_masks(
 \item{plot_images}{Should images be plotted.}
 
 \item{background_label}{Name of the background class label to filter out.}
-
-\item{binary_masks}{Predicted segmentation masks.}
 }
 \value{
 Raster images with segmentation masks.

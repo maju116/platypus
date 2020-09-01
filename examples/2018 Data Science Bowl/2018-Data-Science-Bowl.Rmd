@@ -98,8 +98,8 @@ DCB2018_u_net <- u_net(
 DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
 
 test_DCB2018_generator <- segmentation_generator(
-  path = test_DCB2018_path, # directory with images and masks
-  mode = "nested_dirs", # Each image with masks in separate folder
+  path = test_DCB2018_path,
+  mode = "nested_dirs",
   colormap = binary_colormap,
   only_images = TRUE,
   net_h = net_h,
@@ -108,7 +108,7 @@ test_DCB2018_generator <- segmentation_generator(
   scale = 1 / 255,
   batch_size = 32,
   shuffle = FALSE,
-  subdirs = c("images", "masks") # Names of subdirs with images and masks
+  subdirs = c("images", "masks")
 )
 
 test_preds <- predict_generator(DCB2018_u_net, test_DCB2018_generator, 3)
@@ -118,7 +118,7 @@ test_masks <- get_masks(test_preds, binary_colormap)
 
 Plot / save images with masks:
 
-```{r}
+```{r, warning = FALSE}
 test_imgs_paths <- create_images_masks_paths(test_DCB2018_path, "nested_dirs", FALSE, c("images", "masks"), ";")$images_paths
 
 plot_masks(
