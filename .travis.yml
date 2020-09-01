@@ -8,6 +8,16 @@ cache: packages
 r_packages:
   - covr
   - devtools
+  - testthat
+  - tensorflow
+  - keras
+  - tidyverse
+  - magrittr
+  - abind
+  - XML
+  - jsonlite
+  - RColorBrewer
+  - gridExtra
 
 before_script:
   - sudo apt-get update
