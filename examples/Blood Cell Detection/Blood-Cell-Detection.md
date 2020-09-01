@@ -237,10 +237,11 @@ test_preds <- predict_generator(blood_yolo, test_blood_yolo_generator, 1)
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
-plot_boxes(images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/"), full.names = TRUE),
-           boxes = test_boxes,
-           labels = blood_labels,
-           save_dir = BCCD_path)
+plot_boxes(
+  images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/"), full.names = TRUE),
+  boxes = test_boxes,
+  labels = blood_labels,
+  save_dir = BCCD_path)
 ```
 
 ![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-1.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-2.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-3.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-4.png)

@@ -93,8 +93,8 @@ DCB2018_u_net <- u_net(
 DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
 
 test_DCB2018_generator <- segmentation_generator(
-  path = test_DCB2018_path, # directory with images and masks
-  mode = "nested_dirs", # Each image with masks in separate folder
+  path = test_DCB2018_path,
+  mode = "nested_dirs",
   colormap = binary_colormap,
   only_images = TRUE,
   net_h = net_h,
@@ -103,7 +103,7 @@ test_DCB2018_generator <- segmentation_generator(
   scale = 1 / 255,
   batch_size = 32,
   shuffle = FALSE,
-  subdirs = c("images", "masks") # Names of subdirs with images and masks
+  subdirs = c("images", "masks")
 )
 ```
 
@@ -128,10 +128,5 @@ plot_masks(
   colormap = binary_colormap
 )
 ```
-
-    ## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
-    ## Using compatibility `.name_repair`.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
 
 ![](2018-Data-Science-Bowl_files/figure-markdown_github/unnamed-chunk-5-1.png)![](2018-Data-Science-Bowl_files/figure-markdown_github/unnamed-chunk-5-2.png)![](2018-Data-Science-Bowl_files/figure-markdown_github/unnamed-chunk-5-3.png)![](2018-Data-Science-Bowl_files/figure-markdown_github/unnamed-chunk-5-4.png)
