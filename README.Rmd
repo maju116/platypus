@@ -241,7 +241,7 @@ plot_boxes(
   labels = blood_labels)
 ```
 
-See full example [here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
+See full example [here](https://github.com/maju116/platypus/blob/master/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
 
 U-Net image segmentation with custom dataset:
 ---------------
@@ -365,4 +365,4 @@ plot_masks(
 )
 ```
 
-See full example [here](https://github.com/maju116/platypus/blob/develop/examples/2018%20Data%20Science%20Bowl/2018-Data-Science-Bowl.md)
+See full example [here](https://github.com/maju116/platypus/blob/master/examples/2018%20Data%20Science%20Bowl/2018-Data-Science-Bowl.md)
