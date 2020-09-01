@@ -24,8 +24,9 @@ before_script:
   - sudo apt-get install python3 python3-pip
   - pip3 install --upgrade --ignore-installed --user travis virtualenv
   - R CMD INSTALL .
-  - R -e 'keras::install_keras()'
+  - echo $PYTHONPATH
   - R -e 'tensorflow::tf_config()'
+  - R -e 'keras::install_keras()'
 
 after_success:
   - Rscript -e 'covr::codecov()'
