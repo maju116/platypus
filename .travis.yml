@@ -2,7 +2,7 @@
 
 language: R
 sudo: true
-dist: "xenial"
+dist: "focal"
 
 cache: packages
 
