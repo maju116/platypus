@@ -23,7 +23,7 @@ create_plot_data <- function(xy_axis, sample_image, grayscale) {
 #' @param plot_data `data.frame` with `x`, `y` coordinates and color values.
 #' @param grayscale Should images be plotted in grayscale.
 #' @return  Raster image.
-plot_raster <- function(plot_data, grayscale, fill_guide = FALSE) {
+plot_raster <- function(plot_data, grayscale) {
   base_plot <- if (grayscale) {
     ggplot(plot_data, aes(x, y, fill = gray(gray)))
   } else {
@@ -133,7 +133,7 @@ create_segmentation_map_ggplot <- function(image_path, masks, labels, colormap, 
 #' @importFrom purrr walk2
 #' @importFrom ggplot2 ggsave
 #' @param images_paths Image filepaths.
-#' @param binary_masks Predicted segmentation masks.
+#' @param masks Predicted segmentation masks.
 #' @param labels Character vector containing class labels. For example \code{\link[platypus]{voc_labels}}.
 #' @param colormap Class color map. For example \code{\link[platypus]{voc_colormap}}.
 #' @param grayscale Should images be plotted in grayscale.

@@ -1,3 +1,15 @@
+as_generator.function <- function (x) {
+  python_path <- system.file("python", package = "keras")
+  tools <- reticulate::import_from_path("kerastools", path = python_path)
+  iter <- reticulate::py_iterator(function() {
+    elem <- keras_array(x())
+    if (length(elem) == 1)
+      elem[[2]] <- list()
+    do.call(reticulate::tuple, elem)
+  })
+  tools$generator$iter_generator(iter)
+}
+
 #' Fits model using data generator.
 #' @description Fits model using data generator.
 #' @import progress
