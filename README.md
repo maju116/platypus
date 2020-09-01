@@ -30,8 +30,8 @@ In order to install `platypus` you need to install `keras` and
 `tensorflow` packages and `Tensorflow` version `>= 2.0.0`
 (`Tensorflow 1.x` will not be supported!)
 
-YOLOv3 Object detection with pre-trained COCO weights:
-------------------------------------------------------
+YOLOv3 bounding box prediction with pre-trained COCO weights:
+-------------------------------------------------------------
 
 To create `YOLOv3` architecture use:
 
@@ -170,13 +170,13 @@ library(tidyverse)
 library(platypus)
 library(abind)
 
+BCCD_path <- "development/BCCD/"
+annot_path <- file.path(BCCD_path, "Annotations/")
 blood_labels <- c("Platelets", "RBC", "WBC")
 n_class <- length(blood_labels)
 net_h <- 416 # Must be divisible by 32
 net_w <- 416 # Must be divisible by 32
 anchors_per_grid <- 3
-annot_path <- "development/BCCD/Annotations/"
-images_path <- "development/BCCD/JPEGImages/"
 
 blood_anchors <- generate_anchors(
   anchors_per_grid = anchors_per_grid, # Number of anchors (per one grid) to generate
@@ -233,7 +233,13 @@ blood_anchors
 Build `YOLOv3` model and compile it with correct loss and metric:
 
 ``` r
-blood_yolo <- yolo3(net_h = net_h, net_w = net_w, n_class = n_class)
+blood_yolo <- yolo3(
+  net_h = net_h, # Input image height
+  net_w = net_w, # Input image width
+  grayscale = FALSE, # Should images be loaded as grayscale or RGB
+  n_class = n_class, # Number of object classes (80 for COCO dataset)
+  anchors = blood_anchors # Anchor boxes
+)
 blood_yolo %>% load_darknet_weights("development/yolov3.weights") # Optional
 
 blood_yolo %>% compile(
@@ -243,72 +249,218 @@ blood_yolo %>% compile(
 )
 ```
 
-Create data generator:
+Create data generators:
 
 ``` r
-blood_yolo_generator <- yolo3_generator(
-  annot_path = annot_path,
-  images_path = images_path,
-  net_h = net_h, net_w = net_w,
+train_blood_yolo_generator <- yolo3_generator(
+  annot_path = file.path(BCCD_path, "train", "Annotations/"),
+  images_path = file.path(BCCD_path, "train", "JPEGImages/"),
+  net_h = net_h,
+  net_w = net_w,
   batch_size = 16,
   shuffle = FALSE,
   labels = blood_labels
 )
-#> 364 images with corresponding annotations detected!
-#> Set 'steps_per_epoch' to: 23
+#> 291 images with corresponding annotations detected!
+#> Set 'steps_per_epoch' to: 19
+
+valid_blood_yolo_generator <- yolo3_generator(
+  annot_path = file.path(BCCD_path, "valid", "Annotations/"),
+  images_path = file.path(BCCD_path, "valid", "JPEGImages/"),
+  net_h = net_h,
+  net_w = net_w,
+  batch_size = 16,
+  shuffle = FALSE,
+  labels = blood_labels
+)
+#> 69 images with corresponding annotations detected!
+#> Set 'steps_per_epoch' to: 5
 ```
 
-Fit the model (starting from `tensorflow >= 2.1` fitting custom `R`
-generators dosen’t work. Please see
-[issue](https://github.com/rstudio/keras/issues/1090) and
-[issue](https://github.com/rstudio/keras/issues/1073)):
+Fit the model:
 
 ``` r
-# blood_yolo %>%
-#   fit_generator(
-#     blood_yolo_generator,
-#     epochs = 1000,
-#     steps_per_epoch = 23,
-#     callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-#                                                save_best_only = TRUE,
-#                                                save_weights_only = TRUE)
-#     )
-#   )
-
-history <- yolo3_fit_generator(
-  model = blood_yolo,
-  generator = blood_yolo_generator,
-  epochs = 1000,
-  steps_per_epoch = 23,
-  model_filepath = "development/BCCD/blood_w.hdf5")
+blood_yolo %>%
+  fit_generator(
+    generator = blood_yolo_generator,
+    epochs = 1000,
+    steps_per_epoch = 19,
+    validation_data = valid_blood_yolo_generator,
+    validation_steps = 5,
+    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
+                                               save_best_only = TRUE,
+                                               save_weights_only = TRUE)
+    )
+  )
 ```
 
 Predict on new images:
 
 ``` r
-blood_yolo <- yolo3(net_h = net_h, net_w = net_w, n_class = n_class)
+blood_yolo <- yolo3(
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  n_class = n_class,
+  anchors = blood_anchors
+)
 blood_yolo %>% load_model_weights_hdf5("development/BCCD/blood_w.hdf5")
 
-test_img_paths <- list.files(system.file("extdata", "images", package = "platypus"), full.names = TRUE, pattern = "blood")
+test_blood_yolo_generator <- yolo3_generator(
+  annot_path = file.path(BCCD_path, "test", "Annotations/"),
+  images_path = file.path(BCCD_path, "test", "JPEGImages/"),
+  net_h = net_h,
+  net_w = net_w,
+  batch_size = 4,
+  shuffle = FALSE,
+  labels = blood_labels
+)
+#> 4 images with corresponding annotations detected!
+#> Set 'steps_per_epoch' to: 1
 
-test_imgs <- test_img_paths %>%
-  map(~ {
-    image_load(., target_size = c(net_h, net_w), grayscale = FALSE) %>%
-      image_to_array() %>%
-      `/`(255)
-  }) %>%
-  abind(along = 4) %>%
-  aperm(c(4, 1:3))
-test_preds <- blood_yolo %>% predict(test_imgs)
+test_preds <- predict_generator(blood_yolo, test_blood_yolo_generator, 1)
 
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
-plot_boxes(images_paths = test_img_paths, boxes = test_boxes,
-  labels = blood_labels, save_dir = "development")
+plot_boxes(
+  images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/"), full.names = TRUE),
+  boxes = test_boxes,
+  labels = blood_labels)
 ```
 
-![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)
+![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)![](man/figures/README-unnamed-chunk-13-4.png)
 
 See full example
 [here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
+
+U-Net image segmentation with custom dataset:
+---------------------------------------------
+
+Build `U-Net` model and compile it with correct loss and metric:
+
+``` r
+library(tidyverse)
+library(platypus)
+library(abind)
+
+train_DCB2018_path <- "development/data-science-bowl-2018/stage1_train"
+test_DCB2018_path <- "development/data-science-bowl-2018/stage1_test"
+
+blocks <- 4 # Number of U-Net convolutional blocks
+n_class <- 2 # Number of classes
+net_h <- 256 # Must be in a form of 2^N
+net_w <- 256 # Must be in a form of 2^N
+
+DCB2018_u_net <- u_net(
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  blocks = blocks,
+  n_class = n_class,
+  filters = 16,
+  dropout = 0.1,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
+
+DCB2018_u_net %>%
+  compile(
+    optimizer = optimizer_adam(lr = 1e-3),
+    loss = loss_dice(),
+    metrics = metric_dice_coeff()
+  )
+```
+
+Create data generator:
+
+``` r
+train_DCB2018_generator <- segmentation_generator(
+  path = train_DCB2018_path, # directory with images and masks
+  mode = "nested_dirs", # Each image with masks in separate folder
+  colormap = binary_colormap,
+  only_images = FALSE,
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  scale = 1 / 255,
+  batch_size = 32,
+  shuffle = TRUE,
+  subdirs = c("images", "masks") # Names of subdirs with images and masks
+)
+#> 670 images with corresponding masks detected!
+#> Set 'steps_per_epoch' to: 21
+```
+
+Fit the model:
+
+``` r
+history <- DCB2018_u_net %>%
+  fit_generator(
+    train_DCB2018_generator,
+    epochs = 20,
+    steps_per_epoch = 21,
+    callbacks = list(callback_model_checkpoint(
+      "development/data-science-bowl-2018/DSB2018_w.hdf5",
+      save_best_only = TRUE,
+      save_weights_only = TRUE,
+      monitor = "dice_coeff",
+      mode = "max",
+      verbose = 1)
+    )
+  )
+```
+
+Predict on new images:
+
+``` r
+DCB2018_u_net <- u_net(
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  blocks = blocks,
+  filters = 16,
+  dropout = 0.1,
+  batch_normalization = TRUE,
+  kernel_initializer = "he_normal"
+)
+DCB2018_u_net %>% load_model_weights_hdf5("development/data-science-bowl-2018/DSB2018_w.hdf5")
+
+test_DCB2018_generator <- segmentation_generator(
+  path = test_DCB2018_path,
+  mode = "nested_dirs",
+  colormap = binary_colormap,
+  only_images = TRUE,
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  scale = 1 / 255,
+  batch_size = 32,
+  shuffle = FALSE,
+  subdirs = c("images", "masks")
+)
+#> 65 images detected!
+#> Set 'steps_per_epoch' to: 3
+
+test_preds <- predict_generator(DCB2018_u_net, test_DCB2018_generator, 3)
+
+test_masks <- get_masks(test_preds, binary_colormap)
+```
+
+Plot / save images with masks:
+
+``` r
+test_imgs_paths <- create_images_masks_paths(test_DCB2018_path, "nested_dirs", FALSE, c("images", "masks"), ";")$images_paths
+
+plot_masks(
+  images_paths = test_imgs_paths[1:4],
+  masks = test_masks[1:4],
+  labels = c("background", "nuclei"),
+  colormap = binary_colormap
+)
+```
+
+![](man/figures/README-unnamed-chunk-18-1.png)![](man/figures/README-unnamed-chunk-18-2.png)![](man/figures/README-unnamed-chunk-18-3.png)![](man/figures/README-unnamed-chunk-18-4.png)
+
+See full example
+[here](https://github.com/maju116/platypus/blob/develop/examples/2018%20Data%20Science%20Bowl/2018-Data-Science-Bowl.md)
