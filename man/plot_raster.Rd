@@ -4,7 +4,7 @@
 \alias{plot_raster}
 \title{Generates raster image.}
 \usage{
-plot_raster(plot_data, grayscale, fill_guide = FALSE)
+plot_raster(plot_data, grayscale)
 }
 \arguments{
 \item{plot_data}{`data.frame` with `x`, `y` coordinates and color values.}
