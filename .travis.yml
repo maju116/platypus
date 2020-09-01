@@ -2,7 +2,7 @@
 
 language: R
 sudo: false
-dist: "trusty"
+dist: "xenial"
 
 cache: packages
 
