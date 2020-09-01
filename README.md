@@ -332,7 +332,7 @@ plot_boxes(
 ![](man/figures/README-unnamed-chunk-13-1.png)![](man/figures/README-unnamed-chunk-13-2.png)![](man/figures/README-unnamed-chunk-13-3.png)![](man/figures/README-unnamed-chunk-13-4.png)
 
 See full example
-[here](https://github.com/maju116/platypus/blob/examples_1/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
+[here](https://github.com/maju116/platypus/blob/master/examples/Blood%20Cell%20Detection/Blood-Cell-Detection.md)
 
 U-Net image segmentation with custom dataset:
 ---------------------------------------------
@@ -463,4 +463,4 @@ plot_masks(
 ![](man/figures/README-unnamed-chunk-18-1.png)![](man/figures/README-unnamed-chunk-18-2.png)![](man/figures/README-unnamed-chunk-18-3.png)![](man/figures/README-unnamed-chunk-18-4.png)
 
 See full example
-[here](https://github.com/maju116/platypus/blob/develop/examples/2018%20Data%20Science%20Bowl/2018-Data-Science-Bowl.md)
+[here](https://github.com/maju116/platypus/blob/master/examples/2018%20Data%20Science%20Bowl/2018-Data-Science-Bowl.md)
