@@ -9,3 +9,4 @@ development
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^README_files$
+^\.github\
