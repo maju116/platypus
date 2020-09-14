@@ -3,6 +3,11 @@
 platypus
 ========
 
+<!-- badges: start -->
+
+[![codecov](https://codecov.io/gh/maju116/platypus/branch/master/graph/badge.svg)](https://codecov.io/gh/maju116/platypus)
+<!-- badges: end -->
+
 **R package for object detection and image segmentation**
 
 With `platypus` it is easy create advanced computer vision models like
