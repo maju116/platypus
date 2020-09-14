@@ -2,10 +2,10 @@
 ^\.Rproj\.user$
 examples
 development
-^\.travis\.yml$
 ^codecov\.yml$
 ^README\.Rmd$
 ^CHANGELOG\.md$
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^README_files$
+.github
