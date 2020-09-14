@@ -77,7 +77,7 @@ jobs:
         run: |
           Rscript -e "reticulate::conda_create('r-reticulate', packages = c('python==3.6.9'))"
           Rscript -e "remotes::install_local()"
-          Rscript -e "tensorflow::install_tensorflow(version = Sys.getenv('TF_VERSION'))"
+          Rscript -e "tensorflow::install_tensorflow(version = '2.2.0')"
           Rscript -e "reticulate::py_install('IPython', pip = TRUE)"
 
       - name: Check
