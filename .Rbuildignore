@@ -2,7 +2,6 @@
 ^\.Rproj\.user$
 examples
 development
-^\.travis\.yml$
 ^codecov\.yml$
 ^README\.Rmd$
 ^CHANGELOG\.md$
