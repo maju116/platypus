@@ -5,8 +5,8 @@ output:
 params:
   repo_name: platypus
   repo_url: https://github.com/maju116/platypus
-  chagelog_url: https://github.com/Appsilon/platypus/blob/master/CHANGELOG.md
-  code_of_coduct: https://github.com/Appsilon/platypus/blob/develop/CODE_OF_CONDUCT.md
+  chagelog_url: https://github.com/maju116/platypus/blob/master/CHANGELOG.md
+  code_of_coduct: https://github.com/maju116/platypus/blob/develop/CODE_OF_CONDUCT.md
 ---
 
 ```{r, echo = FALSE}
@@ -20,6 +20,10 @@ knitr::opts_chunk$set(
 <img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
 
 #  `r params$repo_name`
+
+<!-- badges: start -->
+[![codecov](https://codecov.io/gh/maju116/platypus/branch/master/graph/badge.svg)](https://codecov.io/gh/maju116/platypus)
+<!-- badges: end -->
 
 **R package for object detection and image segmentation**
 
