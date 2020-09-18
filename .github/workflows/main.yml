@@ -74,13 +74,13 @@ jobs:
         run: |
           Rscript -e "remotes::install_github('rstudio/reticulate')"
           Rscript -e "reticulate::install_miniconda()"
-          Rscript -e "reticulate::py_install('Pillow', pip = TRUE)"
       - if: runner.os == 'macOS'
         run: echo "options(reticulate.conda_binary = reticulate:::miniconda_conda())" >> .Rprofile
       - name: Install TensorFlow
         run: |
           Rscript -e "reticulate::conda_create('r-reticulate', packages = c('python==3.6.9'))"
           Rscript -e "remotes::install_local()"
+          Rscript -e "reticulate::py_install('Pillow', pip = TRUE)"
           Rscript -e "tensorflow::install_tensorflow(version = '2.2.0')"
           Rscript -e "reticulate::py_install('IPython', pip = TRUE)"
 
