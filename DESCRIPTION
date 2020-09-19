@@ -1,7 +1,7 @@
 Package: platypus
 Type: Package
 Title: Tools for Computer Vision in R
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Michał", "Maj", email = "michalmaj116@gmail.com", role = c("aut", "cre"))
 Maintainer: Michał Maj <michalmaj116@gmail.com>
 Description: Set of tools for Computer Vision like YOLOv3 for object detection and U-Net for image segmentation.
