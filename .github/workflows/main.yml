@@ -80,12 +80,14 @@ jobs:
         run: |
           Rscript -e "reticulate::conda_create('r-reticulate', packages = c('python==3.6.9'))"
           Rscript -e "remotes::install_local()"
+          Rscript -e "reticulate::py_install('Pillow', pip = TRUE)"
           Rscript -e "tensorflow::install_tensorflow(version = '2.2.0')"
           Rscript -e "reticulate::py_install('IPython', pip = TRUE)"
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
+          _R_CHECK_SYSTEM_CLOCK_: false
         run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
 
