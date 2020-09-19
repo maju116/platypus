@@ -1,7 +1,7 @@
 context("unite_binary_masks")
 
 test_that("unite_binary_masks unites binary masks correctly", {
-  test_binary_mask <- array(
+  test_binary_masks <- array(
     c(0, 1, 1, 1, 0, 1, 0, 1, 0,
       0, 0, 0, 0, 1, 0, 1, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -11,7 +11,7 @@ test_that("unite_binary_masks unites binary masks correctly", {
   expected_output <- array(c(255, 0, 0, 0, 111, 0, 111, 0, 222,
                              255, 0, 0, 0, 111, 0, 111, 0, 222,
                              255, 0, 0, 0, 111, 0, 111, 0, 222), dim = c(3, 3, 3))
-  true_output <- unite_binary_masks(test_binary_mask, test_colormap)
+  true_output <- unite_binary_masks(test_binary_masks, test_colormap)
 
   expect_true(all.equal(expected_output, true_output, check.attributes = FALSE))
 })
