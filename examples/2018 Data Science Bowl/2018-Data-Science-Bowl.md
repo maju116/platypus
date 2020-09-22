@@ -40,6 +40,16 @@ DCB2018_u_net %>%
 Create data generator:
 
 ``` r
+binary_colormap
+```
+
+    ## [[1]]
+    ## [1] 0 0 0
+    ## 
+    ## [[2]]
+    ## [1] 255 255 255
+
+``` r
 train_DCB2018_generator <- segmentation_generator(
   path = train_DCB2018_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
