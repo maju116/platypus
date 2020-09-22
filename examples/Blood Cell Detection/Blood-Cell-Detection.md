@@ -237,6 +237,97 @@ test_preds <- predict_generator(blood_yolo, test_blood_yolo_generator, 1)
 test_boxes <- get_boxes(test_preds, blood_anchors, blood_labels,
                         obj_threshold = 0.6)
 
+test_boxes
+```
+
+    ## [[1]]
+    ## # A tibble: 17 x 7
+    ##      xmin   ymin  xmax  ymax p_obj label_id label
+    ##     <dbl>  <dbl> <dbl> <dbl> <dbl>    <int> <chr>
+    ##  1 0.617  0.0137 0.884 0.543  1           2 RBC  
+    ##  2 0.299  0      0.500 0.140  1.00        2 RBC  
+    ##  3 0.479  0      0.687 0.203  1.00        2 RBC  
+    ##  4 0.709  0      0.870 0.206  1.00        2 RBC  
+    ##  5 0.0199 0      0.163 0.250  1.00        2 RBC  
+    ##  6 0.0516 0.190  0.196 0.336  1           2 RBC  
+    ##  7 0.406  0.164  0.564 0.316  1.00        2 RBC  
+    ##  8 0.472  0.165  0.635 0.326  1.00        2 RBC  
+    ##  9 0.865  0.0795 1     0.411  1.00        2 RBC  
+    ## 10 0.0799 0.308  0.296 0.494  1.00        2 RBC  
+    ## 11 0.414  0.359  0.562 0.506  1.00        2 RBC  
+    ## 12 0.819  0.328  1     0.563  1.00        2 RBC  
+    ## 13 0.482  0.395  0.623 0.544  1.00        2 RBC  
+    ## 14 0.250  0.464  0.420 0.679  1           2 RBC  
+    ## 15 0.868  0.500  1     0.704  1.00        2 RBC  
+    ## 16 0.0584 0.531  0.290 0.821  1.00        3 WBC  
+    ## 17 0.440  0.584  0.746 0.906  1.00        3 WBC  
+    ## 
+    ## [[2]]
+    ## # A tibble: 16 x 7
+    ##       xmin  ymin  xmax  ymax p_obj label_id label
+    ##      <dbl> <dbl> <dbl> <dbl> <dbl>    <int> <chr>
+    ##  1 0.133   0     0.409 0.287  1.00        2 RBC  
+    ##  2 0.427   0.275 0.704 0.779  1.00        2 RBC  
+    ##  3 0.831   0.104 0.970 0.285  1.00        2 RBC  
+    ##  4 0.489   0.278 0.680 0.461  1.00        2 RBC  
+    ##  5 0.00549 0.279 0.106 0.509  1.00        2 RBC  
+    ##  6 0.579   0.306 0.757 0.496  1.00        2 RBC  
+    ##  7 0.0502  0.341 0.204 0.572  1.00        2 RBC  
+    ##  8 0.769   0.436 0.945 0.592  1.00        2 RBC  
+    ##  9 0.360   0.536 0.510 0.683  1.00        2 RBC  
+    ## 10 0.239   0.595 0.436 0.771  1.00        2 RBC  
+    ## 11 0.626   0.678 0.812 0.878  1.00        2 RBC  
+    ## 12 0.700   0.740 0.890 0.939  1.00        2 RBC  
+    ## 13 0.805   0.715 0.985 0.915  1.00        2 RBC  
+    ## 14 0.191   0.692 0.389 1      1.00        2 RBC  
+    ## 15 0.347   0.756 0.544 1      1.00        2 RBC  
+    ## 16 0.217   0.252 0.442 0.507  1.00        3 WBC  
+    ## 
+    ## [[3]]
+    ## # A tibble: 13 x 7
+    ##     xmin  ymin  xmax  ymax p_obj label_id label
+    ##    <dbl> <dbl> <dbl> <dbl> <dbl>    <int> <chr>
+    ##  1 0.593 0.106 0.838 0.617 0.642        2 RBC  
+    ##  2 0.212 0.577 0.434 1     0.660        2 RBC  
+    ##  3 0.280 0     0.453 0.236 1.00         2 RBC  
+    ##  4 0.637 0     0.801 0.237 1.00         2 RBC  
+    ##  5 0.780 0.184 0.972 0.399 0.996        2 RBC  
+    ##  6 0.588 0.263 0.773 0.481 0.809        2 RBC  
+    ##  7 0     0.342 0.214 0.514 0.931        2 RBC  
+    ##  8 0.836 0.468 1     0.661 1.00         2 RBC  
+    ##  9 0.778 0.686 0.969 0.873 1.00         2 RBC  
+    ## 10 0.441 0.770 0.624 0.958 0.939        2 RBC  
+    ## 11 0.610 0.783 0.806 0.969 1.00         2 RBC  
+    ## 12 0.257 0.195 0.592 0.523 0.999        3 WBC  
+    ## 13 0.225 0.259 0.512 0.559 0.999        3 WBC  
+    ## 
+    ## [[4]]
+    ## # A tibble: 19 x 7
+    ##       xmin   ymin   xmax  ymax p_obj label_id label    
+    ##      <dbl>  <dbl>  <dbl> <dbl> <dbl>    <int> <chr>    
+    ##  1 0.0478  0.239  0.219  0.336 0.982        1 Platelets
+    ##  2 0.185   0.512  0.305  0.685 0.978        1 Platelets
+    ##  3 0.318   0.578  0.496  0.689 0.998        1 Platelets
+    ##  4 0       0.510  0.0972 0.777 1.00         1 Platelets
+    ##  5 0.158   0      0.343  0.281 0.947        2 RBC      
+    ##  6 0.874   0.0645 1      0.235 0.962        2 RBC      
+    ##  7 0.372   0.151  0.567  0.325 1.00         2 RBC      
+    ##  8 0.549   0.155  0.709  0.478 1.00         2 RBC      
+    ##  9 0.445   0.251  0.607  0.566 0.984        2 RBC      
+    ## 10 0.458   0.339  0.639  0.514 0.988        2 RBC      
+    ## 11 0.00327 0.466  0.193  0.642 1.00         2 RBC      
+    ## 12 0.463   0.562  0.642  0.789 1.00         2 RBC      
+    ## 13 0.178   0.671  0.331  0.847 0.997        2 RBC      
+    ## 14 0.148   0.671  0.370  0.885 0.975        2 RBC      
+    ## 15 0.358   0.696  0.546  1     0.994        2 RBC      
+    ## 16 0.535   0.806  0.710  0.969 1.00         2 RBC      
+    ## 17 0.692   0.705  0.892  1     0.999        2 RBC      
+    ## 18 0.837   0.783  1      1     0.994        2 RBC      
+    ## 19 0.615   0.408  0.904  0.748 1.00         3 WBC
+
+Plot / save images with predicted bounding boxes:
+
+``` r
 plot_boxes(
   images_paths = list.files(file.path(BCCD_path, "test", "JPEGImages/"), full.names = TRUE),
   boxes = test_boxes,
@@ -244,4 +335,4 @@ plot_boxes(
   save_dir = BCCD_path)
 ```
 
-![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-1.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-2.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-3.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-7-4.png)
+![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-8-1.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-8-2.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-8-3.png)![](Blood-Cell-Detection_files/figure-markdown_github/unnamed-chunk-8-4.png)
