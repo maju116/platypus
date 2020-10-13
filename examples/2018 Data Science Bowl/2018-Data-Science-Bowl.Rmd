@@ -94,7 +94,7 @@ DCB2018_u_net <- u_net(
 )
 ```
 
-After that it's time to select **loss** and additional metrics. Because semantic segmentation is in essence classification for each pixel instead of the whole image, you can use **categorical cross-entropy** as a loss function and **accuracy** as a metric. Other common choice, available in `platypus`, would be [**dice coefficient/loss**](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient). You cna think of it as of a **F1-metric** for semantic segmentation.
+After that it's time to select **loss** and additional metrics. Because semantic segmentation is in essence classification for each pixel instead of the whole image, you can use **categorical cross-entropy** as a loss function and **accuracy** as a metric. Other common choice, available in `platypus`, would be [**dice coefficient/loss**](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient). You can think of it as of a **F1-metric** for semantic segmentation.
 
 ```{r compile, message = FALSE, warning = FALSE}
 DCB2018_u_net %>%
