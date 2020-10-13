@@ -245,10 +245,11 @@ history <- DCB2018_u_net %>%
 ```
 
 And calculate predictions for the new images. Our model will return a
-4-dimensional array (number of images, height, width, number of classes)
-- each pixel will have N probabilities, where N is number of classes. to
-transform raw predictions into segmentation map (by selecting class with
-max probability for each pixel) you can use `get_masks` function.
+4-dimensional array (number of images, height, width, number of
+classes). Each pixel will have N probabilities, where N is number of
+classes. To transform raw predictions into segmentation map (by
+selecting class with max probability for each pixel) you can use
+`get_masks` function.
 
 ``` r
 test_DCB2018_generator <- segmentation_generator(

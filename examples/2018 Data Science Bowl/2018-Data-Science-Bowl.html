@@ -545,7 +545,7 @@ DCB2018_u_net &lt;- u_net(
       verbose = 1)
     )
   )</code></pre>
-<p>And calculate predictions for the new images. Our model will return a 4-dimensional array (number of images, height, width, number of classes) - each pixel will have N probabilities, where N is number of classes. to transform raw predictions into segmentation map (by selecting class with max probability for each pixel) you can use <code>get_masks</code> function.</p>
+<p>And calculate predictions for the new images. Our model will return a 4-dimensional array (number of images, height, width, number of classes). Each pixel will have N probabilities, where N is number of classes. To transform raw predictions into segmentation map (by selecting class with max probability for each pixel) you can use <code>get_masks</code> function.</p>
 <pre class="r"><code>test_DCB2018_generator &lt;- segmentation_generator(
   path = test_path,
   mode = &quot;nested_dirs&quot;,
