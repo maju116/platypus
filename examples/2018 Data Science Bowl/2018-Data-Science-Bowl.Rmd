@@ -1,34 +1,90 @@
 ---
 title: "2018 Data Science Bowl"
 author: "Michał Maj"
-date: "8/29/2020"
+date: "10/13/2020"
 output:
  md_document:
   variant: markdown_github
 ---
 
-Download images and masks: [2018 Data Science Bowl](https://www.kaggle.com/c/data-science-bowl-2018).
+Today we will work on [2018 Data Science Bowl](https://www.kaggle.com/c/data-science-bowl-2018/data) dataset. 
+You can download images and masks directly form the url or using `Kagge API` :
 
-Build `U-Net` model and compile it with correct loss and metric:
+`kaggle competitions download -c data-science-bowl-2018`
 
-```{r, message = FALSE, warning = FALSE}
+After downloading the data, unpack them and move to preferred destination. For this example we will be interested only in `stage1_train` and `stage1_test` subdirectories, so you can delete other files if you want.
+
+Before we start, let's investigate a little bit. 
+
+```{r investigate, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(platypus)
 library(abind)
 library(here)
 
-train_DCB2018_path <- here("development/data-science-bowl-2018/stage1_train")
-test_DCB2018_path <- here("development/data-science-bowl-2018/stage1_test")
+# Print current working directory
+here()
 
+# Set directories with the data and models
+data_path <- here("examples/data/data-science-bowl-2018/")
+models_path <- here("examples/models/")
+
+# Investigate one instance of data (image + masks)
+sample_image_path <- here("examples/data/data-science-bowl-2018/stage1_train/00071198d059ba7f5914a526d124d28e6d010c92466da21d4a04cd5413362552/")
+
+list.files(sample_image_path, full.names = TRUE) %>%
+  set_names(basename(.)) %>%
+  map(~ list.files(.))
+```
+
+As you can see each image has its own directory, that has two subdirectories inside:
+- **images** - contains original image that will be the input of the neural network
+- **masks** - contains **one or more** segmentation masks. **Segmentation mask** is simply telling us which pixel belongs to which class, and this is what we will try to predict.
+
+For the modeling, beside **train** and **test** sets, we will also need a **validation** set (No one is forcing you, but it's a good practice!):
+
+```{r train_val_test_split}
+train_path <- here("examples/data/data-science-bowl-2018/stage1_train/")
+test_path <- here("examples/data/data-science-bowl-2018/stage1_test/")
+validation_path <- here("examples/data/data-science-bowl-2018/stage1_validation/")
+
+if (!dir.exists(validation_path)) {
+  dir.create(validation_path)
+  # List train images
+  train_samples <- list.files(train_path, full.names = TRUE)
+  set.seed(1234)
+  # Select 10% for validation
+  validation_samples <- sample(train_samples, round(0.1 * length(train_samples)))
+  validation_samples %>%
+    walk(~ system(paste0('mv "', ., '" "', validation_path, '"')))
+}
+```
+
+Since we now something about our data, we can now move to the modeling part. We will start by selecting the architecture of the neural network. In case of semantic segmentation there is a few different choices like **U-Net**, **Fast-FCN**, **DeepLab** and many more. For the time being in the [platypus](https://github.com/maju116/platypus) package you have access only to the **U-Net** architecture.
+
+![](https://i2.wp.com/neptune.ai/wp-content/uploads/U-net-architecture.png?ssl=1)
+
+**U-Net** was originally developed for biomedical data segmentation. As you can see in the picture above architecture is very similar to autoencoder and it looks like the letter **U**, hence the name. Model is composed of 2 parts, and each part has some number of **convolutional blocks** (3 in the image above). Number of blocks will be hyperparameter in our model.
+
+To build a **U-Net** model in `platypus` use `u_net` function. You have to specify:
+
+ - number of convolutional blocks,
+ - input image height and width - must be in the form **2^N**!,
+ - will input image be loaded as grayscale or RGB,
+ - number of classes - in our case we have only 2 (background and nuclei)
+ - additional arguments form CNN like number of filters, dropout rate
+
+```{r architecture, message = FALSE, warning = FALSE}
 blocks <- 4 # Number of U-Net convolutional blocks
 n_class <- 2 # Number of classes
 net_h <- 256 # Must be in a form of 2^N
 net_w <- 256 # Must be in a form of 2^N
+grayscale <- FALSE # Will input image be in grayscale or RGB
 
 DCB2018_u_net <- u_net(
   net_h = net_h,
   net_w = net_w,
-  grayscale = FALSE,
+  grayscale = grayscale,
   blocks = blocks,
   n_class = n_class,
   filters = 16,
@@ -36,7 +92,11 @@ DCB2018_u_net <- u_net(
   batch_normalization = TRUE,
   kernel_initializer = "he_normal"
 )
+```
 
+After that it's time to select **loss** and additional metrics. Because semantic segmentation is in essence classification for each pixel instead of the whole image, you can use **categorical cross-entropy** as a loss function and **accuracy** as a metric. Other common choice, available in `platypus`, would be [**dice coefficient/loss**](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient). You cna think of it as of a **F1-metric** for semantic segmentation.
+
+```{r compile, message = FALSE, warning = FALSE}
 DCB2018_u_net %>%
   compile(
     optimizer = optimizer_adam(lr = 1e-3),
@@ -45,13 +105,27 @@ DCB2018_u_net %>%
   )
 ```
 
-Create data generator:
+The next step will be data ingestion. As you remember we have a separate directory and multiple masks for each image. That's not a problem for `platypus`! You can ingest data using `segmentation_generator` function. The first argument to specify is the directory with all the images and masks. To tell `platypus` that it has to load images and masks from separate directories for each data sample specify argument `mode = "nested_dirs"`. Additionally you can set images/masks subdirectories names using `subdirs` argument. `platypus` will automatically merge multiple masks for each image, but we have to tell him how to recognize which pixel belongs to which class. In the segmentation masks each class is recognized by a specific RGB value. In our case we have only black (R = 0, G = 0, B = 0) pixel for background and white (R = 255, G = 255, B = 255) pixels for nuclei. To tell `platypus` how to recognize classes on segmentation masks use `colormap` argument. 
 
-```{r}
+```{r data_generators}
 binary_colormap
 
 train_DCB2018_generator <- segmentation_generator(
-  path = train_DCB2018_path, # directory with images and masks
+  path = train_path, # directory with images and masks
+  mode = "nested_dirs", # Each image with masks in separate folder
+  colormap = binary_colormap,
+  only_images = FALSE,
+  net_h = net_h,
+  net_w = net_w,
+  grayscale = FALSE,
+  scale = 1 / 255,
+  batch_size = 32,
+  shuffle = TRUE,
+  subdirs = c("images", "masks") # Names of subdirs with images and masks
+)
+
+validation_DCB2018_generator <- segmentation_generator(
+  path = validation_path, # directory with images and masks
   mode = "nested_dirs", # Each image with masks in separate folder
   colormap = binary_colormap,
   only_images = FALSE,
@@ -65,16 +139,18 @@ train_DCB2018_generator <- segmentation_generator(
 )
 ```
 
-Fit the model:
+We can now fit the model.
 
-```{r, eval = FALSE}
+```{r fit, eval = FALSE}
 history <- DCB2018_u_net %>%
   fit_generator(
     train_DCB2018_generator,
     epochs = 20,
-    steps_per_epoch = 21,
+    steps_per_epoch = 19,
+    validation_data = validation_DCB2018_generator,
+    validation_steps = 3,
     callbacks = list(callback_model_checkpoint(
-      "development/data-science-bowl-2018/DSB2018_w.hdf5",
+      filepath = file.path(models_path, "DSB2018_w.hdf5"),
       save_best_only = TRUE,
       save_weights_only = TRUE,
       monitor = "dice_coeff",
@@ -84,9 +160,9 @@ history <- DCB2018_u_net %>%
   )
 ```
 
-Predict on new images:
+And calculate predictions for the new images. Our model will return a 4-dimensional array (number of images, height, width, number of classes) - each pixel will have N probabilities, where N is number of classes. to transform raw predictions into segmentation map (by selecting class with max probability for each pixel) you can use `get_masks` function.
 
-```{r, message = FALSE}
+```{r load_model, echo = FALSE}
 DCB2018_u_net <- u_net(
   net_h = net_h,
   net_w = net_w,
@@ -97,10 +173,13 @@ DCB2018_u_net <- u_net(
   batch_normalization = TRUE,
   kernel_initializer = "he_normal"
 )
-DCB2018_u_net %>% load_model_weights_hdf5(here("development/data-science-bowl-2018/DSB2018_w.hdf5"))
+DCB2018_u_net %>% load_model_weights_hdf5(file.path(models_path, "DSB2018_w.hdf5"))
+```
 
+
+```{r test, message = FALSE}
 test_DCB2018_generator <- segmentation_generator(
-  path = test_DCB2018_path,
+  path = test_path,
   mode = "nested_dirs",
   colormap = binary_colormap,
   only_images = TRUE,
@@ -114,14 +193,16 @@ test_DCB2018_generator <- segmentation_generator(
 )
 
 test_preds <- predict_generator(DCB2018_u_net, test_DCB2018_generator, 3)
+dim(test_preds)
 
 test_masks <- get_masks(test_preds, binary_colormap)
+dim(test_masks[[1]])
 ```
 
-Plot / save images with masks:
+To visualize predicted masks with the orginal images you can use `plot_masks` function.
 
-```{r, warning = FALSE}
-test_imgs_paths <- create_images_masks_paths(test_DCB2018_path, "nested_dirs", FALSE, c("images", "masks"), ";")$images_paths
+```{r plot, warning = FALSE}
+test_imgs_paths <- create_images_masks_paths(test_path, "nested_dirs", FALSE, c("images", "masks"), ";")$images_paths
 
 plot_masks(
   images_paths = test_imgs_paths[1:4],
