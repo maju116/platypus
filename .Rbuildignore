@@ -9,3 +9,5 @@ development
 ^CODE_OF_CONDUCT\.md$
 ^README_files$
 .github
+environment
+workflow.sh
