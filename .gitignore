@@ -31,4 +31,7 @@ vignettes/*.pdf
 *.knit.md
 .Rproj.user
 
+# Development and examples directiries
 development
+examples/data
+examples/models
