@@ -148,7 +148,7 @@ instead of the whole image, you can use **categorical cross-entropy** as
 a loss function and **accuracy** as a metric. Other common choice,
 available in `platypus`, would be [**dice
 coefficient/loss**](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient).
-You cna think of it as of a **F1-metric** for semantic segmentation.
+You can think of it as of a **F1-metric** for semantic segmentation.
 
 ``` r
 DCB2018_u_net %>%

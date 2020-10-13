@@ -411,7 +411,7 @@ list.files(sample_image_path, full.names = TRUE) %&gt;%
   map(~ list.files(.))</code></pre>
 <pre><code>## $images
 ## [1] &quot;00071198d059ba7f5914a526d124d28e6d010c92466da21d4a04cd5413362552.png&quot;
-## 
+##
 ## $masks
 ##  [1] &quot;07a9bf1d7594af2763c86e93f05d22c4d5181353c6d3ab30a345b908ffe5aadc.png&quot;
 ##  [2] &quot;0e548d0af63ab451616f082eb56bde13eb71f73dfda92a03fbe88ad42ebb4881.png&quot;
@@ -484,7 +484,7 @@ DCB2018_u_net &lt;- u_net(
   batch_normalization = TRUE,
   kernel_initializer = &quot;he_normal&quot;
 )</code></pre>
-<p>After that it’s time to select <strong>loss</strong> and additional metrics. Because semantic segmentation is in essence classification for each pixel instead of the whole image, you can use <strong>categorical cross-entropy</strong> as a loss function and <strong>accuracy</strong> as a metric. Other common choice, available in <code>platypus</code>, would be <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient"><strong>dice coefficient/loss</strong></a>. You cna think of it as of a <strong>F1-metric</strong> for semantic segmentation.</p>
+<p>After that it’s time to select <strong>loss</strong> and additional metrics. Because semantic segmentation is in essence classification for each pixel instead of the whole image, you can use <strong>categorical cross-entropy</strong> as a loss function and <strong>accuracy</strong> as a metric. Other common choice, available in <code>platypus</code>, would be <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient"><strong>dice coefficient/loss</strong></a>. You can think of it as of a <strong>F1-metric</strong> for semantic segmentation.</p>
 <pre class="r"><code>DCB2018_u_net %&gt;%
   compile(
     optimizer = optimizer_adam(lr = 1e-3),
@@ -495,7 +495,7 @@ DCB2018_u_net &lt;- u_net(
 <pre class="r"><code>binary_colormap</code></pre>
 <pre><code>## [[1]]
 ## [1] 0 0 0
-## 
+##
 ## [[2]]
 ## [1] 255 255 255</code></pre>
 <pre class="r"><code>train_DCB2018_generator &lt;- segmentation_generator(
