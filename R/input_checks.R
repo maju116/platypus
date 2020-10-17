@@ -68,7 +68,7 @@ check_input_shape_yolo3 <- function(net_h, net_w, grayscale) {
   if (any(c(net_h, net_w) < 1)) {
     stop("Dimensions must be positive numbers.")
   }
-  if (net_h != 0 | net_w != 0) {
+  if (net_h%%32 != 0 | net_w%%32 != 0) {
     stop("Image width and height must be a divisible by 32, e.g 32, 64, 96, 128, ...")
   }
   check_input_in_set(grayscale, c(TRUE, FALSE))
