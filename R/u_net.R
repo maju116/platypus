@@ -39,9 +39,9 @@ u_net_double_conv2d <- function(input, filters, kernel_size, batch_normalization
 #' @export
 u_net <- function(net_h, net_w, grayscale, blocks = 4, n_class = 2, filters = 16,
                   dropout = 0.1, batch_normalization = TRUE, kernel_initializer = "he_normal") {
+  u_net_check(net_h, net_w, grayscale, blocks, n_class, filters, dropout, batch_normalization)
   channels <- if (grayscale) 1 else 3
   input_shape <- c(net_h, net_w, channels)
-  u_net_check(input_shape, blocks, n_class, filters, dropout, batch_normalization)
   input_img <- layer_input(shape = input_shape, name = 'input_img')
 
   conv_layers <- pool_layers <- conv_tr_layers <- list()
