@@ -83,7 +83,7 @@ segmentation_generator <- function(path, colormap, mode = "dir", only_images = F
                                    grayscale = FALSE, scale = 1 / 255,
                                    batch_size = 32, shuffle = TRUE, subdirs = c("images", "masks"),
                                    column_sep = ";") {
-  segmentation_generator_check(mode, n_class, only_images, target_size, grayscale, shuffle)
+  segmentation_generator_check(colormap, mode, n_class, only_images, target_size, grayscale, shuffle)
   target_size <- c(net_h, net_w)
   n_class <- length(colormap)
   config <- create_images_masks_paths(path, mode, only_images, subdirs, column_sep)
