@@ -12,7 +12,10 @@ custom_fit_generator(
   steps_per_epoch,
   validation_generator = NULL,
   validation_steps_per_epoch = NULL,
-  model_filepath = NULL
+  model_filepath = NULL,
+  save_best_only = TRUE,
+  monitor = "loss",
+  monitor_choose_best = "min"
 )
 }
 \arguments{
@@ -31,6 +34,12 @@ custom_fit_generator(
 \item{validation_steps_per_epoch}{Validation steps per epoch.}
 
 \item{model_filepath}{Path to save the model.}
+
+\item{save_best_only}{If set to `TRUE` model will be saved only if selected `metric` was better than in previous epochs.}
+
+\item{monitor}{Metric selected to be monitored.}
+
+\item{monitor_choose_best}{How to compare new monitor with previous ones. One of `c("min", "max")`}
 }
 \description{
 Fits model using data generator.

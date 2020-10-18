@@ -26,11 +26,17 @@ as_generator.function <- function (x) {
 #' @param validation_generator Validation data generator.
 #' @param validation_steps_per_epoch Validation steps per epoch.
 #' @param model_filepath Path to save the model.
+#' @param save_best_only If set to `TRUE` model will be saved only if selected `metric` was better than in previous epochs.
+#' @param monitor Metric selected to be monitored.
+#' @param monitor_choose_best How to compare new monitor with previous ones. One of `c("min", "max")`
 #' @export
 custom_fit_generator <- function(metric_names, model, generator, epochs, steps_per_epoch,
                                 validation_generator = NULL,
                                 validation_steps_per_epoch = NULL,
-                                model_filepath = NULL) {
+                                model_filepath = NULL,
+                                save_best_only = TRUE,
+                                monitor = "loss",
+                                monitor_choose_best = "min") {
   results <- NULL
   val_results <- NULL
   for (epoch in 1:epochs) {
@@ -65,13 +71,29 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
                       sep = ": ", collapse = ", "), "\n"))
     }
     if (!is.null(model_filepath)) {
-      save_model_hdf5(model, model_filepath)
+      if (save_best_only & epoch > 1) {
+        compare_fun <- if (monitor_choose_best == "min") `<=` else `>=`
+        if (monitor %in% metric_names) {
+          current_monitor <- epoch_steps_mean %>% pull(monitor)
+          old_monitor <- results[1:(epoch - 1), ] %>% pull(monitor)
+        } else {
+          current_monitor <- val_epoch_steps_mean %>% pull(monitor)
+          old_monitor <- val_results[1:(epoch - 1), ] %>% pull(monitor)
+        }
+        if (all(compare_fun(current_monitor, old_monitor))) {
+          print(paste("Saving model to", model_filepath))
+          save_model_hdf5(model, model_filepath)
+        }
+      } else {
+        print(paste("Saving model to", model_filepath))
+        save_model_hdf5(model, model_filepath)
+      }
     }
   }
   results <- results %>%
     mutate(epoch = 1:epochs) %>%
     when(!is.null(validation_generator) ~ bind_cols(., val_results), ~ .)
-  metrics_plot <- metric_names %>% map(~ {
+  metric_names %>% map(~ {
     metric_name <- .x
     val_metric_name <- paste0("val_", metric_name)
     p <- ggplot(results, aes(x = epoch)) + theme_bw() +
@@ -82,7 +104,6 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
       p
     }
   }) %>% grid.arrange(grobs = ., ncol = 1)
-  plot(metrics_plot)
   return(results)
 }
 
@@ -95,18 +116,29 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
 #' @param validation_generator Validation data generator.
 #' @param validation_steps_per_epoch Validation steps per epoch.
 #' @param model_filepath Path to save the model.
+#' @param save_best_only If set to `TRUE` model will be saved only if selected `metric` was better than in previous epochs.
+#' @param monitor Metric selected to be monitored.
 #' @import progress
 #' @export
 yolo3_fit_generator <- function(model, generator, epochs, steps_per_epoch,
                                 validation_generator = NULL,
                                 validation_steps_per_epoch = NULL,
-                                model_filepath = NULL) {
+                                model_filepath = NULL,
+                                save_best_only = TRUE,
+                                monitor = "loss") {
   metric_names <- c("loss", "grid1_loss", "grid2_loss", "grid3_loss",
                     "grid1_avg_IoU", "grid2_avg_IoU", "grid3_avg_IoU")
+  monitor_choose_best <- if (grepl("loss", monitor)) "min" else "max"
+  if (!is.null(model_filepath) & save_best_only & !(monitor %in% c(metric_names, paste0("val_", metric_names)))) {
+    stop("Incorrect metric choosen as monitor!")
+  }
   custom_fit_generator(metric_names, model, generator, epochs, steps_per_epoch,
                        validation_generator,
                        validation_steps_per_epoch,
-                       model_filepath)
+                       model_filepath,
+                       save_best_only,
+                       monitor,
+                       monitor_choose_best)
 }
 
 #' Calculates predictions on new samples using data generator.
