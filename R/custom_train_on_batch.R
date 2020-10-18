@@ -13,8 +13,11 @@ as_generator.function <- function (x) {
 #' Fits model using data generator.
 #' @description Fits model using data generator.
 #' @import progress
+#' @import ggplot2
+#' @import gridExtra
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr summarise_all
+#' @importFrom keras generator_next
 #' @param metric_names Metric names.
 #' @param model Model.
 #' @param generator Data generator.
@@ -34,7 +37,7 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
     pb_format <- paste("Epoch:", epoch, "[:bar] :percent eta: :eta")
     pb <- progress_bar$new(total = steps_per_epoch, format = pb_format)
     epoch_steps_all <- map_dfr(1:steps_per_epoch, function(x) {
-      current_batch <- generator()
+      current_batch <- generator_next(generator)
       metrics <- train_on_batch(model, current_batch[[1]], current_batch[[2]]) %>%
         set_names(metric_names) %>%
         as.list() %>% as_tibble()
@@ -49,7 +52,7 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
                     sep = ": ", collapse = ", "), "\n"))
     if (!is.null(validation_generator)) {
       val_epoch_steps_all <- map_dfr(1:validation_steps_per_epoch, function(x) {
-        val_current_batch <- validation_generator()
+        val_current_batch <- generator_next(validation_generator)
         val_metrics <- test_on_batch(model, val_current_batch[[1]], val_current_batch[[2]]) %>%
           set_names(paste0("val_", metric_names)) %>%
           as.list() %>% as_tibble()
@@ -68,6 +71,18 @@ custom_fit_generator <- function(metric_names, model, generator, epochs, steps_p
   results <- results %>%
     mutate(epoch = 1:epochs) %>%
     when(!is.null(validation_generator) ~ bind_cols(., val_results), ~ .)
+  metrics_plot <- metric_names %>% map(~ {
+    metric_name <- .x
+    val_metric_name <- paste0("val_", metric_name)
+    p <- ggplot(results, aes(x = epoch)) + theme_bw() +
+      geom_line(aes(y = !!sym(metric_name), color = metric_name))
+    p <- if (!is.null(validation_generator)) {
+      p + geom_line(aes(y = !!sym(val_metric_name), color = val_metric_name))
+    } else {
+      p
+    }
+  }) %>% grid.arrange(grobs = ., ncol = 1)
+  plot(metrics_plot)
   return(results)
 }
 
@@ -96,6 +111,7 @@ yolo3_fit_generator <- function(model, generator, epochs, steps_per_epoch,
 
 #' Calculates predictions on new samples using data generator.
 #' @description Calculates predictions on new samples using data generator.
+#' @importFrom keras generator_next
 #' @param model Model.
 #' @param generator Data generator.
 #' @param steps Steps in epoch.
@@ -106,7 +122,7 @@ custom_predict_generator <- function(model, generator, steps) {
   pb_format <- "[:bar] :percent eta: :eta"
   pb <- progress_bar$new(total = steps, format = pb_format)
   map(1:steps, function(x) {
-    current_batch <- generator()
+    current_batch <- generator_next(generator)
     predictions <- predict(model, current_batch[[1]])
     pb$tick()
     predictions

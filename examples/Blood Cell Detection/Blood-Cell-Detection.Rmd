@@ -100,8 +100,8 @@ train_blood_yolo_generator <- yolo3_generator(
   images_path = file.path(BCCD_path, "train", "JPEGImages/"),
   net_h = net_h,
   net_w = net_w,
-  batch_size = 16,
-  shuffle = FALSE,
+  batch_size = 8,
+  shuffle = TRUE,
   labels = blood_labels
 )
 
@@ -110,8 +110,8 @@ valid_blood_yolo_generator <- yolo3_generator(
   images_path = file.path(BCCD_path, "valid", "JPEGImages/"),
   net_h = net_h,
   net_w = net_w,
-  batch_size = 16,
-  shuffle = FALSE,
+  batch_size = 8,
+  shuffle = TRUE,
   labels = blood_labels
 )
 ```
@@ -119,17 +119,14 @@ valid_blood_yolo_generator <- yolo3_generator(
 Fit the model:
 
 ```{r, eval = FALSE}
-blood_yolo %>%
-  fit_generator(
-    generator = blood_yolo_generator,
-    epochs = 1000,
-    steps_per_epoch = 19,
-    validation_data = valid_blood_yolo_generator,
-    validation_steps = 5,
-    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-                                               save_best_only = TRUE,
-                                               save_weights_only = TRUE)
-    )
+history <- blood_yolo %>%
+  yolo3_fit_generator(
+    generator = train_blood_yolo_generator,
+    epochs = 5,
+    steps_per_epoch = 37,
+    validation_generator = valid_blood_yolo_generator,
+    validation_steps_per_epoch = 9,
+    model_filepath = "development/BCCD/blood_yolo3.hdf5"
   )
 ```
 
