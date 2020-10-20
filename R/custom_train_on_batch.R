@@ -16,7 +16,7 @@ as_generator.function <- function (x) {
 #' @import ggplot2
 #' @import gridExtra
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr summarise_all
+#' @importFrom dplyr summarise_all pull
 #' @importFrom keras generator_next
 #' @param metric_names Metric names.
 #' @param model Model.
