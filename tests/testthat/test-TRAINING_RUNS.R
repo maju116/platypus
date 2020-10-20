@@ -26,6 +26,7 @@ test_that("u_net model can be fitted with no errors", {
     loss = loss_dice(),
     metrics = metric_dice_coeff()
   )
+  model
   sample_generator <- segmentation_generator(path, colormap, mode, only_images, net_h, net_w,
                                              grayscale, scale, batch_size, shuffle, subdirs)
   start_weights <- get_weights(model)
@@ -40,8 +41,8 @@ test_that("yolo3 model can be fitted with no errors", {
   annot_path <- file.path(testdata_path, "annotations/")
   labels <- coco_labels
   n_class <- length(labels)
-  net_h <- 96
-  net_w <- 96
+  net_h <- 64
+  net_w <- 64
   grayscale <- FALSE
   anchors_per_grid <- 3
   anchors <- coco_anchors
@@ -57,18 +58,19 @@ test_that("yolo3 model can be fitted with no errors", {
     loss = yolo3_loss(anchors, n_class = n_class),
     metrics = yolo3_metrics(anchors, n_class = n_class)
   )
+  model
   sample_generator <- yolo3_generator(
     annot_path = annot_path,
     images_path = images_path,
     net_h = net_h,
     net_w = net_w,
-    batch_size = 2,
+    batch_size = 1,
     shuffle = FALSE,
     labels = labels,
     annot_format = "pascal_voc"
   )
   start_weights <- get_weights(model)
-  model %>% yolo3_fit_generator(sample_generator, steps_per_epoch = 1, epochs = 2)
+  model %>% yolo3_fit_generator(sample_generator, steps_per_epoch = 2, epochs = 2)
   end_weights <- get_weights(model)
   expect_true(!identical(start_weights, end_weights))
 })
