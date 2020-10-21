@@ -180,7 +180,7 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
                             anchors = coco_anchors, labels = coco_labels,
                             batch_size = 32, shuffle = TRUE) {
   yolo3_generator_check(only_images, net_h, net_w, annot_format,
-                        grayscale, anchors, labels)
+                        grayscale, anchors, labels, shuffle)
   n_class <- length(labels)
   anchors_per_grid <- length(anchors[[1]])
   downscale_grid <- c(32, 16, 8)

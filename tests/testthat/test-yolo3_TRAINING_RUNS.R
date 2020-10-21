@@ -6,8 +6,8 @@
 #   annot_path <- file.path(testdata_path, "annotations/")
 #   labels <- coco_labels
 #   n_class <- length(labels)
-#   net_h <- 64
-#   net_w <- 64
+#   net_h <- 416
+#   net_w <- 416
 #   grayscale <- FALSE
 #   anchors_per_grid <- 3
 #   anchors <- coco_anchors
