@@ -93,10 +93,12 @@ yolo3_check <- function(net_h, net_w, grayscale, n_class, anchors) {
 }
 
 yolo3_generator_check <- function(only_images, net_h, net_w, annot_format,
-                                  grayscale, anchors, labels) {
-  check_input_in_set(only_images, c(TRUE, FALSE))
+                                  grayscale, anchors, labels, shuffle) {
   check_input_shape_yolo3(net_h, net_w, grayscale)
   check_input_in_set(annot_format, yolo3_annot_formats)
   check_anchors(anchors)
-  check_input_greater_than_min(labels, min_value = 1)
+  check_input_greater_than_min(length(labels), min_value = 1)
+  check_input_in_set(only_images, c(TRUE, FALSE))
+  check_input_in_set(grayscale, c(TRUE, FALSE))
+  check_input_in_set(shuffle, c(TRUE, FALSE))
 }
