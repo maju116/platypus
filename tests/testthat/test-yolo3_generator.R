@@ -1,6 +1,6 @@
 context("yolo3_generator")
 
-test_that("yolo3_generator  accepts only correct inputs.", {
+test_that("yolo3_generator accepts only correct inputs.", {
   images_path <- ""
   annot_path <- ""
   correct_only_images <- TRUE
@@ -60,3 +60,31 @@ test_that("yolo3_generator  accepts only correct inputs.", {
                                correct_grayscale, scale, correct_anchors,
                                correct_labels, batch_size, incorrect_shuffle))
 })
+
+# test_that("yolo3_generator reads images and annotations correctly from XML.", {
+#   testdata_path <- system.file("testdata", package = "platypus")
+#   images_path <- file.path(testdata_path, "images/")
+#   annot_path <- file.path(testdata_path, "annotations/")
+#   labels <- coco_labels
+#   net_h <- 416
+#   net_w <- 416
+#   grayscale <- FALSE
+#   anchors <- coco_anchors
+#   scale <- 1 / 255
+#   batch_size <- 2
+#   annot_format = "pascal_voc"
+#
+#   sample_generator <- yolo3_generator(
+#     annot_path = annot_path,
+#     images_path = images_path,
+#     net_h = net_h,
+#     net_w = net_w,
+#     batch_size = batch_size,
+#     scale = scale,
+#     shuffle = FALSE,
+#     labels = labels,
+#     annot_format = annot_format
+#   )
+#   generator_output <- keras::generator_next(sample_generator)
+#   expected_output <- list()
+# })
