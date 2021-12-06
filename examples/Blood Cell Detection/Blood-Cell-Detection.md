@@ -125,21 +125,21 @@ blood_yolo
     ## ================================================================================
     ## input_img (InputLayer)    [(None, 416, 416, 0                                   
     ## ________________________________________________________________________________
-    ## darknet53 (Model)         multiple          40620640 input_img[0][0]            
+    ## darknet53 (Functional)    [(None, None, Non 40620640 input_img[0][0]            
     ## ________________________________________________________________________________
-    ## yolo3_conv1 (Model)       (None, 13, 13, 51 11024384 darknet53[1][2]            
+    ## yolo3_conv1 (Functional)  (None, 13, 13, 51 11024384 darknet53[0][2]            
     ## ________________________________________________________________________________
-    ## yolo3_conv2 (Model)       (None, 26, 26, 25 2957312  yolo3_conv1[1][0]          
-    ##                                                      darknet53[1][1]            
+    ## yolo3_conv2 (Functional)  (None, 26, 26, 25 2957312  yolo3_conv1[0][0]          
+    ##                                                      darknet53[0][1]            
     ## ________________________________________________________________________________
-    ## yolo3_conv3 (Model)       (None, 52, 52, 12 741376   yolo3_conv2[1][0]          
-    ##                                                      darknet53[1][0]            
+    ## yolo3_conv3 (Functional)  (None, 52, 52, 12 741376   yolo3_conv2[0][0]          
+    ##                                                      darknet53[0][0]            
     ## ________________________________________________________________________________
-    ## grid1 (Model)             (None, 13, 13, 3, 4747288  yolo3_conv1[1][0]          
+    ## grid1 (Functional)        (None, 13, 13, 3, 4747288  yolo3_conv1[0][0]          
     ## ________________________________________________________________________________
-    ## grid2 (Model)             (None, 26, 26, 3, 1194008  yolo3_conv2[1][0]          
+    ## grid2 (Functional)        (None, 26, 26, 3, 1194008  yolo3_conv2[0][0]          
     ## ________________________________________________________________________________
-    ## grid3 (Model)             (None, 52, 52, 3, 302104   yolo3_conv3[1][0]          
+    ## grid3 (Functional)        (None, 52, 52, 3, 302104   yolo3_conv3[0][0]          
     ## ================================================================================
     ## Total params: 61,587,112
     ## Trainable params: 61,534,504
@@ -164,14 +164,14 @@ train_blood_yolo_generator <- yolo3_generator(
   images_path = file.path(BCCD_path, "train", "JPEGImages/"),
   net_h = net_h,
   net_w = net_w,
-  batch_size = 16,
-  shuffle = FALSE,
+  batch_size = 8,
+  shuffle = TRUE,
   labels = blood_labels
 )
 ```
 
     ## 291 images with corresponding annotations detected!
-    ## Set 'steps_per_epoch' to: 19
+    ## Set 'steps_per_epoch' to: 37
 
 ``` r
 valid_blood_yolo_generator <- yolo3_generator(
@@ -179,29 +179,28 @@ valid_blood_yolo_generator <- yolo3_generator(
   images_path = file.path(BCCD_path, "valid", "JPEGImages/"),
   net_h = net_h,
   net_w = net_w,
-  batch_size = 16,
-  shuffle = FALSE,
+  batch_size = 8,
+  shuffle = TRUE,
   labels = blood_labels
 )
 ```
 
     ## 69 images with corresponding annotations detected!
-    ## Set 'steps_per_epoch' to: 5
+    ## Set 'steps_per_epoch' to: 9
 
 Fit the model:
 
 ``` r
-blood_yolo %>%
-  fit_generator(
-    generator = blood_yolo_generator,
-    epochs = 1000,
-    steps_per_epoch = 19,
-    validation_data = valid_blood_yolo_generator,
-    validation_steps = 5,
-    callbacks = list(callback_model_checkpoint("development/BCCD/blood_w.hdf5",
-                                               save_best_only = TRUE,
-                                               save_weights_only = TRUE)
-    )
+history <- blood_yolo %>%
+  yolo3_fit_generator(
+    generator = train_blood_yolo_generator,
+    epochs = 5,
+    steps_per_epoch = 37,
+    validation_generator = valid_blood_yolo_generator,
+    validation_steps_per_epoch = 9,
+    model_filepath = "development/BCCD/blood_w.hdf5",
+    save_best_only = TRUE,
+    monitor = "val_loss"
   )
 ```
 

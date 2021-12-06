@@ -62,7 +62,7 @@ u_net <- function(net_h, net_w, grayscale, blocks = 4, n_class = 2, filters = 16
   for (block in 1:blocks) {
     conv_tr_layers[[block]] <- layer_conv_2d_transpose(conv_layers[[blocks + block]], filters * 2^(blocks - block), kernel_size = 3,
                                                        strides = 2, padding = "same")
-    conv_tr_layers[[block]] <- layer_concatenate(inputs = list(conv_tr_layers[[block]], conv_layers[[blocks - block + 1]])) %>%
+    conv_tr_layers[[block]] <- layer_concatenate(inputs = list(conv_tr_layers[[block]], conv_layers[[blocks - block + 1]]), trainable = FALSE) %>%
       layer_dropout(rate = dropout)
     conv_layers[[blocks + block + 1]] <- u_net_double_conv2d(conv_tr_layers[[block]], filters * 2^(blocks - block), kernel_size = 3,
                                                              batch_normalization = batch_normalization,

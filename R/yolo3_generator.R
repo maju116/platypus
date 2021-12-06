@@ -180,7 +180,7 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
                             anchors = coco_anchors, labels = coco_labels,
                             batch_size = 32, shuffle = TRUE) {
   yolo3_generator_check(only_images, net_h, net_w, annot_format,
-                        grayscale, anchors, labels)
+                        grayscale, anchors, labels, shuffle)
   n_class <- length(labels)
   anchors_per_grid <- length(anchors[[1]])
   downscale_grid <- c(32, 16, 8)
@@ -189,7 +189,8 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
   cat(paste0(length(annot_paths), " images", if (!only_images) " with corresponding annotations", " detected!\n"))
   cat(paste0("Set 'steps_per_epoch' to: ", ceiling(length(annot_paths) / batch_size), "\n"))
   i <- 1
-  as_generator.function(function() {
+  # as_generator.function(
+  function() {
     if (shuffle) {
       indices <- sample(1:length(annot_paths), size = batch_size)
     } else {
@@ -225,5 +226,6 @@ yolo3_generator <- function(annot_path, images_path, only_images = FALSE,
                                                                target_size = c(net_h, net_w))) * scale) %>%
       abind(along = 4) %>% aperm(c(4, 1, 2, 3))
     if (!only_images) list(images, true_grid) else list(images)
-  })
+   }
+  # )
 }
