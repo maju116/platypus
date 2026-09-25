@@ -1,0 +1,11 @@
+^_legacy$
+^\.github$
+^\.Rproj\.user$
+^.*\.Rproj$
+^\.gitignore$
+^LICENSE\.md$
+^examples/data$
+^examples/output$
+^LICENSE\.md$
+^CODE_OF_CONDUCT\.md$
+^platypus_.*\.tar\.gz$

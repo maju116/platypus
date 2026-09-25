@@ -1,0 +1,20 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+src/*.o
+src/*.so
+src/*.dll
+..Rcheck/
+*.tar.gz
+
+# Leading slashes on purpose. An unanchored rule also matches the same name nested
+# anywhere, which silently dropped a whole subpackage from a commit on the Python side.
+/_legacy/
+/examples/data/
+/examples/output/
+*.h5
+*.hdf5
+*.pt
+*.safetensors
