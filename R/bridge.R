@@ -82,6 +82,23 @@ engine <- function() {
   .platypus$engine
 }
 
+#' The R-facing shim
+#'
+#' A small Python module shipped with this package. It exists because exceptions do not
+#' survive the crossing usefully - reticulate hands R the message and drops the object -
+#' so everything it does returns data instead of raising. See inst/python.
+#' @keywords internal
+#' @noRd
+shim <- function() {
+  if (is.null(.platypus$shim)) {
+    .platypus$shim <- reticulate::import_from_path(
+      "platypus_shim",
+      path = system.file("python", package = "platypus", mustWork = TRUE)
+    )
+  }
+  .platypus$shim
+}
+
 #' Is the engine ready?
 #'
 #' Reports whether the Python side has been started, and what it is. Calling this does
