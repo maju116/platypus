@@ -15,7 +15,19 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_REQUIREMENT <- "pyplatypus==0.2.0a1"
+PYPLATYPUS_VERSION <- "0.2.0a1"
+
+#' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
+#' @keywords internal
+#' @noRd
+.platypus_requirement <- local({
+  extra <- NULL
+  function(set) {
+    if (!missing(set)) extra <<- set
+    if (is.null(extra)) paste0("pyplatypus==", PYPLATYPUS_VERSION)
+    else sprintf("pyplatypus[%s]==%s", extra, PYPLATYPUS_VERSION)
+  }
+})
 
 # Holds the imported module. Populated lazily, so loading this package costs nothing.
 .platypus <- new.env(parent = emptyenv())
@@ -53,7 +65,7 @@ check_reticulate_python <- function() {
 
 .onLoad <- function(libname, pkgname) {
   check_reticulate_python()
-  reticulate::py_require(PYPLATYPUS_REQUIREMENT)
+  reticulate::py_require(.platypus_requirement())
 
   .platypus$engine <- reticulate::import(
     "pyplatypus",
@@ -64,7 +76,7 @@ check_reticulate_python <- function() {
         stop(
           "platypus could not start its Python engine.\n",
           "  ", conditionMessage(e), "\n\n",
-          "  The first call needs to download ", PYPLATYPUS_REQUIREMENT, " and PyTorch, ",
+          "  The first call needs to download ", .platypus_requirement(), " and PyTorch, ",
           "which needs a network\n  connection once. After that it is cached and works ",
           "offline. See `?platypus_status`.",
           call. = FALSE
@@ -114,7 +126,7 @@ shim <- function() {
 platypus_status <- function() {
   started <- reticulate::py_available(initialize = FALSE)
   out <- list(
-    requirement = PYPLATYPUS_REQUIREMENT,
+    requirement = .platypus_requirement(),
     started = started,
     reticulate = as.character(utils::packageVersion("reticulate")),
     reticulate_python = Sys.getenv("RETICULATE_PYTHON", unset = NA_character_)
@@ -141,6 +153,74 @@ print.platypus_status <- function(x, ...) {
   }
   if (!is.na(x$reticulate_python)) {
     cat("  note        : RETICULATE_PYTHON is set, overriding the managed environment\n")
+  }
+  invisible(x)
+}
+
+
+#' Ask for a particular PyTorch build
+#'
+#' Call this before anything starts the engine - straight after `library(platypus)` - and
+#' before the first call that needs Python.
+#'
+#' There is one reason to: **a GeForce GTX 10-series card, or anything older**. PyTorch
+#' 2.8 and later ship CUDA 13 builds, and CUDA 13 dropped the Maxwell, Pascal and Volta
+#' generations outright. No driver update brings them back. Without this, such a card is
+#' simply not used and everything runs on the processor, perhaps ten times slower, with
+#' nothing obviously wrong.
+#'
+#' On anything from Turing - the RTX 20-series onwards - the default is correct and this
+#' is unnecessary.
+#'
+#' @param build `"pascal"` for the last PyTorch built against CUDA 12, or `NULL` for the
+#'   default.
+#' @return The requirement string now in force, invisibly.
+#' @export
+#' @examples
+#' \dontrun{
+#' library(platypus)
+#' platypus_use_torch("pascal")   # GTX 10-series and older
+#' }
+platypus_use_torch <- function(build = c("pascal", "default")) {
+  build <- if (is.null(build)) "default" else match.arg(build)
+  if (reticulate::py_available(initialize = FALSE)) {
+    stop(
+      "The engine has already started, so the PyTorch build can no longer be changed.\n",
+      "  Call platypus_use_torch() right after library(platypus), before anything that ",
+      "needs Python.\n  Restart R to change it now.",
+      call. = FALSE
+    )
+  }
+  .platypus_requirement(if (identical(build, "default")) NULL else build)
+  reticulate::py_require(.platypus_requirement())
+  invisible(.platypus_requirement())
+}
+
+#' Where the work will happen
+#'
+#' Reports the PyTorch build in use and the device it can see. Starts the engine if it is
+#' not running.
+#'
+#' @return A list, printed readably.
+#' @export
+#' @examples
+#' \dontrun{
+#' platypus_device()
+#' }
+platypus_device <- function() {
+  structure(shim()$device_report(), class = "platypus_device")
+}
+
+#' @export
+print.platypus_device <- function(x, ...) {
+  cat("torch      :", x$torch, "\n")
+  cat("cuda build :", x$cuda_build, "\n")
+  cat("device     :", x$device, "\n")
+  if (isTRUE(x$gpu_present_but_unusable)) {
+    cat("\n  This machine has a GPU that this PyTorch build cannot use, so the work will\n")
+    cat("  run on the processor instead - often about ten times slower.\n")
+    cat("  For a GTX 10-series card or older, restart R and call:\n")
+    cat("      platypus_use_torch(\"pascal\")\n")
   }
   invisible(x)
 }

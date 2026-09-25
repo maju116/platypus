@@ -16,7 +16,9 @@ test_that("loading the package does not start Python", {
 test_that("status reports the pinned engine before anything has started", {
   status <- platypus_status()
   expect_s3_class(status, "platypus_status")
-  expect_identical(status$requirement, "pyplatypus==0.2.0a1")
+  # The pinned version is what matters; the extras depend on whether
+  # platypus_use_torch() has been called, which is none of this test's business.
+  expect_match(status$requirement, "^pyplatypus(\\[[a-z]+\\])?==0\\.2\\.0a1$")
   expect_type(status$started, "logical")
 })
 
@@ -86,4 +88,20 @@ test_that("a bad specification comes back as a readable R error, not a traceback
   )
   expect_s3_class(error, "error")
   expect_match(conditionMessage(error), "focaal")
+})
+
+test_that("the torch build can be chosen, but only before the engine starts", {
+  # A GTX 10-series card needs the CUDA 12 line, because CUDA 13 dropped Pascal. Once
+  # Python is running the environment is fixed, and saying so is kinder than silently
+  # doing nothing.
+  skip_if_no_engine()
+  expect_error(platypus_use_torch("pascal"), "already started")
+})
+
+test_that("the device report says where the work will happen", {
+  skip_if_no_engine()
+  device <- platypus_device()
+  expect_s3_class(device, "platypus_device")
+  expect_true(nzchar(device$torch))
+  expect_type(device$cuda_available, "logical")
 })

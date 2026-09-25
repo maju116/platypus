@@ -17,6 +17,7 @@ Encoding: UTF-8
 Depends:
     R (>= 4.1)
 Imports:
+    parallel,
     reticulate (>= 1.41),
     utils
 Suggests:

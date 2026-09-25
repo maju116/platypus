@@ -45,3 +45,142 @@ def load_spec(path: str, check_paths: bool = True) -> dict:
 def spec_as_dict(spec: Any) -> dict:
     """Plain data, so R can look at a spec without asking Python about every field."""
     return spec.to_dict()
+
+
+def _engine_failure(error: Any) -> dict:
+    """A failure during a run, rather than in a specification.
+
+    Caught broadly on purpose. A specification error is ours and arrives well described;
+    a run can fail on anything underneath - the GPU running out of memory, a file that
+    vanished, a driver that cannot do what the build expects - and those exceptions come
+    from libraries the user never invoked. Letting them through as a reticulate traceback
+    would be the least useful moment possible to stop being readable, because it happens
+    after the expensive part. The type is kept in the message so it stays diagnosable.
+    """
+    return {
+        "ok": False,
+        "kind": "engine_error",
+        "message": f"{type(error).__name__}: {error}",
+        "problems": [],
+    }
+
+
+def build_engine(spec: Any, device: str | None = None, num_workers: int = 0,
+                 strict_data: bool = True) -> dict:
+    import pyplatypus
+
+    try:
+        engine = pyplatypus.Engine(
+            spec, device=device, num_workers=int(num_workers), strict_data=strict_data
+        )
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001 - see _engine_failure
+        return _engine_failure(error)
+    return {"ok": True, "engine": engine}
+
+
+def run_fit(engine: Any, verbose: bool = False) -> dict:
+    """Train every model, and hand back the history as rows rather than objects."""
+    import pyplatypus
+
+    try:
+        histories = engine.fit(verbose=bool(verbose))
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    rows, reasons = [], {}
+    for name, history in histories.items():
+        for record in history.records:
+            rows.append({"model": name, **record})
+        if history.stop_reason:
+            reasons[name] = history.stop_reason
+    return {"ok": True, "history": rows, "stop_reasons": reasons,
+            "models": list(histories)}
+
+
+def evaluation_table(engine: Any, split: str = "validation") -> dict:
+    import pyplatypus
+
+    try:
+        return {"ok": True, "table": engine.evaluate(split)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
+def predictions(engine: Any, model_name: str, split: str = "test",
+                as_class: bool = True) -> dict:
+    """Masks for a split.
+
+    `as_class` collapses the channel axis to the class index, which is the mask someone
+    actually wants to look at; the probabilities are there for anyone who needs them.
+    """
+    import numpy as np
+    import pyplatypus
+
+    try:
+        probabilities = engine.predict(model_name, split=split)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    if as_class:
+        # +1 so the classes are 1-based on arrival: R indexes from one, and a mask whose
+        # background is 0 while its colormap starts at 1 is a trap laid for later.
+        return {"ok": True, "masks": (probabilities.argmax(axis=-1) + 1).astype(np.int32),
+                "type": "class"}
+    return {"ok": True, "masks": probabilities, "type": "probability"}
+
+
+def model_names(engine: Any) -> list:
+    return list(engine.runs)
+
+
+def device_report() -> dict:
+    """Where the work will actually happen, and whether that is what was intended."""
+    import torch
+
+    cuda = torch.cuda.is_available()
+    report = {
+        "torch": torch.__version__,
+        "cuda_build": torch.version.cuda or "cpu-only build",
+        "cuda_available": cuda,
+        "device": torch.cuda.get_device_name(0) if cuda else "cpu",
+        "arch_list": list(torch.cuda.get_arch_list()) if cuda else [],
+    }
+    if not cuda:
+        # A card that torch cannot use is worth saying out loud: the run falls back to the
+        # processor and takes perhaps ten times as long, which otherwise looks like
+        # nothing at all going wrong.
+        #
+        # device_count() is the signal, not is_available(). With a CUDA 13 build on a
+        # Pascal card it returns 1 - torch can enumerate the card, it just cannot
+        # initialise it - which is precisely the case worth reporting. Testing for zero
+        # here, as this first did, detects nothing.
+        try:
+            count = torch.cuda.device_count()
+        except Exception:  # noqa: BLE001
+            count = 0
+        report["gpu_present_but_unusable"] = count > 0 or _nvidia_smi_sees_a_gpu()
+    return report
+
+
+def _nvidia_smi_sees_a_gpu() -> bool:
+    import shutil
+    import subprocess
+
+    if shutil.which("nvidia-smi") is None:
+        return False
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except Exception:  # noqa: BLE001
+        return False
+    return out.returncode == 0 and bool(out.stdout.strip())
