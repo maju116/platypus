@@ -1,0 +1,113 @@
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main, master, "rewrite/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  # Deliberately without Python. This is how CRAN sees the package and how most users
+  # first meet it: everything needing the engine must skip, cleanly, and the check must
+  # still pass. It is the more important of the two jobs below.
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (R ${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: ubuntu-latest,  r: 'devel', http-user-agent: 'release' }
+          - { os: ubuntu-latest,  r: 'release' }
+          - { os: ubuntu-latest,  r: 'oldrel-1' }
+          - { os: macos-latest,   r: 'release' }
+          - { os: windows-latest, r: 'release' }
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          # The name clash with the archived CRAN package `Platypus` is an error under
+          # --as-cran and is being taken up with CRAN separately. Checking without it
+          # here keeps the signal useful in the meantime; the `--as-cran` run is done by
+          # hand before any submission.
+          args: 'c("--no-manual", "--no-build-vignettes")'
+          build_args: 'c("--no-build-vignettes")'
+
+  # The bridge, exercised for real. This is the part most likely to break in a way local
+  # work would not reveal: it downloads the engine into a fresh managed environment, the
+  # same way a user's first call does.
+  engine:
+    runs-on: ubuntu-latest
+    name: engine (bridge to pyplatypus)
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      PLATYPUS_TEST_ENGINE: 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      # reticulate downloads uv itself if it is missing, but having it cached here saves
+      # doing that on every run.
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::testthat, local::.
+          needs: check
+
+      - name: Report what the engine resolved to
+        run: |
+          Rscript -e 'library(platypus); print(platypus_status()); print(platypus_device())'
+
+      - name: Run the tests, engine included
+        run: |
+          Rscript -e '
+            library(testthat); library(platypus)
+            results <- as.data.frame(test_dir("tests/testthat", reporter = "summary"))
+
+            failed <- sum(results$failed) + sum(results$error)
+            skipped <- sum(results$skipped)
+            cat("\nfailed:", failed, " skipped:", skipped, "\n")
+
+            if (failed > 0) stop("tests failed")
+
+            # A silent skip would turn this job into an expensive way of proving that R
+            # starts, which the matrix above already proves. If the engine did not come
+            # up, this job has to say so rather than pass.
+            if (skipped > 0) stop("engine tests were skipped; the bridge was not exercised")
+          '
