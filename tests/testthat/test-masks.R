@@ -107,3 +107,70 @@ test_that("coverage answers how much of the picture each class is", {
   expect_equal(sum(coverage$fraction), 1)
   expect_equal(coverage$fraction[[2]], sum(square() == 2L) / 64)
 })
+
+test_that("the supplied colormaps line up with their labels", {
+  expect_length(binary_colormap, length(binary_labels))
+  expect_length(voc_colormap, length(voc_labels))
+  expect_identical(voc_labels[[1]], "background")
+  expect_identical(voc_colormap[[1]], c(0L, 0L, 0L))
+  # Every colour distinct, or two classes could not be told apart on disk.
+  expect_length(unique(voc_colormap), length(voc_colormap))
+})
+
+test_that("masks are written as files that read back identically", {
+  # A prediction is only half useful while it is an array in a session. The round trip is
+  # the property that matters: what comes back out has to be what went in.
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  masks <- array(1L, dim = c(3, 16, 16)); masks[, 4:12, 4:12] <- 2L
+
+  paths <- save_masks(masks, out, binary_colormap)
+  expect_length(paths, 3L)
+  expect_true(all(file.exists(paths)))
+  expect_identical(read_masks(paths, binary_colormap), masks)
+})
+
+test_that("a suffix keeps two models from overwriting each other", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  mask <- array(1L, dim = c(1, 8, 8))
+  save_masks(mask, out, binary_colormap, suffix = "_unet")
+  save_masks(mask, out, binary_colormap, suffix = "_linknet")
+  expect_length(list.files(out), 2L)
+})
+
+test_that("names can come from the images the masks belong to", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  mask <- array(1L, dim = c(2, 8, 8))
+  paths <- save_masks(mask, out, binary_colormap,
+                      names = c("a/scan_01.png", "b/scan_02.tif"), suffix = "_m")
+  expect_identical(basename(paths), c("scan_01_m.png", "scan_02_m.png"))
+})
+
+test_that("probabilities are reduced to classes rather than refused", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  probabilities <- array(0, dim = c(2, 8, 8, 2))
+  probabilities[, , , 1] <- 0.3
+  probabilities[, , , 2] <- 0.7
+  paths <- save_masks(probabilities, out, binary_colormap)
+  expect_identical(unique(as.vector(read_masks(paths, binary_colormap))), 2L)
+})
+
+test_that("a mismatched number of names is caught before anything is written", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  expect_error(
+    save_masks(array(1L, dim = c(3, 8, 8)), out, binary_colormap, names = c("a", "b")),
+    "2 entries but there are 3"
+  )
+  expect_length(list.files(out), 0L)
+})
+
+test_that("the output directory is created rather than demanded", {
+  skip_if_no_engine()
+  out <- file.path(withr::local_tempdir(), "does", "not", "exist")
+  paths <- save_masks(array(1L, dim = c(1, 8, 8)), out, binary_colormap)
+  expect_true(file.exists(paths))
+})

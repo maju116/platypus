@@ -22,6 +22,7 @@ Imports:
     parallel,
     rlang,
     reticulate (>= 1.41),
+    tools,
     utils
 Suggests:
     callr,

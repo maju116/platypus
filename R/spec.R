@@ -45,11 +45,47 @@ segmentation_data <- function(train, validation, colormap, test = NULL,
   )
 }
 
-#' Black background, white foreground
+#' Colormaps and their labels
 #'
-#' The colormap for an ordinary two-class problem.
+#' `binary_colormap` is black background, white foreground: the ordinary two-class
+#' problem. `voc_colormap` is the twenty-one class palette used by Pascal VOC, kept
+#' because datasets and other people's masks still arrive in it.
+#'
+#' The labels are the matching class names, for figure legends and [mask_coverage()].
+#' Position in the list is the class index throughout, counting from 1.
+#'
+#' @format A list of RGB triples, or a character vector of names.
+#' @name colormaps
+#' @examples
+#' mask_coverage(matrix(c(1, 2, 2, 1), 2), labels = binary_labels)
+NULL
+
+#' @rdname colormaps
 #' @export
 binary_colormap <- list(c(0L, 0L, 0L), c(255L, 255L, 255L))
+
+#' @rdname colormaps
+#' @export
+binary_labels <- c("background", "object")
+
+#' @rdname colormaps
+#' @export
+voc_colormap <- list(
+  c(0L, 0L, 0L),       c(128L, 0L, 0L),     c(0L, 128L, 0L),     c(128L, 128L, 0L),
+  c(0L, 0L, 128L),     c(128L, 0L, 128L),   c(0L, 128L, 128L),   c(128L, 128L, 128L),
+  c(64L, 0L, 0L),      c(192L, 0L, 0L),     c(64L, 128L, 0L),    c(192L, 128L, 0L),
+  c(64L, 0L, 128L),    c(192L, 0L, 128L),   c(64L, 128L, 128L),  c(192L, 128L, 128L),
+  c(0L, 64L, 0L),      c(128L, 64L, 0L),    c(0L, 192L, 0L),     c(128L, 192L, 0L),
+  c(0L, 64L, 128L)
+)
+
+#' @rdname colormaps
+#' @export
+voc_labels <- c(
+  "background", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
+  "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "potted plant",
+  "sheep", "sofa", "train", "tv/monitor"
+)
 
 #' Build an experiment specification
 #'

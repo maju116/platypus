@@ -217,3 +217,32 @@ def read_images(paths: list, channels: int = 3, size: list | None = None,
             ),
         }
     return {"ok": True, "images": np.stack(arrays)}
+
+
+def write_masks(masks, paths: list) -> dict:
+    """Write coloured masks to the given files.
+
+    Through the engine rather than through an R image library, for the same reason as
+    reading: one decoder, one set of conventions, and no extra dependency on the R side
+    for something the engine can already do.
+    """
+    import numpy as np
+    import pathlib
+    from PIL import Image
+
+    try:
+        arrays = np.asarray(masks, dtype=np.uint8)
+        if arrays.ndim == 3:
+            arrays = arrays[None]
+        if len(arrays) != len(paths):
+            return {
+                "ok": False, "kind": "image_error", "problems": [],
+                "message": f"{len(arrays)} masks but {len(paths)} paths",
+            }
+        for array, path in zip(arrays, paths):
+            target = pathlib.Path(path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            Image.fromarray(array).convert("RGB").save(target)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "paths": [str(p) for p in paths]}

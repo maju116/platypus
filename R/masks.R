@@ -213,3 +213,55 @@ check_classes <- function(mask, n_class) {
   }
   invisible(TRUE)
 }
+
+#' Write masks to files
+#'
+#' Predictions are only half useful while they are an array in a session. This writes them
+#' as ordinary PNGs that open in anything - ImageJ, QuPath, a viewer, a colleague's
+#' machine - and returns the paths, so it can sit at the end of a pipeline.
+#'
+#' Files go where you say, not beside the images they came from. Writing into somebody's
+#' dataset directory is a surprising thing for a function to do, and a second run against
+#' a different model would quietly mix its results in with the first.
+#'
+#' @param masks Class indices from [predict.platypus_fit()] - an `image x height x width`
+#'   array, or one `height x width` matrix. Probabilities are accepted too and reduced to
+#'   the most likely class.
+#' @param dir Directory to write into; created if it does not exist.
+#' @param colormap A list of RGB triples, one per class.
+#' @param names File names, or the source image paths to take names from. Defaults to
+#'   `mask_0001.png` and so on.
+#' @param suffix Added before the extension, so predictions from different models can sit
+#'   in one directory without overwriting each other.
+#' @return The paths written, invisibly.
+#' @export
+#' @examples
+#' \dontrun{
+#' masks <- predict(fit, "unet", split = "test")
+#' save_masks(masks, "predictions", binary_colormap, suffix = "_unet")
+#' }
+save_masks <- function(masks, dir, colormap, names = NULL, suffix = "") {
+  if (length(dim(masks)) == 4L) {
+    # Probabilities rather than classes: take the most likely, as predict() would.
+    masks <- apply(masks, seq_len(length(dim(masks)) - 1L), which.max)
+  }
+  if (length(dim(masks)) == 2L) masks <- array(masks, dim = c(1L, dim(masks)))
+
+  count <- dim(masks)[1]
+  names <- if (is.null(names)) {
+    sprintf("mask_%04d", seq_len(count))
+  } else {
+    tools::file_path_sans_ext(basename(as.character(names)))
+  }
+  if (length(names) != count) {
+    stop("`names` has ", length(names), " entries but there are ", count, " masks.",
+         call. = FALSE)
+  }
+
+  coloured <- lapply(seq_len(count), function(i) mask_colours(masks[i, , ], colormap))
+  paths <- file.path(dir, paste0(names, suffix, ".png"))
+
+  result <- shim()$write_masks(coloured, as.list(paths))
+  if (!isTRUE(result$ok)) abort_engine(result)
+  invisible(unlist(result$paths))
+}
