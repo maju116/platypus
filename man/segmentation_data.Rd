@@ -17,7 +17,9 @@ segmentation_data(
 )
 }
 \arguments{
-\item{train, validation}{Paths to the training and validation data.}
+\item{train, validation}{Paths to the training and validation data. A
+[platypus_split()] may be given as `train` on its own: it carries all three
+paths and selects `config_file` mode, so a split needs no unpacking.}
 
 \item{colormap}{A list of RGB triples, one per class, background first.}
 

@@ -253,3 +253,66 @@ def window_presets() -> dict:
     from pyplatypus.spec.common import WINDOWS
 
     return {name: list(pair) for name, pair in WINDOWS.items()}
+
+
+def split_data(root: str, out_dir: str, mode: str = "nested_dirs",
+               subdirs: list | None = None, column_sep: str = ";",
+               fractions: list | None = None, group_by: str | None = None,
+               seed: int = 0, strict: bool = True, relative: bool = True) -> dict:
+    """Divide one directory into train/validation/test CSVs.
+
+    `group_by` crosses over as written, on purpose. It is a Python regular expression, and
+    translating patterns between R and Python in the background is a silent failure waiting
+    to happen: the two dialects agree often enough to lull, and differ exactly where it
+    matters. Documented in ?platypus_split instead.
+    """
+    import pyplatypus
+
+    try:
+        report = pyplatypus.split_dataset(
+            root, out_dir,
+            mode=mode,
+            subdirs=tuple(subdirs) if subdirs else ("images", "masks"),
+            column_sep=column_sep,
+            fractions=tuple(float(f) for f in fractions) if fractions else (0.7, 0.15, 0.15),
+            group_by=group_by,
+            seed=int(seed),
+            strict=bool(strict),
+            relative=bool(relative),
+        )
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, **report}
+
+
+def case_table(engine: Any, model_name: str, split: str = "validation",
+               group_by: str | None = None) -> dict:
+    """One row per case - or per group, with `group_by` - instead of one per model."""
+    import pyplatypus
+
+    try:
+        rows = engine.evaluate_cases(model_name, split=split, group_by=group_by)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "table": rows, "label": "group" if group_by else "case"}
+
+
+def case_summary(rows: list) -> dict:
+    """The distribution of the per-case scores.
+
+    Computed by the engine rather than in R although it is only means and quantiles: two
+    implementations of the same summary would eventually disagree, and a table that differs
+    between the R and Python surfaces is worse than no table.
+    """
+    import pyplatypus
+
+    try:
+        return {"ok": True, "table": pyplatypus.summarise_cases(list(rows))}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)

@@ -194,3 +194,73 @@ rows_to_frame <- function(rows) {
   names(frame) <- columns
   as.data.frame(frame, stringsAsFactors = FALSE)
 }
+
+#' Score every case separately
+#'
+#' `evaluate()` gives one row per model: one number for a whole set. This gives one row per
+#' case - each image, or each patient when `group_by` is set - because one number hides the
+#' distribution, and the distribution is usually the finding. A model averaging Dice 0.86
+#' that scores 0.1 on three patients has a failure mode, and the mean is where it hides.
+#'
+#' `summary()` on the result gives the distribution: mean, standard deviation, median,
+#' range, and which case scored worst.
+#'
+#' Tiled models are scored on the whole image, not on tiles. Overlaps are accumulated
+#' across a case's tiles and the metric applied once, which is that image's score exactly;
+#' averaging the tiles' scores would be a different number, and unkind to any case whose
+#' object happens to straddle a boundary.
+#'
+#' @param object A [platypus_fit()].
+#' @param model Which model, by the name in the specification. Defaults to the first.
+#' @param split Which data to score on.
+#' @param group_by A pattern picking a group out of each case's name, as in
+#'   [platypus_split()]. With it, the rows are patients rather than slices: a patient's
+#'   slices are pooled into one score, the way a volume would be.
+#' @param ... Unused.
+#' @return A data frame with one row per case, of class `platypus_cases`.
+#' @seealso [platypus_split()] for keeping a patient out of two sets in the first place.
+#' @examples
+#' \dontrun{
+#' cases <- evaluate_cases(fit)
+#' summary(cases)
+#' head(cases[order(cases$dice), ])          # the ones worth looking at
+#'
+#' evaluate_cases(fit, group_by = "^(patient\\\\d+)_")
+#' }
+#' @export
+evaluate_cases <- function(object, ...) UseMethod("evaluate_cases")
+
+#' @rdname evaluate_cases
+#' @export
+evaluate_cases.platypus_fit <- function(object, model = NULL, split = "validation",
+                                        group_by = NULL, ...) {
+  model <- model %||% object$models[[1]]
+  if (!model %in% object$models) {
+    stop("no model called '", model, "'; this fit has: ",
+         paste(object$models, collapse = ", "), call. = FALSE)
+  }
+  result <- shim()$case_table(object$engine, model, split = split, group_by = group_by)
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  frame <- rows_to_frame(result$table)
+  structure(frame, class = c("platypus_cases", class(frame)), label = result$label)
+}
+
+#' @param object A `platypus_cases` from [evaluate_cases()].
+#' @rdname evaluate_cases
+#' @export
+summary.platypus_cases <- function(object, ...) {
+  rows <- lapply(seq_len(nrow(object)), function(i) as.list(object[i, , drop = FALSE]))
+  result <- shim()$case_summary(rows)
+  if (!isTRUE(result$ok)) abort_engine(result)
+  rows_to_frame(result$table)
+}
+
+#' @export
+print.platypus_cases <- function(x, ...) {
+  label <- attr(x, "label") %||% "case"
+  cat("platypus scores by ", label, " (", nrow(x), " rows)\n", sep = "")
+  print(as.data.frame(utils::head(x, 10)), row.names = FALSE)
+  if (nrow(x) > 10) cat("  ... ", nrow(x) - 10, " more. summary() gives the distribution.\n", sep = "")
+  invisible(x)
+}

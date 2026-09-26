@@ -105,6 +105,18 @@ that found nothing into one that looks respectable.
 **Tiling that goes both ways** — cut a large image into a grid instead of shrinking it, and
 get a full-size mask back.
 
+**Splitting by patient, not by slice.** `platypus_split()` divides one directory into
+training, validation and test sets and keeps every group whole; the result goes straight
+into `segmentation_data()`. This is the most common way a segmentation result comes out
+several points too good: a scan is many slices of one patient, so splitting at random puts
+the same anatomy on both sides and validation ends up measuring memory. A `group_by`
+pattern that matches nothing is an error, never a quiet fallback.
+
+**A score per case, not one per dataset.** `evaluate_cases()` reports each image — or each
+patient — and `summary()` gives the distribution and names the worst one. On the Data
+Science Bowl a model averaging Dice 0.855 turned out to score 0.006 on three images. The
+mean had no way of saying so.
+
 **The parts that make an analysis fast**, which is what the package was always for:
 combining the per-object mask files that datasets like the Data Science Bowl ship,
 converting between class indices and colours, overlaying, and drawing the comparison

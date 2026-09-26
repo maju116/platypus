@@ -76,3 +76,56 @@ skip_if_no_dicom <- function() {
     "the engine in use predates DICOM support"
   )
 }
+
+
+#' Does the engine in use know how to split a dataset and score cases?
+#'
+#' Same reasoning as `engine_reads_dicom()`: the pin means this package can describe a
+#' feature before the published engine carries it, and CI runs against the published one.
+#' Asking the engine what it has beats assuming.
+engine_splits_data <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    engine <- platypus:::engine()
+    reticulate::py_has_attr(engine, "split_dataset") &&
+      reticulate::py_has_attr(engine, "summarise_cases")
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_splits <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_splits_data(),
+    "the engine in use predates dataset splitting"
+  )
+}
+
+
+#' A dataset laid out as scans of several patients
+#'
+#' Keys look like `patient03_slice001`, which is the shape a group pattern is written for.
+#' @param envir The frame the directory should outlive. Training reads the files once, but
+#'   `evaluate_cases()` reads them again afterwards, so a dataset tied to a helper's own
+#'   frame vanishes between the two - which is how this argument came to exist.
+tiny_patient_dataset <- function(patients = 8, slices = 2, size = 32,
+                                 envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib
+from PIL import Image
+root = pathlib.Path(%s)
+rng = np.random.default_rng(0)
+for p in range(%d):
+    for s in range(%d):
+        sample = root / f'patient{p:02d}_slice{s:03d}'
+        (sample / 'images').mkdir(parents=True, exist_ok=True)
+        (sample / 'masks').mkdir(parents=True, exist_ok=True)
+        mask = np.zeros((%d, %d), np.uint8)
+        top = 4 + p
+        mask[top:top + 12, 6:22] = 255
+        image = np.clip(mask.astype(np.float32) * 0.7 + rng.random((%d, %d)) * 70, 0, 255)
+        Image.fromarray(image.astype(np.uint8)).convert('RGB').save(sample / 'images' / 'a.png')
+        Image.fromarray(mask).convert('RGB').save(sample / 'masks' / 'a.png')
+", shQuote(root), patients, slices, size, size, size, size))
+  root
+}

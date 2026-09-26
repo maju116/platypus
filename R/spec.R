@@ -17,7 +17,9 @@
 #' error, not a warning - a warning in a loop over five hundred directories is a warning
 #' nobody reads.
 #'
-#' @param train,validation Paths to the training and validation data.
+#' @param train,validation Paths to the training and validation data. A
+#'   [platypus_split()] may be given as `train` on its own: it carries all three
+#'   paths and selects `config_file` mode, so a split needs no unpacking.
 #' @param test Optional test data. Only images are read from it.
 #' @param colormap A list of RGB triples, one per class, background first.
 #' @param mode `"nested_dirs"` or `"config_file"`.
@@ -45,7 +47,24 @@ segmentation_data <- function(train, validation, colormap, test = NULL,
                               dicom_window = NULL,
                               subdirs = c("images", "masks"), column_sep = ";",
                               shuffle = TRUE) {
+  explicit_mode <- !missing(mode)
   mode <- match.arg(mode)
+
+  # A split goes straight in. Making the caller unpack three paths and remember to switch
+  # to config_file mode would be three chances to get it wrong, in the one place where a
+  # mistake means training and validating on the same patient.
+  if (inherits(train, "platypus_split")) {
+    if (!missing(validation)) {
+      stop("`train` is already a platypus_split, which carries the validation set; ",
+           "leave `validation` unset.", call. = FALSE)
+    }
+    split <- train
+    train <- split$train_path
+    validation <- split$validation_path
+    if (is.null(test)) test <- split$test_path
+    if (!explicit_mode) mode <- "config_file"
+  }
+
   list(
     train_path = train,
     validation_path = validation,
