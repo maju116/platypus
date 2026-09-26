@@ -288,3 +288,74 @@ test_that("a resampled 3D spec trains through the bridge", {
   expect_true("val_dice" %in% names(training_history(fit)))
   expect_equal(dim(predict(fit, split = "validation")), c(2L, 32L, 32L, 32L))
 })
+
+
+# ----------------------------------------------------------------- channels
+brats_patterns <- c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")
+
+test_that("`channels_from` is checked before Python starts", {
+  expect_error(segmentation_data("a", "b", labels = c(0, 1), channels_from = "_t1\\.nii"),
+               "at least two")
+  expect_error(
+    segmentation_data("a", "b", labels = c(0, 1),
+                     channels_from = c("_t1\\.nii", "_t1\\.nii")),
+    "must be distinct"
+  )
+})
+
+test_that("channel patterns cross to the engine as written", {
+  # Not translated on the way through, for the same reason as group_by: a mistranslation would
+  # produce a working run with the channels in the wrong order.
+  skip_if_no_channels()
+  spec <- platypus_spec(
+    data = segmentation_data(tempdir(), tempdir(), labels = c(0, 1),
+                             channels_from = brats_patterns),
+    models = list(u_net("u", input_shape = c(16, 16, 8), channels = 4, blocks = 2))
+  )
+  expect_equal(unlist(as.list(spec)$data$channels_from), brats_patterns)
+})
+
+test_that("a channel count that disagrees with the model is caught as a spec error", {
+  skip_if_no_channels()
+  expect_error(
+    platypus_spec(
+      data = segmentation_data(tempdir(), tempdir(), labels = c(0, 1),
+                               channels_from = brats_patterns),
+      models = list(u_net("u", input_shape = c(16, 16, 8), channels = 1, blocks = 2))
+    ),
+    "channels_from lists 4"
+  )
+})
+
+test_that("four sequences per case train as four channels", {
+  skip_if_no_channels()
+  root <- tiny_multimodal_dataset(cases = 2)
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), channels_from = brats_patterns,
+                             window = c(250, 500)),
+    models = list(u_net("brats", input_shape = c(16, 16, 8), channels = 4, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1,
+                        metrics = list(metric_dice())))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+
+  expect_s3_class(fit, "platypus_fit")
+  expect_equal(dim(predict(fit, split = "validation")), c(2L, 16L, 16L, 8L))
+})
+
+test_that("a pattern matching two files is refused with a readable message", {
+  # '_t1' matches both _t1.nii.gz and _t1ce.nii.gz. Taking the first would decide the channel
+  # order by directory listing, which is the mistake the argument exists to prevent.
+  skip_if_no_channels()
+  root <- tiny_multimodal_dataset(cases = 1)
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = c(250, 500),
+                             channels_from = c("_t1", "_t1ce\\.nii", "_t2\\.nii",
+                                               "_flair\\.nii")),
+    models = list(u_net("brats", input_shape = c(16, 16, 8), channels = 4, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1))
+  )
+  expect_error(platypus_fit(spec, num_workers = 0), "matches 2 files")
+})

@@ -14,6 +14,7 @@ segmentation_data(
   window = NULL,
   dicom_window = NULL,
   target_spacing = NULL,
+  channels_from = NULL,
   subdirs = c("images", "masks"),
   column_sep = ";",
   shuffle = TRUE
@@ -61,6 +62,22 @@ DICOM was the only format that needed it.}
   each, and nothing in the data says so.
 
   `c(1, 1, 1)` is the usual starting point. Ignored for 2D.}
+
+\item{channels_from}{For datasets that keep one channel per file: one pattern per channel,
+  in channel order. BraTS ships four MRI sequences per patient - T1, T1 after contrast, T2
+  and FLAIR - because different tumour structures are visible in different sequences;
+  satellite sets keep their bands apart the same way.
+
+  The order is stated rather than inferred, and that is the point. Sorted, the BraTS names
+  come out flair, t1, t1ce, t2 - reproducible and anatomically meaningless. A model trained
+  with FLAIR in channel one and used on data whose channel one is T1 returns a plausible
+  answer with the right shape and the right range, and nothing further down can notice.
+
+  Patterns are Python regular expressions, like `group_by` in [platypus_split()], and R's
+  own quoting applies: `c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")`.
+  Each must match exactly one of a sample's files - `"_t1"` would match both `_t1.nii.gz`
+  and `_t1ce.nii.gz`, which is an error rather than a race - and every file must be claimed
+  by some pattern, because one left out is data the model never sees.}
 
 \item{subdirs}{For `nested_dirs`, the names of the image and mask subdirectories.}
 

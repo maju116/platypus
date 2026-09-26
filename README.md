@@ -105,6 +105,12 @@ that found nothing into one that looks respectable.
 **Tiling that goes both ways** — cut a large image into a grid instead of shrinking it, and
 get a full-size mask back.
 
+**One channel per file.** `channels_from = c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii",
+"_flair\\.nii")` stacks four MRI sequences per patient in the order you name, which is how
+BraTS ships and how satellite bands arrive. The order is stated rather than inferred: sorted,
+those names come out flair, t1, t1ce, t2 — reproducible and anatomically meaningless, and a
+model trained with FLAIR in channel one answers plausibly on data where channel one is T1.
+
 **Volumes.** NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same
 tiling. `target_spacing = c(1, 1, 1)` resamples every scan to a common voxel size and then
 crops or pads to the model's shape, rather than squeezing each one into the same box — forty

@@ -8,10 +8,26 @@ engine_available <- function() {
   if (!identical(Sys.getenv("PLATYPUS_TEST_ENGINE"), "true")) {
     return(FALSE)
   }
-  isTRUE(tryCatch({
+  # With the flag set, a failure to start is a failure, not a skip.
+  #
+  # This cost an afternoon's confidence once: pyplatypus 0.3.0a4 had just been published, uv
+  # was still answering from its cached index, the engine could not start - and every test
+  # skipped. The run looked exactly like a machine with no Python: 72 skipped, 99 passed, green.
+  # Reporting that as a pass would have been wrong, and only the changed skip count gave it
+  # away. The `engine` CI job already refuses to pass with skips; this makes a local run as
+  # honest as CI.
+  started <- tryCatch({
     platypus_status()
     reticulate::py_available(initialize = TRUE)
-  }, error = function(e) FALSE))
+  }, error = function(e) conditionMessage(e))
+
+  if (isTRUE(started)) {
+    return(TRUE)
+  }
+  stop("PLATYPUS_TEST_ENGINE=true but the engine could not start, so these tests would have ",
+       "skipped silently: ",
+       if (is.character(started)) started else "reticulate reported no Python",
+       call. = FALSE)
 }
 
 skip_if_no_engine <- function() {
@@ -262,5 +278,51 @@ for index, thickness in enumerate([%s]):
     nib.save(nib.Nifti1Image(inside.astype(np.float32), affine),
              str(sample / 'masks' / 'seg.nii.gz'))
 ", shQuote(root), paste(cases, collapse = ", "), slices))
+  root
+}
+
+
+#' Does the engine in use read one channel per file?
+engine_stacks_channels <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    schema <- platypus:::engine()$spec_schema()
+    "channels_from" %in% names(schema$`$defs`$SegmentationData$properties)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_channels <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_stacks_channels(),
+    "the engine in use predates channels_from"
+  )
+}
+
+#' A dataset shaped like BraTS: four sequences per case, plus a label map
+#'
+#' Each sequence is filled with its own value, so which channel it lands in is visible. The
+#' filenames sort as flair, t1, t1ce, t2 - the order nobody wants - which is the point.
+tiny_multimodal_dataset <- function(cases = 2, shape = c(16, 16, 8),
+                                    envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib, nibabel as nib
+root = pathlib.Path(%s)
+shape = (%d, %d, %d)
+affine = np.eye(4)
+values = {'t1': 100.0, 't1ce': 200.0, 't2': 300.0, 'flair': 400.0}
+for index in range(%d):
+    name = f'case_{index:03d}'
+    sample = root / name
+    (sample / 'images').mkdir(parents=True, exist_ok=True)
+    (sample / 'masks').mkdir(parents=True, exist_ok=True)
+    for sequence, value in values.items():
+        nib.save(nib.Nifti1Image(np.full(shape, value, np.float32), affine),
+                 str(sample / 'images' / f'{name}_{sequence}.nii.gz'))
+    labels = np.zeros(shape, np.float32)
+    labels[4:12, 4:12, 2:6] = 1
+    nib.save(nib.Nifti1Image(labels, affine), str(sample / 'masks' / f'{name}_seg.nii.gz'))
+", shQuote(root), shape[1], shape[2], shape[3], cases))
   root
 }
