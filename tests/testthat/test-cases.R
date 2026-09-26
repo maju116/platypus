@@ -57,7 +57,7 @@ test_that("the summary is the engine's, not a second implementation in R", {
   skip_if_no_splits()
   cases <- evaluate_cases(fit_on_patients())
   mine <- summary(cases)
-  theirs <- rows_to_frame(platypus:::shim()$case_summary(
+  theirs <- platypus:::rows_to_frame(platypus:::shim()$case_summary(
     lapply(seq_len(nrow(cases)), function(i) as.list(cases[i, , drop = FALSE]))
   )$table)
   expect_equal(mine$mean, theirs$mean)
