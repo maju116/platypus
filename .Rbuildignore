@@ -6,8 +6,8 @@
 ^LICENSE\.md$
 ^examples/data$
 ^examples/output$
-^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^platypus_.*\.tar\.gz$
 ^vignettes/.*\.Rmd\.orig$
 ^vignettes/precompute\.R$
+^inst/python/__pycache__$

@@ -127,7 +127,7 @@ Python on the machine. This matters because the R keras and tensorflow packages 
 shared one installation with everything else, and an unrelated change could break an R
 session. Nothing here touches a Python anyone else uses.
 
-Two things worth knowing.
+Three things worth knowing.
 
 **The first call downloads about 5 GB**, most of it CUDA libraries that PyTorch ships by
 default whether or not there is a GPU. It is cached afterwards, and everything works
@@ -144,6 +144,14 @@ platypus_use_torch("pascal")
 PyTorch 2.8 onwards ships CUDA 13 builds, and CUDA 13 dropped that whole generation of
 cards. Without this, everything runs on the processor instead — perhaps ten times slower,
 with nothing obviously wrong. `platypus_device()` will tell you which is happening.
+
+**If the engine will not start and the error says there is no such version of
+pyplatypus**, the version does exist and uv is answering from a cached copy of the package
+index — likely because the engine was published minutes ago. Clear that one entry:
+
+```bash
+uv cache clean pyplatypus
+```
 
 ## Licence
 

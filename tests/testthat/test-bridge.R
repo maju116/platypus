@@ -22,7 +22,10 @@ test_that("status reports the pinned engine before anything has started", {
   if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
     expect_true(dir.exists(status$requirement))
   } else {
-    expect_match(status$requirement, "^pyplatypus(\\[[a-z]+\\])?==0\\.2\\.0a1$")
+    expect_match(
+      status$requirement,
+      paste0("^pyplatypus(\\[[a-z]+\\])?==", gsub(".", "\\.", PYPLATYPUS_VERSION, fixed = TRUE), "$")
+    )
   }
   expect_type(status$started, "logical")
 })
@@ -63,8 +66,13 @@ test_that("the engine starts and is the version this package pins", {
   skip_if_no_engine()
   status <- platypus_status()
   expect_true(status$started)
-  expect_identical(status$engine_version, "0.2.0a1")
   expect_true(nzchar(status$python))
+  # Compared against the constant rather than a literal, so this asserts the pin was
+  # honoured instead of restating it. A source tree named by PLATYPUS_ENGINE_PATH is
+  # allowed to be ahead of the pin - that is what the escape hatch is for.
+  if (!nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
+    expect_identical(status$engine_version, PYPLATYPUS_VERSION)
+  }
 })
 
 test_that("data crosses back from Python as ordinary R objects", {
@@ -109,4 +117,28 @@ test_that("the device report says where the work will happen", {
   expect_s3_class(device, "platypus_device")
   expect_true(nzchar(device$torch))
   expect_type(device$cuda_available, "logical")
+})
+
+test_that("a stale uv index cache is explained, because it sounds permanent", {
+  # The real message uv produced on 2026-09-26, minutes after 0.2.0a2 was published. It
+  # states that the version does not exist, which is false and not actionable; the fix is
+  # one local command. Anyone who updates platypus on release day can meet this.
+  uv_said <- paste(
+    "Python engine failed to start:",
+    "No solution found when resolving tool dependencies:",
+    "Because there is no version of pyplatypus==0.2.0a2 and you require",
+    "pyplatypus==0.2.0a2, we can conclude that your requirements are unsatisfiable."
+  )
+  explained <- platypus:::engine_start_failure(uv_said)
+  expect_match(explained, "uv cache clean pyplatypus", fixed = TRUE)
+  expect_match(explained, "does exist", fixed = TRUE)
+  # The download advice would be wrong here: the network is fine, the cache is not.
+  expect_false(grepl("needs a network", explained, fixed = TRUE))
+})
+
+test_that("any other startup failure still gets the download advice", {
+  explained <- platypus:::engine_start_failure("Connection refused")
+  expect_match(explained, "needs a network", fixed = TRUE)
+  expect_match(explained, "works offline", fixed = TRUE)
+  expect_false(grepl("uv cache clean", explained, fixed = TRUE))
 })

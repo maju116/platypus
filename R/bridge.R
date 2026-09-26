@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_VERSION <- "0.2.0a1"
+PYPLATYPUS_VERSION <- "0.2.0a2"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -73,6 +73,43 @@ check_reticulate_python <- function() {
   invisible(NULL)
 }
 
+#' Explain a failure to start the engine
+#'
+#' Separated from the handler so it can be tested without breaking a Python installation.
+#'
+#' One case deserves its own paragraph. uv caches what an index told it, so for a while
+#' after a new pyplatypus is published uv still believes the version this package pins
+#' does not exist - and says so in a way that sounds permanent: "no version of
+#' pyplatypus==x". Anyone who updates platypus the day a release goes out can meet it, and
+#' nothing in the message hints that the fix is local and takes a second.
+#' @keywords internal
+#' @noRd
+engine_start_failure <- function(message) {
+  stale_index <- grepl("no version of pyplatypus", message, fixed = TRUE) ||
+    grepl("No solution found when resolving", message, fixed = TRUE)
+
+  out <- paste0(
+    "platypus could not start its Python engine.\n",
+    "  ", message, "\n\n"
+  )
+  if (stale_index) {
+    paste0(
+      out,
+      "  ", .platypus_requirement(), " does exist. uv is answering from a cached copy of ",
+      "the package\n  index, which happens for a while after a release. Clear that one ",
+      "entry and try again:\n\n",
+      "    uv cache clean pyplatypus\n"
+    )
+  } else {
+    paste0(
+      out,
+      "  The first call needs to download ", .platypus_requirement(), " and PyTorch, ",
+      "which needs a network\n  connection once. After that it is cached and works ",
+      "offline. See `?platypus_status`.\n"
+    )
+  }
+}
+
 .onLoad <- function(libname, pkgname) {
   check_reticulate_python()
   reticulate::py_require(.platypus_requirement())
@@ -83,14 +120,7 @@ check_reticulate_python <- function() {
       # Nothing is downloaded until a function actually needs Python, so library(platypus)
       # stays instant and works offline.
       on_error = function(e) {
-        stop(
-          "platypus could not start its Python engine.\n",
-          "  ", conditionMessage(e), "\n\n",
-          "  The first call needs to download ", .platypus_requirement(), " and PyTorch, ",
-          "which needs a network\n  connection once. After that it is cached and works ",
-          "offline. See `?platypus_status`.",
-          call. = FALSE
-        )
+        stop(engine_start_failure(conditionMessage(e)), call. = FALSE)
       }
     )
   )

@@ -22,3 +22,8 @@ src/*.dll
 # Figures produced while checking things by eye; they belong in the vignette,
 # not loose in the root.
 /*.png
+
+# Bytecode from the shim, compiled by whichever Python ran the tests. It is not ours to
+# ship: a .pyc is tied to one interpreter version.
+__pycache__/
+*.py[cod]
