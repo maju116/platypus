@@ -227,6 +227,11 @@ check_classes <- function(mask, n_class) {
 #' @param masks Class indices from [predict.platypus_fit()] - an `image x height x width`
 #'   array, or one `height x width` matrix. Probabilities are accepted too and reduced to
 #'   the most likely class.
+#'
+#'   For **volumes** use [save_volumes()], which writes NIfTI carrying the geometry of the
+#'   scan each mask came from. This function cannot reliably tell a stack of volumes from a
+#'   stack of images with a class axis - the ranks are identical - so it does not try; it
+#'   refuses only the case a shape can prove.
 #' @param dir Directory to write into; created if it does not exist.
 #' @param colormap A list of RGB triples, one per class.
 #' @param names File names, or the source image paths to take names from. Defaults to
@@ -241,6 +246,15 @@ check_classes <- function(mask, n_class) {
 #' save_masks(masks, "predictions", binary_colormap, suffix = "_unet")
 #' }
 save_masks <- function(masks, dir, colormap, names = NULL, suffix = "") {
+  if (length(dim(masks)) == 5L) {
+    # The one case a shape can prove. A stack of volumes, (n, d, h, w), has the same rank as
+    # a stack of images with a class axis, so this function cannot detect that one - which
+    # is why the documentation points at save_volumes() rather than this check pretending to.
+    stop("these are volumes (", paste(dim(masks), collapse = " x "), "). Use ",
+         "`save_volumes()`, which writes NIfTI carrying the geometry of the scan each mask ",
+         "came from - a volume mask without that cannot be laid over its scan by anything.",
+         call. = FALSE)
+  }
   if (length(dim(masks)) == 4L) {
     # Probabilities rather than classes: take the most likely, as predict() would.
     masks <- apply(masks, seq_len(length(dim(masks)) - 1L), which.max)

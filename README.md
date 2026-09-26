@@ -105,6 +105,13 @@ that found nothing into one that looks respectable.
 **Tiling that goes both ways** — cut a large image into a grid instead of shrinking it, and
 get a full-size mask back.
 
+**Volumes.** NIfTI in, 3D U-Net out, patches through the same tiling. Masks are label maps
+(`labels = c(0, 1)`) rather than colours, because that is how volume formats store them.
+`save_volumes()` writes predictions as NIfTI carrying the geometry of the scan they came
+from — a mask without that affine cannot be laid over its scan by any viewer — and
+`mask_volume()` reports a segmented structure in millilitres, which is the number that goes
+in a report, not a voxel count that means nothing outside one scanner.
+
 **Splitting by patient, not by slice.** `platypus_split()` divides one directory into
 training, validation and test sets and keeps every group whole; the result goes straight
 into `segmentation_data()`. This is the most common way a segmentation result comes out
@@ -124,10 +131,11 @@ above. These work on ordinary R arrays and need no Python at all.
 
 ## What is not in it yet
 
-3D volumes, object detection, ensembling, pretrained encoders. The specification and the
-model builder already handle volumes — `input_shape = c(64, 64, 64)` validates and builds —
-but the data pipeline stops at 2D, so the engine refuses a 3D run rather than half-doing
-it.
+Object detection, ensembling, pretrained encoders. Augmentation in 3D, which albumentations
+offers through a different call signature — a 3D specification asking for it is refused
+rather than quietly ignored. Resampling volumes to isotropic spacing: the spacing is read
+and reported by `volume_info()`, but applying it changes the voxel grid the model sees, and
+that is a decision to take deliberately rather than inside a reader.
 
 The package is **not on CRAN**: the name collides, case-insensitively, with an unrelated
 immunology package archived there in February 2026. That is being taken up with CRAN.

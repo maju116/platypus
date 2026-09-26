@@ -44,7 +44,9 @@ test_that("a misspelled window is answered with the real ones", {
   )
   expect_s3_class(error, "platypus_error")
   expect_match(conditionMessage(error), "soft_tissue")
-  expect_match(conditionMessage(error), "data\\$dicom_window")
+  # The engine names the field `window` now; `dicom_window` is only an accepted alias, so
+  # the complaint has to point at the real one or nobody can find it in the schema.
+  expect_match(conditionMessage(error), "data\\$window")
 })
 
 test_that("a window of no width is refused", {
@@ -68,7 +70,10 @@ test_that("the window survives the crossing intact", {
                              dicom_window = c(35, 350)),
     models = list(u_net("u", input_shape = c(64, 64)))
   )
-  expect_equal(unlist(as.list(spec)$data$dicom_window), c(35, 350))
+  # Given under the old name, which a released version of this package sent, and arriving
+  # under the new one.
+  expect_equal(unlist(as.list(spec)$data$window), c(35, 350))
+  expect_null(as.list(spec)$data$dicom_window)
 })
 
 test_that("the default leaves the file's own window in charge", {
@@ -77,5 +82,5 @@ test_that("the default leaves the file's own window in charge", {
     data = segmentation_data(tempdir(), tempdir(), binary_colormap),
     models = list(u_net("u", input_shape = c(64, 64)))
   )
-  expect_identical(as.list(spec)$data$dicom_window, "auto")
+  expect_identical(as.list(spec)$data$window, "auto")
 })

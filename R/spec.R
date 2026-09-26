@@ -12,29 +12,40 @@
 #' with `images` and `masks` columns, several paths per cell if needed, resolved relative
 #' to the file itself so a configuration travels with its data.
 #'
-#' The colormap decides how many classes there are and what each looks like on disk;
-#' position in the list is the class index. A sample that is missing its masks is an
-#' error, not a warning - a warning in a loop over five hundred directories is a warning
-#' nobody reads.
+#' Classes are named one of two ways, and exactly one of them. `colormap` is for masks
+#' stored as pictures: a list of RGB triples where position is the class index. `labels` is
+#' for masks stored as label maps - a vector of the voxel values, in class order - which is
+#' how every volume format stores them, and how a single-channel PNG can be read as well.
+#'
+#' A sample that is missing its masks is an error, not a warning - a warning in a loop over
+#' five hundred directories is a warning nobody reads.
 #'
 #' @param train,validation Paths to the training and validation data. A
 #'   [platypus_split()] may be given as `train` on its own: it carries all three
 #'   paths and selects `config_file` mode, so a split needs no unpacking.
 #' @param test Optional test data. Only images are read from it.
-#' @param colormap A list of RGB triples, one per class, background first.
+#' @param colormap A list of RGB triples, one per class, background first. For masks stored
+#'   as pictures. Give this or `labels`, not both.
+#' @param labels The voxel value of each class, in class order, for masks stored as label
+#'   maps - `c(0, 1)` for a binary segmentation, `c(0, 1, 2)` where 1 is liver and 2 is
+#'   tumour. This is how NIfTI and every other volume format label anything. Give this or
+#'   `colormap`, not both.
 #' @param mode `"nested_dirs"` or `"config_file"`.
-#' @param dicom_window How DICOM pixel values reach the model. A named window - `"lung"`,
+#' @param window How values in real units reach the model. A named window - `"lung"`,
 #'   `"soft_tissue"`, `"bone"`, `"brain"`, `"abdomen"`, `"liver"`, `"mediastinum"`,
 #'   `"subdural"`, `"stroke"` - or an explicit `c(centre, width)` in Hounsfield units, or
-#'   `"auto"` to use the window recorded in the file, or `"full"` for the whole range
-#'   present. Ignored for ordinary images.
+#'   `"auto"` for the window the file recorded, which only DICOM has, or `"full"` for the
+#'   whole range present. Applies to DICOM and to NIfTI; ignored for ordinary pictures,
+#'   which are already 0-255.
 #'
-#'   Worth choosing rather than leaving: a fixed window is what makes two scans
-#'   comparable. Scaling each image by its own darkest and brightest pixel lets a single
-#'   metal implant or marker rescale everything else in it.
+#'   Worth choosing rather than leaving: a fixed window is what makes two scans comparable.
+#'   Scaling each scan by its own darkest and brightest voxel lets a single metal implant or
+#'   marker rescale everything else in it.
 #'
 #'   `NULL`, the default, sends nothing and lets the engine decide - which also keeps
 #'   ordinary image work running against an engine too old to know the setting exists.
+#' @param dicom_window The former name of `window`, still accepted. It was accurate while
+#'   DICOM was the only format that needed it.
 #' @param subdirs For `nested_dirs`, the names of the image and mask subdirectories.
 #' @param column_sep For `config_file`, what separates several paths in one cell.
 #' @param shuffle Shuffle the training data between epochs.
@@ -42,9 +53,10 @@
 #' @export
 #' @examples
 #' segmentation_data("train/", "valid/", colormap = binary_colormap)
-segmentation_data <- function(train, validation, colormap, test = NULL,
+segmentation_data <- function(train, validation, colormap = NULL, labels = NULL,
+                              test = NULL,
                               mode = c("nested_dirs", "config_file"),
-                              dicom_window = NULL,
+                              window = NULL, dicom_window = NULL,
                               subdirs = c("images", "masks"), column_sep = ";",
                               shuffle = TRUE) {
   explicit_mode <- !missing(mode)
@@ -65,19 +77,32 @@ segmentation_data <- function(train, validation, colormap, test = NULL,
     if (!explicit_mode) mode <- "config_file"
   }
 
+  # Caught here rather than in the engine, because the message is the same and this way it
+  # costs nothing: no interpreter starts to tell someone they gave both or neither.
+  if (is.null(colormap) == is.null(labels)) {
+    stop("give exactly one of `colormap` (masks stored as pictures) and `labels` ",
+         "(masks stored as label maps, which is how volumes do it).", call. = FALSE)
+  }
+  if (!is.null(window) && !is.null(dicom_window)) {
+    stop("`dicom_window` is the former name of `window`; give one of them, not both.",
+         call. = FALSE)
+  }
+  if (!is.null(dicom_window)) window <- dicom_window
+
   list(
     train_path = train,
     validation_path = validation,
     test_path = test,
     mode = mode,
-    colormap = lapply(colormap, as.integer),
+    colormap = if (is.null(colormap)) NULL else lapply(colormap, as.integer),
+    labels = if (is.null(labels)) NULL else as.integer(labels),
     # Left out entirely when unset. An older engine rejects fields it does not know, so
     # sending a default nobody asked for would break every run that has nothing to do
     # with DICOM - and the version pin exists precisely to make such mismatches loud
     # rather than mysterious.
-    dicom_window = if (is.null(dicom_window)) NULL
-                   else if (is.character(dicom_window)) dicom_window
-                   else as.numeric(dicom_window),
+    window = if (is.null(window)) NULL
+             else if (is.character(window)) window
+             else as.numeric(window),
     subdirs = subdirs,
     column_sep = column_sep,
     shuffle = shuffle

@@ -316,3 +316,95 @@ def case_summary(rows: list) -> dict:
         return _failure(error)
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
+
+
+def volume_support() -> bool:
+    """Whether the engine in use can read volumes at all."""
+    try:
+        from pyplatypus.data import volumes  # noqa: F401
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
+
+def volume_info(paths: list) -> dict:
+    """Shape and voxel spacing for each volume, in the canonical order the reader uses.
+
+    Spacing is not decoration. A segmented lesion counted in voxels is a number that means
+    nothing outside the scanner it came from; the same count times the voxel volume is
+    millilitres, which is what a report says and what a clinician compares.
+    """
+    from pyplatypus.data.volumes import VolumeError, read_volume, volume_spacing
+
+    rows = []
+    try:
+        for path in paths:
+            spacing = volume_spacing(path)
+            shape = read_volume(path, nearest=True).shape
+            rows.append({
+                "path": str(path),
+                "spacing": list(spacing),
+                "shape": list(shape[:3]),
+                "voxel_ml": float(spacing[0] * spacing[1] * spacing[2] / 1000.0),
+            })
+    except VolumeError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "volumes": rows}
+
+
+def write_volumes(masks, paths: list, reference: list) -> dict:
+    """Write label-map volumes as NIfTI, carrying each reference scan's affine.
+
+    The affine is the point. A mask array on its own cannot be laid over the scan it came
+    from: every viewer, every registration tool and every volume calculation reads position
+    and spacing out of the affine, and a file without the right one is either silently
+    misplaced or rejected. So the mask is written with the geometry of the scan it was
+    predicted from, which also means it opens on top of it in any viewer with no further
+    work.
+
+    Written as integer labels rather than as colours, because that is what a volume format
+    holds and what a segmentation tool expects to read back.
+    """
+    import pathlib
+
+    import numpy as np
+
+    try:
+        import nibabel as nib
+
+        arrays = np.asarray(masks)
+        if arrays.ndim == 3:
+            arrays = arrays[None]
+        if len(arrays) != len(paths):
+            return {"ok": False, "kind": "volume_error", "problems": [],
+                    "message": f"{len(arrays)} masks but {len(paths)} paths"}
+        if len(reference) != len(paths):
+            return {"ok": False, "kind": "volume_error", "problems": [],
+                    "message": (f"{len(reference)} reference volumes but {len(paths)} "
+                                "masks; each mask needs the scan it was predicted from")}
+
+        written = []
+        for array, path, source in zip(arrays, paths, reference):
+            source_image = nib.as_closest_canonical(nib.load(str(source)))
+            target = pathlib.Path(path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+
+            labels = np.asarray(array)
+            if labels.shape != source_image.shape[:3]:
+                return {
+                    "ok": False, "kind": "volume_error", "problems": [],
+                    "message": (
+                        f"mask {labels.shape} does not match '{source}' "
+                        f"{tuple(source_image.shape[:3])}. A mask written with the wrong "
+                        "geometry lands in the wrong place, which is worse than failing."
+                    ),
+                }
+            image = nib.Nifti1Image(labels.astype(np.int16), source_image.affine,
+                                    dtype=np.int16)
+            nib.save(image, str(target))
+            written.append(str(target))
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "paths": written}

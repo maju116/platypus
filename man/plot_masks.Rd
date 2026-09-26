@@ -9,9 +9,10 @@ plot_masks(
   prediction = NULL,
   truth = NULL,
   colormap = binary_colormap,
-  which = seq_len(min(4L, n_images(images))),
+  which = NULL,
   alpha = 0.55,
-  labels = NULL
+  labels = NULL,
+  slice = NULL
 )
 }
 \arguments{
@@ -29,6 +30,12 @@ plot_masks(
 \item{alpha}{How strongly to tint the overlays.}
 
 \item{labels}{Row labels; defaults to the image number.}
+
+\item{slice}{For volumes, which slice to draw. A volume cannot honestly be shown as one
+picture, so one plane is chosen and said out loud rather than a projection being
+invented. Counted along the last axis, which after the canonical reorientation is the
+axial direction - the view a radiologist scrolls through. `"middle"` takes the middle
+slice, which is the sensible first look.}
 }
 \value{
 A `ggplot`.

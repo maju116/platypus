@@ -49,6 +49,11 @@ read_images <- function(paths, size = NULL, channels = 3, nearest = FALSE) {
 #' @param which Which images to show.
 #' @param alpha How strongly to tint the overlays.
 #' @param labels Row labels; defaults to the image number.
+#' @param slice For volumes, which slice to draw. A volume cannot honestly be shown as one
+#'   picture, so one plane is chosen and said out loud rather than a projection being
+#'   invented. Counted along the last axis, which after the canonical reorientation is the
+#'   axial direction - the view a radiologist scrolls through. `"middle"` takes the middle
+#'   slice, which is the sensible first look.
 #' @return A `ggplot`.
 #' @export
 #' @examples
@@ -56,12 +61,29 @@ read_images <- function(paths, size = NULL, channels = 3, nearest = FALSE) {
 #' plot_masks(images, prediction = masks, truth = truth, colormap = binary_colormap)
 #' }
 plot_masks <- function(images, prediction = NULL, truth = NULL,
-                       colormap = binary_colormap, which = seq_len(min(4L, n_images(images))),
-                       alpha = 0.55, labels = NULL) {
+                       colormap = binary_colormap, which = NULL,
+                       alpha = 0.55, labels = NULL, slice = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("plot_masks() needs the ggplot2 package.", call. = FALSE)
   }
+
+  if (is_volumetric(images)) {
+    if (is.null(slice)) {
+      stop("these look like volumes (", paste(dim(images), collapse = " x "), "). ",
+           "Choose a slice to draw - `slice = \"middle\"` to start - because a volume ",
+           "shown as one picture is either a lie or a projection nobody asked for.",
+           call. = FALSE)
+    }
+    images <- take_slice(images, slice, channels = TRUE)
+    prediction <- take_slice(prediction, slice, channels = FALSE)
+    truth <- take_slice(truth, slice, channels = FALSE)
+  } else if (!is.null(slice)) {
+    stop("`slice` only applies to volumes; these are ", length(dim(images)) - 2L,
+         "D images.", call. = FALSE)
+  }
+
   images <- as_image_stack(images)
+  if (is.null(which)) which <- seq_len(min(4L, n_images(images)))
   which <- as.integer(which)
 
   panels <- "image"
@@ -199,5 +221,46 @@ abind_axis <- function(a, b, axis) {
     out[, seq_len(dim(a)[2]), ] <- a
     out[, dim(a)[2] + seq_len(dim(b)[2]), ] <- b
   }
+  out
+}
+
+
+#' Does this array hold volumes rather than images?
+#'
+#' Read off the rank: a stack of images is (n, h, w, c) and a stack of volumes is
+#' (n, d, h, w, c). One volume, (d, h, w, c), has the same rank as a stack of images, and
+#' that ambiguity is real - it is resolved by the caller passing `slice`, which is why an
+#' unsliced volume is an error rather than a guess.
+#' @keywords internal
+#' @noRd
+is_volumetric <- function(images) {
+  length(dim(images)) == 5L
+}
+
+#' Take one plane out of a volume, along the last spatial axis
+#' @keywords internal
+#' @noRd
+take_slice <- function(x, slice, channels) {
+  if (is.null(x)) return(NULL)
+  dims <- dim(x)
+  rank <- length(dims)
+  # Which axis is the slice: the last spatial one, which is the last axis for masks and the
+  # one before the channels for images.
+  axis <- if (channels) rank - 1L else rank
+  depth <- dims[axis]
+
+  index <- if (identical(slice, "middle")) {
+    as.integer(ceiling(depth / 2))
+  } else {
+    as.integer(slice)
+  }
+  if (is.na(index) || index < 1L || index > depth) {
+    stop("slice ", slice, " is outside 1..", depth, ".", call. = FALSE)
+  }
+
+  selector <- rep(list(quote(expr = )), rank)
+  selector[[axis]] <- index
+  out <- do.call(`[`, c(list(x), selector, list(drop = FALSE)))
+  dim(out) <- dims[-axis]
   out
 }

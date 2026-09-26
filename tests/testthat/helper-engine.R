@@ -129,3 +129,44 @@ for p in range(%d):
 ", shQuote(root), patients, slices, size, size, size, size))
   root
 }
+
+
+#' Can the engine in use read volumes?
+engine_reads_volumes <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(platypus:::shim()$volume_support(), error = function(e) FALSE))
+}
+
+skip_if_no_volumes <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_reads_volumes(),
+    "the engine in use predates volume support"
+  )
+}
+
+#' A dataset of NIfTI volumes with label-map masks
+#'
+#' Deliberately tiny. A 3D fixture that takes a minute gets skipped, and a skipped test
+#' proves nothing.
+tiny_volume_dataset <- function(cases = 4, shape = c(8, 8, 4), spacing = c(2, 2, 5),
+                                envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib, nibabel as nib
+root = pathlib.Path(%s)
+shape = (%d, %d, %d)
+affine = np.diag([%f, %f, %f, 1.0])
+for n in range(%d):
+    sample = root / f'case_{n:02d}'
+    (sample / 'images').mkdir(parents=True, exist_ok=True)
+    (sample / 'masks').mkdir(parents=True, exist_ok=True)
+    labels = np.zeros(shape, np.float32)
+    labels[2:6, 2:6, 1:3] = 1
+    scan = np.where(labels > 0, 40.0, -1000.0).astype(np.float32)
+    nib.save(nib.Nifti1Image(scan, affine), str(sample / 'images' / 'ct.nii.gz'))
+    nib.save(nib.Nifti1Image(labels, affine), str(sample / 'masks' / 'seg.nii.gz'))
+", shQuote(root), shape[1], shape[2], shape[3],
+   spacing[1], spacing[2], spacing[3], cases))
+  root
+}
