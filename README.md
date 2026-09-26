@@ -106,7 +106,10 @@ that found nothing into one that looks respectable.
 get a full-size mask back.
 
 **Volumes.** NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same
-tiling. `series_report()` checks a whole export before anything trains — reading no pixels,
+tiling. `target_spacing = c(1, 1, 1)` resamples every scan to a common voxel size and then
+crops or pads to the model's shape, rather than squeezing each one into the same box — forty
+slices of 1 mm is 40 mm of patient and forty of 2.5 mm is 100 mm, so resizing alone leaves the
+same organ a different size in each. `series_report()` checks a whole export before anything trains — reading no pixels,
 one row per folder — and says which series have a missing slice, duplicated files, or two
 series sitting in one directory. A gap matters more than it sounds: it does not shorten a
 volume, it moves everything past it, and no metric would show that. Masks are label maps

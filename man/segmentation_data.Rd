@@ -13,6 +13,7 @@ segmentation_data(
   mode = c("nested_dirs", "config_file"),
   window = NULL,
   dicom_window = NULL,
+  target_spacing = NULL,
   subdirs = c("images", "masks"),
   column_sep = ";",
   shuffle = TRUE
@@ -51,6 +52,15 @@ tumour. This is how NIfTI and every other volume format label anything. Give thi
 
 \item{dicom_window}{The former name of `window`, still accepted. It was accurate while
 DICOM was the only format that needed it.}
+
+\item{target_spacing}{For volumes: resample every scan to this many millimetres per voxel,
+  then centre-crop or pad to the model's `input_shape`. Without it a volume is simply
+  resized into that shape, which is only harmless when every scan covers the same amount of
+  the patient - and clinical scans do not. Forty slices of 1 mm is 40 mm of patient and
+  forty of 2.5 mm is 100 mm, so resizing alone leaves the same organ a different size in
+  each, and nothing in the data says so.
+
+  `c(1, 1, 1)` is the usual starting point. Ignored for 2D.}
 
 \item{subdirs}{For `nested_dirs`, the names of the image and mask subdirectories.}
 

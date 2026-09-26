@@ -243,3 +243,48 @@ nib.save(nib.Nifti1Image(labels, np.diag([0.8, 0.8, 2.5, 1.0])), str(masks / 'se
   masks <- predict(fit, split = "validation")
   expect_equal(dim(masks), c(2L, 32L, 32L, 4L))
 })
+
+
+test_that("`target_spacing` is checked before Python starts", {
+  expect_error(segmentation_data("a", "b", labels = c(0, 1), target_spacing = c(1, 1)),
+               "three positive")
+  expect_error(segmentation_data("a", "b", labels = c(0, 1), target_spacing = c(1, 1, 0)),
+               "three positive")
+})
+
+test_that("an unset target_spacing is left out of the request", {
+  data <- segmentation_data("a", "b", labels = c(0, 1))
+  expect_false("target_spacing" %in% names(platypus:::compact(data)))
+})
+
+test_that("target_spacing crosses to the engine intact", {
+  skip_if_no_resampling()
+  spec <- platypus_spec(
+    data = segmentation_data(tempdir(), tempdir(), labels = c(0, 1),
+                             target_spacing = c(1, 1, 1.5)),
+    models = list(u_net("u", input_shape = c(32, 32, 32), channels = 1))
+  )
+  expect_equal(unlist(as.list(spec)$data$target_spacing), c(1, 1, 1.5))
+})
+
+test_that("a resampled 3D spec trains through the bridge", {
+  # What the R side is responsible for: the option reaching the engine and the run working.
+  # That resampling puts two fields of view on one physical scale is measured in the engine's
+  # own tests, where the dataset is reachable - asserting it here through shapes alone would
+  # be a test that passes whatever happens.
+  skip_if_no_resampling()
+  root <- tiny_scaled_dataset(cases = c(1.0, 2.5))
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue",
+                             target_spacing = c(1, 1, 1)),
+    models = list(u_net("u", input_shape = c(32, 32, 32), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1,
+                        metrics = list(metric_dice())))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+
+  expect_s3_class(fit, "platypus_fit")
+  expect_true("val_dice" %in% names(training_history(fit)))
+  expect_equal(dim(predict(fit, split = "validation")), c(2L, 32L, 32L, 32L))
+})

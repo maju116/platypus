@@ -217,3 +217,50 @@ for index, position in enumerate(positions):
    if (is.null(uid)) "None" else shQuote(uid), shQuote(prefix)))
   directory
 }
+
+
+#' Does the engine in use resample volumes?
+engine_resamples <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    schema <- platypus:::engine()$spec_schema()
+    "target_spacing" %in% names(schema$`$defs`$SegmentationData$properties)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_resampling <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_resamples(),
+    "the engine in use predates resampling"
+  )
+}
+
+#' Volumes of the same ball acquired over different lengths of patient
+#'
+#' `thickness` is the slice spacing in millimetres, so two datasets with the same number of
+#' slices cover different amounts of anatomy - which is what makes a plain resize wrong and the
+#' reason target_spacing exists.
+tiny_scaled_dataset <- function(cases = c(1.0, 2.5), slices = 32, envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib, nibabel as nib
+root = pathlib.Path(%s)
+for index, thickness in enumerate([%s]):
+    sample = root / f'case_{index:02d}'
+    (sample / 'images').mkdir(parents=True, exist_ok=True)
+    (sample / 'masks').mkdir(parents=True, exist_ok=True)
+    shape = (32, 32, %d)
+    spacing = (1.0, 1.0, thickness)
+    grid = np.indices(shape).astype(np.float32)
+    centre = (np.asarray(shape, np.float32) - 1) / 2
+    mm = [(grid[a] - centre[a]) * spacing[a] for a in range(3)]
+    inside = np.sqrt(sum(x ** 2 for x in mm)) <= 8.0
+    scan = np.where(inside, 40.0, -1000.0).astype(np.float32)
+    affine = np.diag([*spacing, 1.0])
+    nib.save(nib.Nifti1Image(scan, affine), str(sample / 'images' / 'ct.nii.gz'))
+    nib.save(nib.Nifti1Image(inside.astype(np.float32), affine),
+             str(sample / 'masks' / 'seg.nii.gz'))
+", shQuote(root), paste(cases, collapse = ", "), slices))
+  root
+}
