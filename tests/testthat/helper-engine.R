@@ -326,3 +326,21 @@ for index in range(%d):
 ", shQuote(root), shape[1], shape[2], shape[3], cases))
   root
 }
+
+
+#' Does the engine in use augment volumes?
+engine_augments_volumes <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    result <- platypus:::shim()$transform_names(rank = 3L)
+    isTRUE(result$ok) && length(result$transforms) > 0
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_3d_augmentation <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_augments_volumes(),
+    "the engine in use predates 3D augmentation"
+  )
+}

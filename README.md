@@ -137,6 +137,10 @@ patient — and `summary()` gives the distribution and names the worst one. On t
 Science Bowl a model averaging Dice 0.855 turned out to score 0.006 on three images. The
 mean had no way of saying so.
 
+**Augmentation in 3D**, with `available_augmentations(rank = 3)` to say what can be used on a
+volume — albumentations supports them unevenly, and a transform that cannot is refused by name
+when the run starts rather than raising `KeyError: 'images'` from inside the library an hour in.
+
 **The parts that make an analysis fast**, which is what the package was always for:
 combining the per-object mask files that datasets like the Data Science Bowl ship,
 converting between class indices and colours, overlaying, and drawing the comparison

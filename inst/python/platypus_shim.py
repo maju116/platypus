@@ -455,3 +455,26 @@ def series_support() -> bool:
     except Exception:  # noqa: BLE001
         return False
     return True
+
+
+def transform_names(rank: int = 2) -> dict:
+    """Which albumentations transforms can be used, at this rank.
+
+    For volumes the list has to be found by trying rather than read from anywhere: support is
+    uneven and a transform that cannot take a volume raises from inside the library, which is
+    why the engine probes. Slow enough to be worth doing once, so it is cached there.
+    """
+    import pyplatypus
+
+    try:
+        from pyplatypus.spec.components import available_transforms
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    try:
+        names = sorted(available_transforms(rank=int(rank)))
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "transforms": names, "rank": int(rank)}

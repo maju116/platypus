@@ -256,3 +256,39 @@ callback_terminate_on_nan <- function() list(name = "terminate_on_nan")
 augment <- function(name, ...) {
   list(name = name, params = list(...))
 }
+
+
+#' Which augmentations are available
+#'
+#' The transforms the installed 'albumentations' offers, and - for volumes - the ones it can
+#' actually apply to them.
+#'
+#' Worth asking rather than guessing. Support for volumes is uneven: most geometric transforms
+#' work and several intensity ones raise from inside the library, so `rank = 3` returns a
+#' shorter list than `rank = 2`. A transform outside it is refused when the specification is
+#' built, by name, rather than failing an hour into training.
+#'
+#' @param rank 2 for images, 3 for volumes.
+#' @param pattern Optional regular expression to filter the names, for browsing: `"Flip"`,
+#'   `"3D$"`, `"Elastic|Grid"`.
+#' @return A character vector of transform names.
+#' @seealso [augment()], which uses one.
+#' @examples
+#' \dontrun{
+#' available_augmentations()                       # everything, for images
+#' available_augmentations(rank = 3)               # what volumes can take
+#' available_augmentations(rank = 3, pattern = "Flip|Crop")
+#' setdiff(available_augmentations(), available_augmentations(rank = 3))   # the gap
+#' }
+#' @export
+available_augmentations <- function(rank = 2, pattern = NULL) {
+  if (!rank %in% c(2, 3)) {
+    stop("`rank` is 2 for images or 3 for volumes.", call. = FALSE)
+  }
+  result <- shim()$transform_names(rank = as.integer(rank))
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  names <- unlist(result$transforms)
+  if (!is.null(pattern)) names <- grep(pattern, names, value = TRUE)
+  names
+}

@@ -359,3 +359,64 @@ test_that("a pattern matching two files is refused with a readable message", {
   )
   expect_error(platypus_fit(spec, num_workers = 0), "matches 2 files")
 })
+
+
+# ------------------------------------------------------- augmenting volumes
+test_that("`rank` is checked before Python starts", {
+  expect_error(available_augmentations(rank = 4), "2 for images")
+})
+
+test_that("the volume list is shorter than the image list and not empty", {
+  skip_if_no_3d_augmentation()
+  flat <- available_augmentations()
+  volumes <- available_augmentations(rank = 3)
+
+  expect_true(length(volumes) > 50)
+  expect_true(length(volumes) < length(flat))
+  expect_true(all(volumes %in% flat))
+  # The gap is the point of the function existing: these cannot be used on a volume.
+  expect_true("GaussNoise" %in% setdiff(flat, volumes))
+})
+
+test_that("the geometric transforms worth having are listed for volumes", {
+  skip_if_no_3d_augmentation()
+  volumes <- available_augmentations(rank = 3)
+  for (name in c("Affine", "ElasticTransform", "CubicSymmetry", "HorizontalFlip")) {
+    expect_true(name %in% volumes, info = name)
+  }
+})
+
+test_that("the listing can be filtered for browsing", {
+  skip_if_no_3d_augmentation()
+  flips <- available_augmentations(rank = 3, pattern = "Flip")
+  expect_true(length(flips) >= 2)
+  expect_true(all(grepl("Flip", flips)))
+})
+
+test_that("a 3D model trains with augmentation", {
+  skip_if_no_3d_augmentation()
+  root <- tiny_volume_dataset()
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue"),
+    models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1,
+                        metrics = list(metric_dice()),
+                        augmentation = list(augment("HorizontalFlip", p = 0.5),
+                                            augment("CubicSymmetry", p = 0.5))))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  expect_s3_class(fit, "platypus_fit")
+})
+
+test_that("a transform that cannot do volumes is named when the run starts", {
+  # Not an hour later, and not as `KeyError: 'images'` from inside albumentations.
+  skip_if_no_3d_augmentation()
+  root <- tiny_volume_dataset()
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1)),
+    models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1,
+                        augmentation = list(augment("GaussNoise"))))
+  )
+  expect_error(platypus_fit(spec, num_workers = 0), "GaussNoise")
+})
