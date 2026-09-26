@@ -246,3 +246,10 @@ def write_masks(masks, paths: list) -> dict:
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
     return {"ok": True, "paths": [str(p) for p in paths]}
+
+
+def window_presets() -> dict:
+    """The named CT windows, so R does not keep its own copy to drift out of step."""
+    from pyplatypus.spec.common import WINDOWS
+
+    return {name: list(pair) for name, pair in WINDOWS.items()}

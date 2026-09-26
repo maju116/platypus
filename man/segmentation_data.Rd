@@ -10,6 +10,7 @@ segmentation_data(
   colormap,
   test = NULL,
   mode = c("nested_dirs", "config_file"),
+  dicom_window = NULL,
   subdirs = c("images", "masks"),
   column_sep = ";",
   shuffle = TRUE
@@ -23,6 +24,19 @@ segmentation_data(
 \item{test}{Optional test data. Only images are read from it.}
 
 \item{mode}{`"nested_dirs"` or `"config_file"`.}
+
+\item{dicom_window}{How DICOM pixel values reach the model. A named window - `"lung"`,
+  `"soft_tissue"`, `"bone"`, `"brain"`, `"abdomen"`, `"liver"`, `"mediastinum"`,
+  `"subdural"`, `"stroke"` - or an explicit `c(centre, width)` in Hounsfield units, or
+  `"auto"` to use the window recorded in the file, or `"full"` for the whole range
+  present. Ignored for ordinary images.
+
+  Worth choosing rather than leaving: a fixed window is what makes two scans
+  comparable. Scaling each image by its own darkest and brightest pixel lets a single
+  metal implant or marker rescale everything else in it.
+
+  `NULL`, the default, sends nothing and lets the engine decide - which also keeps
+  ordinary image work running against an engine too old to know the setting exists.}
 
 \item{subdirs}{For `nested_dirs`, the names of the image and mask subdirectories.}
 

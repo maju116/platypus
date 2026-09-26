@@ -18,7 +18,12 @@ test_that("status reports the pinned engine before anything has started", {
   expect_s3_class(status, "platypus_status")
   # The pinned version is what matters; the extras depend on whether
   # platypus_use_torch() has been called, which is none of this test's business.
-  expect_match(status$requirement, "^pyplatypus(\\[[a-z]+\\])?==0\\.2\\.0a1$")
+  # PLATYPUS_ENGINE_PATH replaces the requirement with a source tree during development.
+  if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
+    expect_true(dir.exists(status$requirement))
+  } else {
+    expect_match(status$requirement, "^pyplatypus(\\[[a-z]+\\])?==0\\.2\\.0a1$")
+  }
   expect_type(status$started, "logical")
 })
 

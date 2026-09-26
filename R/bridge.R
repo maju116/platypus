@@ -24,6 +24,16 @@ PYPLATYPUS_VERSION <- "0.2.0a1"
   extra <- NULL
   function(set) {
     if (!missing(set)) extra <<- set
+
+    # Development escape hatch. The pin is deliberate - it stops an R release breaking
+    # because the engine drifted underneath it - but it also means work on the two sides
+    # cannot meet until the Python half is published. Pointing this at a source tree lets
+    # them meet during development, and is never used by anyone installing the package.
+    local_engine <- Sys.getenv("PLATYPUS_ENGINE_PATH", unset = "")
+    if (nzchar(local_engine)) {
+      return(normalizePath(local_engine, mustWork = TRUE))
+    }
+
     if (is.null(extra)) paste0("pyplatypus==", PYPLATYPUS_VERSION)
     else sprintf("pyplatypus[%s]==%s", extra, PYPLATYPUS_VERSION)
   }

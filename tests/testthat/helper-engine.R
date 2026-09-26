@@ -55,3 +55,24 @@ tiny_spec <- function(root, ...) {
                         epochs = 1, batch_size = 2, ...))
   )
 }
+
+#' Does the engine in use know about DICOM?
+#'
+#' The R package pins an exact pyplatypus, which is what stops a release breaking when the
+#' engine drifts - but it also means a feature can exist here before the engine carrying it
+#' is published. Until then CI runs against the released version, and these tests have to
+#' notice that rather than fail over it.
+engine_reads_dicom <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    length(platypus:::shim()$window_presets()) > 0
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_dicom <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_reads_dicom(),
+    "the engine in use predates DICOM support"
+  )
+}

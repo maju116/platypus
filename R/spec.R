@@ -21,6 +21,18 @@
 #' @param test Optional test data. Only images are read from it.
 #' @param colormap A list of RGB triples, one per class, background first.
 #' @param mode `"nested_dirs"` or `"config_file"`.
+#' @param dicom_window How DICOM pixel values reach the model. A named window - `"lung"`,
+#'   `"soft_tissue"`, `"bone"`, `"brain"`, `"abdomen"`, `"liver"`, `"mediastinum"`,
+#'   `"subdural"`, `"stroke"` - or an explicit `c(centre, width)` in Hounsfield units, or
+#'   `"auto"` to use the window recorded in the file, or `"full"` for the whole range
+#'   present. Ignored for ordinary images.
+#'
+#'   Worth choosing rather than leaving: a fixed window is what makes two scans
+#'   comparable. Scaling each image by its own darkest and brightest pixel lets a single
+#'   metal implant or marker rescale everything else in it.
+#'
+#'   `NULL`, the default, sends nothing and lets the engine decide - which also keeps
+#'   ordinary image work running against an engine too old to know the setting exists.
 #' @param subdirs For `nested_dirs`, the names of the image and mask subdirectories.
 #' @param column_sep For `config_file`, what separates several paths in one cell.
 #' @param shuffle Shuffle the training data between epochs.
@@ -30,6 +42,7 @@
 #' segmentation_data("train/", "valid/", colormap = binary_colormap)
 segmentation_data <- function(train, validation, colormap, test = NULL,
                               mode = c("nested_dirs", "config_file"),
+                              dicom_window = NULL,
                               subdirs = c("images", "masks"), column_sep = ";",
                               shuffle = TRUE) {
   mode <- match.arg(mode)
@@ -39,6 +52,13 @@ segmentation_data <- function(train, validation, colormap, test = NULL,
     test_path = test,
     mode = mode,
     colormap = lapply(colormap, as.integer),
+    # Left out entirely when unset. An older engine rejects fields it does not know, so
+    # sending a default nobody asked for would break every run that has nothing to do
+    # with DICOM - and the version pin exists precisely to make such mismatches loud
+    # rather than mysterious.
+    dicom_window = if (is.null(dicom_window)) NULL
+                   else if (is.character(dicom_window)) dicom_window
+                   else as.numeric(dicom_window),
     subdirs = subdirs,
     column_sep = column_sep,
     shuffle = shuffle
@@ -86,6 +106,34 @@ voc_labels <- c(
   "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "potted plant",
   "sheep", "sofa", "train", "tv/monitor"
 )
+
+#' The named CT windows
+#'
+#' The windows radiologists use, as `c(centre, width)` in Hounsfield units. Pass a name to
+#' [segmentation_data()] rather than the numbers; this is here for looking them up.
+#'
+#' Held here rather than fetched from the engine so that looking up a constant does not
+#' require starting Python. A test checks the two lists against each other whenever the
+#' engine is available, so the copy cannot quietly drift.
+#'
+#' @return A named list of `c(centre, width)` pairs.
+#' @export
+#' @examples
+#' ct_windows()$lung
+#' ct_windows()[["soft_tissue"]]
+ct_windows <- function() {
+  list(
+    brain       = c(centre = 40,   width = 80),
+    subdural    = c(centre = 75,   width = 215),
+    stroke      = c(centre = 32,   width = 8),
+    bone        = c(centre = 400,  width = 1800),
+    soft_tissue = c(centre = 40,   width = 400),
+    abdomen     = c(centre = 60,   width = 400),
+    liver       = c(centre = 30,   width = 150),
+    lung        = c(centre = -600, width = 1500),
+    mediastinum = c(centre = 50,   width = 350)
+  )
+}
 
 #' Build an experiment specification
 #'
