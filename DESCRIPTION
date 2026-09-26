@@ -17,7 +17,10 @@ Encoding: UTF-8
 Depends:
     R (>= 4.1)
 Imports:
+    ggplot2,
+    grDevices,
     parallel,
+    rlang,
     reticulate (>= 1.41),
     utils
 Suggests:

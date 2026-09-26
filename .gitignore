@@ -18,3 +18,7 @@ src/*.dll
 *.hdf5
 *.pt
 *.safetensors
+
+# Figures produced while checking things by eye; they belong in the vignette,
+# not loose in the root.
+/*.png

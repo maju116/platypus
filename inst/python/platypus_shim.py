@@ -184,3 +184,36 @@ def _nvidia_smi_sees_a_gpu() -> bool:
     except Exception:  # noqa: BLE001
         return False
     return out.returncode == 0 and bool(out.stdout.strip())
+
+
+def read_images(paths: list, channels: int = 3, size: list | None = None,
+                nearest: bool = False) -> dict:
+    """Read images exactly as the data pipeline would.
+
+    Not a convenience: a picture plotted from a differently resized copy is a picture of
+    something the model never saw, and the disagreements it shows may be the resizing.
+    """
+    import numpy as np
+    from pyplatypus.data import read_image
+
+    try:
+        arrays = [
+            read_image(p, channels=int(channels),
+                       size=tuple(int(s) for s in size) if size else None,
+                       nearest=bool(nearest))
+            for p in paths
+        ]
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    shapes = {a.shape for a in arrays}
+    if len(shapes) > 1 and size is None:
+        return {
+            "ok": False, "kind": "image_error", "problems": [],
+            "message": (
+                "these images are not all the same size "
+                f"({', '.join('x'.join(map(str, s)) for s in sorted(shapes))}), so they "
+                "cannot go into one array. Pass `size` to read them at a common size."
+            ),
+        }
+    return {"ok": True, "images": np.stack(arrays)}
