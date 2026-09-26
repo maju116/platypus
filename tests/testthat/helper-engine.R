@@ -170,3 +170,50 @@ for n in range(%d):
    spacing[1], spacing[2], spacing[3], cases))
   root
 }
+
+
+#' Can the engine in use assemble a DICOM series?
+engine_reads_series <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(platypus:::shim()$series_support(), error = function(e) FALSE))
+}
+
+skip_if_no_series <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_reads_series(),
+    "the engine in use predates DICOM series support"
+  )
+}
+
+#' A folder of DICOM slices, written through the engine's pydicom
+#'
+#' `positions` are millimetres along the slice normal, so a caller can leave a gap or repeat a
+#' position to build the broken cases the report exists to find. File names deliberately sort
+#' differently from the anatomy.
+#' @param prefix Distinguishes two series written into one directory, which is the state an
+#'   archive export arrives in and what the report exists to catch. Without it the second call
+#'   writes the same filenames and silently replaces the first.
+tiny_series <- function(directory, positions = c(0, 2.5, 5, 7.5), uid = NULL,
+                        prefix = "IM") {
+  reticulate::py_run_string(sprintf("
+import pathlib, pydicom
+from pydicom.data import get_testdata_file
+directory = pathlib.Path(%s)
+directory.mkdir(parents=True, exist_ok=True)
+positions = [%s]
+uid = %s or pydicom.uid.generate_uid()
+prefix = %s
+for index, position in enumerate(positions):
+    dataset = pydicom.dcmread(get_testdata_file('CT_small.dcm'))
+    dataset.SeriesInstanceUID = uid
+    dataset.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+    dataset.ImagePositionPatient = [0.0, 0.0, float(position)]
+    dataset.PixelSpacing = [0.8, 0.8]
+    dataset.SliceThickness = 2.5
+    dataset.InstanceNumber = index + 1
+    dataset.save_as(directory / f'{prefix}{(len(positions) - index) * 7 %% 100:02d}.dcm')
+", shQuote(directory), paste(positions, collapse = ", "),
+   if (is.null(uid)) "None" else shQuote(uid), shQuote(prefix)))
+  directory
+}

@@ -408,3 +408,50 @@ def write_volumes(masks, paths: list, reference: list) -> dict:
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
     return {"ok": True, "paths": written}
+
+
+def series_report(paths: list) -> dict:
+    """Check each directory of DICOM slices and report what is wrong with it.
+
+    One row per directory, and a problem is a value in a column rather than an exception. A
+    hundred cases out of an archive will contain a few with a missing slice, two series in one
+    folder, or duplicated files, and stopping at the first one means looking at them one at a
+    time for an afternoon. The point of this function is the list.
+
+    No pixels are read: every check here runs on headers, so this stays usable on a hundred
+    gigabytes of data.
+    """
+    from pyplatypus.data.dicom_series import describe_series
+    from pyplatypus.errors import PlatypusError
+
+    rows = []
+    for path in paths:
+        row = {
+            "path": str(path), "ok": False, "slices": 0, "sorted_by": None,
+            "spacing": None, "series_uid": None, "problem": None,
+        }
+        try:
+            series = describe_series(path)
+        except PlatypusError as error:
+            row["problem"] = str(error)
+        except Exception as error:  # noqa: BLE001
+            row["problem"] = f"{type(error).__name__}: {error}"
+        else:
+            row.update({
+                "ok": True,
+                "slices": len(series),
+                "sorted_by": series.sorted_by,
+                "spacing": list(series.spacing),
+                "series_uid": series.series_uid,
+                "shape": list(series.shape),
+            })
+        rows.append(row)
+    return {"ok": True, "series": rows}
+
+
+def series_support() -> bool:
+    try:
+        from pyplatypus.data import dicom_series  # noqa: F401
+    except Exception:  # noqa: BLE001
+        return False
+    return True

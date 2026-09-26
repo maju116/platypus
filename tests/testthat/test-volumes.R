@@ -161,3 +161,85 @@ test_that("predicted volumes can be measured in millilitres end to end", {
                                                 info$spacing_3))
   expect_equal(millilitres, 32 * 2 * 2 * 5 / 1000)
 })
+
+test_that("a series report says which directories are usable", {
+  skip_if_no_series()
+  root <- withr::local_tempdir()
+  tiny_series(file.path(root, "case_00"))
+  tiny_series(file.path(root, "case_01"), positions = c(0, 2.5, 5, 7.5))
+
+  report <- series_report(list.dirs(root, recursive = FALSE))
+  expect_s3_class(report, "platypus_series_report")
+  expect_true(all(report$ok))
+  expect_equal(report$slices, c(4L, 4L))
+  expect_equal(report$sorted_by, c("position", "position"))
+  expect_equal(report$spacing_3, c(2.5, 2.5))
+})
+
+test_that("a broken series is a row with a problem, not a stopped run", {
+  # The reason this returns a table. An archive export contains a few bad cases and finding
+  # them one exception at a time is an afternoon per dataset.
+  skip_if_no_series()
+  root <- withr::local_tempdir()
+  tiny_series(file.path(root, "good"))
+  tiny_series(file.path(root, "gap"), positions = c(0, 2.5, 7.5, 10))
+  tiny_series(file.path(root, "duplicate"), positions = c(0, 2.5, 2.5, 5))
+
+  report <- series_report(list.dirs(root, recursive = FALSE))
+
+  expect_equal(sum(report$ok), 1)
+  expect_match(report$problem[report$path == file.path(root, "gap")], "evenly spaced")
+  expect_match(report$problem[report$path == file.path(root, "duplicate")], "same position")
+  expect_true(is.na(report$problem[report$path == file.path(root, "good")]))
+})
+
+test_that("two series in one directory are reported as such", {
+  skip_if_no_series()
+  root <- withr::local_tempdir()
+  mixed <- file.path(root, "mixed")
+  tiny_series(mixed, positions = c(0, 2.5), uid = "1.2.3.4", prefix = "SCOUT")
+  tiny_series(mixed, positions = c(0, 2.5), uid = "5.6.7.8", prefix = "RECON")
+
+  report <- series_report(mixed)
+  expect_false(report$ok)
+  expect_match(report$problem, "different series")
+})
+
+test_that("the printed report leads with what needs attention", {
+  skip_if_no_series()
+  root <- withr::local_tempdir()
+  tiny_series(file.path(root, "good"))
+  tiny_series(file.path(root, "gap"), positions = c(0, 2.5, 7.5, 10))
+
+  output <- capture.output(print(series_report(list.dirs(root, recursive = FALSE))))
+  expect_true(any(grepl("1 of 2 usable", output)))
+  expect_true(any(grepl("not usable", output)))
+})
+
+test_that("a series trains from R with nothing new in the specification", {
+  # The rank is derived from input_shape, so a folder of slices needs no new setting - which
+  # is the design holding up after four releases.
+  skip_if_no_series()
+  root <- withr::local_tempdir()
+  for (case in c("case_00", "case_01")) {
+    tiny_series(file.path(root, case, "images"))
+    reticulate::py_run_string(sprintf("
+import pathlib, numpy as np, nibabel as nib
+masks = pathlib.Path(%s)
+masks.mkdir(parents=True, exist_ok=True)
+labels = np.zeros((128, 128, 4), np.float32)
+labels[20:60, 20:60, 1:3] = 1
+nib.save(nib.Nifti1Image(labels, np.diag([0.8, 0.8, 2.5, 1.0])), str(masks / 'seg.nii.gz'))
+", shQuote(file.path(root, case, "masks"))))
+  }
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue"),
+    models = list(u_net("unet3d", input_shape = c(32, 32, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1,
+                        metrics = list(metric_dice())))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  masks <- predict(fit, split = "validation")
+  expect_equal(dim(masks), c(2L, 32L, 32L, 4L))
+})

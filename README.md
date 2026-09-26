@@ -105,7 +105,11 @@ that found nothing into one that looks respectable.
 **Tiling that goes both ways** — cut a large image into a grid instead of shrinking it, and
 get a full-size mask back.
 
-**Volumes.** NIfTI in, 3D U-Net out, patches through the same tiling. Masks are label maps
+**Volumes.** NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same
+tiling. `series_report()` checks a whole export before anything trains — reading no pixels,
+one row per folder — and says which series have a missing slice, duplicated files, or two
+series sitting in one directory. A gap matters more than it sounds: it does not shorten a
+volume, it moves everything past it, and no metric would show that. Masks are label maps
 (`labels = c(0, 1)`) rather than colours, because that is how volume formats store them.
 `save_volumes()` writes predictions as NIfTI carrying the geometry of the scan they came
 from — a mask without that affine cannot be laid over its scan by any viewer — and
