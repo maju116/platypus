@@ -24,7 +24,7 @@ test_that("status reports the pinned engine before anything has started", {
   } else {
     expect_match(
       status$requirement,
-      paste0("^pyplatypus(\\[[a-z]+\\])?==", gsub(".", "\\.", PYPLATYPUS_VERSION, fixed = TRUE), "$")
+      paste0("^pyplatypus(\\[[a-z]+\\])?==", gsub(".", "\\.", platypus:::PYPLATYPUS_VERSION, fixed = TRUE), "$")
     )
   }
   expect_type(status$started, "logical")
@@ -71,7 +71,7 @@ test_that("the engine starts and is the version this package pins", {
   # honoured instead of restating it. A source tree named by PLATYPUS_ENGINE_PATH is
   # allowed to be ahead of the pin - that is what the escape hatch is for.
   if (!nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
-    expect_identical(status$engine_version, PYPLATYPUS_VERSION)
+    expect_identical(status$engine_version, platypus:::PYPLATYPUS_VERSION)
   }
 })
 

@@ -57,8 +57,12 @@ jobs:
           # --as-cran and is being taken up with CRAN separately. Checking without it
           # here keeps the signal useful in the meantime; the `--as-cran` run is done by
           # hand before any submission.
-          args: 'c("--no-manual", "--no-build-vignettes")'
-          build_args: 'c("--no-build-vignettes")'
+          # Vignettes are built here on purpose. They are precomputed, so building them
+          # runs no model and needs no Python - and skipping the build is not free: it
+          # leaves inst/doc empty, which R CMD check reports as two WARNINGs, which this
+          # action then fails on. Checking a package differently from how it is shipped
+          # only produces failures that say nothing.
+          args: 'c("--no-manual")'
 
   # The bridge, exercised for real. This is the part most likely to break in a way local
   # work would not reveal: it downloads the engine into a fresh managed environment, the
