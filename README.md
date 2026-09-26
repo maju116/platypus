@@ -146,6 +146,20 @@ combining the per-object mask files that datasets like the Data Science Bowl shi
 converting between class indices and colours, overlaying, and drawing the comparison
 above. These work on ordinary R arrays and need no Python at all.
 
+## Learning it
+
+Two vignettes, both precomputed from real runs — every number and figure in them came out of
+running the code shown.
+
+`vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
+mask per nucleus, from a folder of images to a figure.
+
+`vignette("volumes")` is CT, and generates its own synthetic data so it can be run without
+downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a
+slice to look at, and the size of a finding in millilitres. It ends on something worth knowing —
+a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and
+is the reason to report both.
+
 ## What is not in it yet
 
 Object detection, ensembling, pretrained encoders. Augmentation in 3D, which albumentations

@@ -420,3 +420,68 @@ test_that("a transform that cannot do volumes is named when the run starts", {
   )
   expect_error(platypus_fit(spec, num_workers = 0), "GaussNoise")
 })
+
+# --------------------------------------------------- reading a split back in
+test_that("split_files resolves the paths the CSV stores relatively", {
+  # The CSVs store paths relative to themselves *when they can*, so a dataset and its split
+  # travel together. read.csv() then hands back paths that do not open from wherever the session
+  # happens to be - a trap worth removing rather than documenting.
+  #
+  # Writing the split above the data is what produces the relative form; the first version of
+  # this test put the two in unrelated temporary directories, where the paths come out absolute
+  # and there was nothing to resolve.
+  skip_if_no_splits()
+  root <- tiny_patient_dataset(patients = 6, slices = 2)
+  split <- platypus_split(root, dirname(root), group_by = "^(patient\\d+)_",
+                          fractions = c(0.5, 0.5))
+
+  raw <- utils::read.csv(split$train_path)
+  expect_false(any(startsWith(raw$images, "/")))   # as stored: relative
+  expect_false(all(file.exists(raw$images)))       # and not usable from here
+
+  table <- split_files(split, "train")
+  expect_true(all(file.exists(table$images)))      # as returned: usable
+  expect_true(all(file.exists(table$masks)))
+  expect_true(all(c("key", "group", "images", "masks") %in% names(table)))
+  expect_equal(nrow(table), split$samples[["train"]])
+})
+
+test_that("split_files refuses a part the split does not have", {
+  skip_if_no_splits()
+  root <- tiny_patient_dataset(patients = 4, slices = 1)
+  split <- platypus_split(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
+                          fractions = c(0.75, 0.25))
+  expect_error(split_files(split, "test"), "no 'test' part")
+})
+
+test_that("split_files insists on a split", {
+  expect_error(split_files(list(train_path = "a.csv"), "train"), "platypus_split")
+})
+
+# ------------------------------------------------------- masks as label maps
+test_that("read_masks reads label maps as well as pictures", {
+  skip_if_no_volumes()
+  root <- tiny_volume_dataset(cases = 2)
+  masks <- list.files(root, pattern = "seg[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
+
+  classes <- read_masks(masks, labels = c(0, 1), size = c(8, 8, 4))
+  expect_equal(dim(classes), c(2L, 8L, 8L, 4L))
+  # Counted from 1, as everywhere in the R surface.
+  expect_setequal(unique(as.vector(classes)), c(1L, 2L))
+})
+
+test_that("read_masks wants exactly one way of naming classes", {
+  expect_error(read_masks("a.png"), "exactly one of")
+  expect_error(read_masks("a.png", colormap = binary_colormap, labels = c(0, 1)),
+               "exactly one of")
+})
+
+test_that("a label that misses becomes background rather than an error", {
+  # Label maps arrive as floats, so the comparison is to within half a unit. A value in the
+  # file that no label claims is background - the same convention as an unmatched colour.
+  skip_if_no_volumes()
+  root <- tiny_volume_dataset(cases = 1)
+  masks <- list.files(root, pattern = "seg[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
+  classes <- read_masks(masks, labels = c(0, 7), size = c(8, 8, 4))
+  expect_setequal(unique(as.vector(classes)), 1L)
+})

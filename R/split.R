@@ -124,3 +124,50 @@ print.platypus_split <- function(x, ...) {
   cat("  seed", x$seed, "- the same inputs give this split again\n")
   invisible(x)
 }
+
+#' The files in one part of a split
+#'
+#' Reads the CSV that [platypus_split()] wrote and hands back the paths ready to use.
+#'
+#' The reason this exists rather than `read.csv()`: the CSVs store paths **relative to
+#' themselves**, so that a dataset and its split can be moved or mounted elsewhere together.
+#' Read directly, those paths do not open from wherever your session happens to be - which is a
+#' trap worth removing rather than documenting.
+#'
+#' @param split A [platypus_split()].
+#' @param which `"train"`, `"validation"` or `"test"`.
+#' @return A data frame with `key`, `group`, `images` and `masks`, the paths made absolute.
+#'   `images` and `masks` hold one path per sample, or several separated by the split's
+#'   separator when a sample has several files.
+#' @examples
+#' \dontrun{
+#' split <- platypus_split("scans", "splits", group_by = "^(patient\\\\d+)_")
+#' validation <- split_files(split, "validation")
+#' images <- read_images(validation$images, size = c(32, 32, 32), channels = 1)
+#' }
+#' @export
+split_files <- function(split, which = c("train", "validation", "test")) {
+  if (!inherits(split, "platypus_split")) {
+    stop("`split` must come from `platypus_split()`.", call. = FALSE)
+  }
+  which <- match.arg(which)
+  path <- split[[paste0(which, "_path")]]
+  if (is.null(path)) {
+    stop("this split has no '", which, "' part.", call. = FALSE)
+  }
+
+  table <- utils::read.csv(path, stringsAsFactors = FALSE)
+  base <- dirname(path)
+  absolute <- function(cell) {
+    vapply(strsplit(cell, ";", fixed = TRUE), function(pieces) {
+      pieces <- trimws(pieces)
+      resolved <- ifelse(startsWith(pieces, "/") | grepl("^[A-Za-z]:", pieces),
+                         pieces, file.path(base, pieces))
+      paste(resolved, collapse = ";")
+    }, character(1))
+  }
+
+  table$images <- absolute(table$images)
+  if ("masks" %in% names(table)) table$masks <- absolute(table$masks)
+  table
+}

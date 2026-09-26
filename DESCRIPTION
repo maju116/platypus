@@ -27,6 +27,7 @@ Imports:
 Suggests:
     callr,
     knitr,
+    RNifti,
     rmarkdown,
     testthat (>= 3.0.0),
     withr

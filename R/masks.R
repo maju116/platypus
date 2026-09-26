@@ -67,17 +67,57 @@ mask_classes <- function(mask, colormap, tolerance = 0) {
 
 #' Read mask files as class indices
 #'
+#' Masks come two ways, and this reads both. `colormap` is for masks stored as pictures, one
+#' colour per class. `labels` is for masks stored as label maps - a vector of the voxel values,
+#' in class order - which is how volume formats store them.
+#'
 #' @inheritParams read_images
-#' @param colormap A list of RGB triples, one per class.
-#' @param tolerance Passed to [mask_classes()].
+#' @param colormap A list of RGB triples, one per class. Give this or `labels`.
+#' @param labels The voxel value of each class, in class order: `c(0, 1)` for a binary
+#'   segmentation. For NIfTI and other label maps. Give this or `colormap`.
+#' @param tolerance Passed to [mask_classes()]. Ignored for label maps, which are compared to
+#'   within half a unit - a label map that has been resampled or merely passed through a float
+#'   will not satisfy an exact comparison, and a label that fails to match becomes background.
 #' @return An array of class indices, counted from 1.
 #' @export
-read_masks <- function(paths, colormap, size = NULL, tolerance = 0) {
-  # Nearest, always. Interpolating a mask invents colours belonging to no class, which
-  # then quietly become background - and the plot would show a disagreement that is
-  # nothing but the resizing.
+read_masks <- function(paths, colormap = NULL, labels = NULL, size = NULL, tolerance = 0) {
+  if (is.null(colormap) == is.null(labels)) {
+    stop("give exactly one of `colormap` (masks stored as pictures) and `labels` ",
+         "(masks stored as label maps, which is how volumes do it).", call. = FALSE)
+  }
+
+  # Nearest, always. Interpolating a mask invents values belonging to no class, which then
+  # quietly become background - and the plot would show a disagreement that is nothing but the
+  # resizing.
+  if (!is.null(labels)) {
+    values <- read_images(paths, size = size, channels = 1, nearest = TRUE)
+    return(label_classes(values, labels))
+  }
   coloured <- read_images(paths, size = size, channels = 3, nearest = TRUE)
   mask_classes(coloured, colormap, tolerance = tolerance)$classes
+}
+
+#' Label values to class indices
+#'
+#' @param values An array whose last axis is a single channel, as [read_images()] returns for
+#'   `channels = 1`.
+#' @param labels The voxel value of each class, in class order.
+#' @return An array of class indices counted from 1, with the channel axis dropped.
+#' @keywords internal
+#' @noRd
+label_classes <- function(values, labels) {
+  dims <- dim(values)
+  spatial <- dims[-length(dims)]
+  flat <- as.numeric(values)
+
+  classes <- integer(length(flat))
+  for (index in seq_along(labels)) {
+    # Half a unit, because the values arrive as floats: exact comparison would miss a label
+    # map that has been resampled, and a label that misses becomes background.
+    classes[abs(flat - as.numeric(labels[[index]])) <= 0.5] <- index
+  }
+  classes[classes == 0L] <- 1L
+  array(classes, dim = spatial)
 }
 
 #' Lay a mask over the image it belongs to
