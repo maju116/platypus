@@ -113,28 +113,42 @@ def evaluation_table(engine: Any, split: str = "validation") -> dict:
 
 
 def predictions(engine: Any, model_name: str, split: str = "test",
-                as_class: bool = True) -> dict:
+                as_class: bool = True, space: str = "model") -> dict:
     """Masks for a split.
 
     `as_class` collapses the channel axis to the class index, which is the mask someone
     actually wants to look at; the probabilities are there for anyone who needs them.
+
+    `space` is `"model"` or `"source"`. In source space the engine returns one array per scan,
+    on that scan's own grid, so the result is a list - which is why the answer says which space
+    it is in rather than leaving R to infer it from the shape.
     """
     import numpy as np
     import pyplatypus
 
     try:
-        probabilities = engine.predict(model_name, split=split)
+        probabilities = engine.predict(model_name, split=split, space=space)
     except pyplatypus.PlatypusError as error:
         return _failure(error)
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
 
-    if as_class:
+    def to_class(array):
         # +1 so the classes are 1-based on arrival: R indexes from one, and a mask whose
         # background is 0 while its colormap starts at 1 is a trap laid for later.
-        return {"ok": True, "masks": (probabilities.argmax(axis=-1) + 1).astype(np.int32),
-                "type": "class"}
-    return {"ok": True, "masks": probabilities, "type": "probability"}
+        return (array.argmax(axis=-1) + 1).astype(np.int32)
+
+    if isinstance(probabilities, list):
+        # Source space: one array per scan, each on its own grid, so this cannot become one
+        # array and R receives a list. Keeping the shapes apart is the point - see
+        # `?predict.platypus_fit`.
+        masks = [to_class(one) if as_class else one for one in probabilities]
+        return {"ok": True, "masks": masks, "type": "class" if as_class else "probability",
+                "space": "source"}
+
+    masks = to_class(probabilities) if as_class else probabilities
+    return {"ok": True, "masks": masks, "type": "class" if as_class else "probability",
+            "space": "model"}
 
 
 def model_names(engine: Any) -> list:

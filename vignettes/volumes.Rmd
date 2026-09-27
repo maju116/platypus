@@ -106,8 +106,6 @@ training uses:
 ``` r
 scans <- list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
 info <- volume_info(scans[c(1, 3)])
-#> Warning: Some Python package requirements declared via `py_require()` are not installed in the selected Python environment: (/home/maju116/.cache/uv/archive-v0/C95nQ8lzI_U0_m_Kdp6e2/bin/python)
-#> 
 info[, c("spacing_1", "spacing_2", "spacing_3", "shape_3", "voxel_ml")]
 #>   spacing_1 spacing_2 spacing_3 shape_3 voxel_ml
 #> 1         1         1       2.5      32   0.0025
@@ -188,7 +186,7 @@ spec <- platypus_spec(
 )
 spec
 #> platypus specification
-#>   data        : /tmp/RtmpIVafEh/splits/train.csv 
+#>   data        : /tmp/RtmpkbOuuB/splits/train.csv 
 #>   classes     : 0 
 #>   models      : 1 
 #>     lesion         u_net            32x32x32, dice, 12 epochs
@@ -220,13 +218,10 @@ raising something from inside the library an hour in.
 
 ``` r
 fit <- platypus_fit(spec, verbose = FALSE)
-#> Warning: Training on the processor: this machine has a GPU, but the installed PyTorch build
-#>   cannot use it. For a GTX 10-series card or older, restart R and call platypus_use_torch("pascal").
-#>   See ?platypus_device.
 fit
 #> platypus fit
 #>   models   : lesion 
-#>   device   : cpu (torch 2.14.0+cu130) 
+#>   device   : NVIDIA GeForce GTX 1070 (torch 2.7.1+cu126) 
 #>   epochs   : lesion=12 
 #>   next     : evaluate(fit), predict(fit, "lesion")
 ```
@@ -246,7 +241,7 @@ plot(fit)
 ``` r
 evaluate(fit)[, c("model", "loss_function", "dice", "epochs_run")]
 #>    model loss_function      dice epochs_run
-#> 1 lesion          dice 0.9415896         12
+#> 1 lesion          dice 0.9633882         12
 ```
 
 That number hides the distribution, and the distribution is usually the finding. With
@@ -258,16 +253,16 @@ cases <- evaluate_cases(fit, group_by = "^(patient\\d+)_")
 cases
 #> platypus scores by group (3 rows)
 #>      group      dice
-#>  patient06 0.9483926
-#>  patient11 0.9215513
-#>  patient10 0.9547358
+#>  patient06 0.9800181
+#>  patient11 0.9230408
+#>  patient10 0.9870523
 ```
 
 
 ``` r
 summary(cases)
 #>   metric n      mean         sd    median       min       max worst_group
-#> 1   dice 3 0.9415599 0.01761577 0.9483926 0.9215513 0.9547358   patient11
+#> 1   dice 3 0.9633704 0.03510311 0.9800181 0.9230408 0.9870523   patient11
 ```
 
 The `worst_group` column is the one that makes this actionable. A mean of any value with a
@@ -316,18 +311,18 @@ sizes <- merge(
 sizes$error_pct <- round(100 * (sizes$predicted_ml - sizes$true_ml) / sizes$true_ml)
 sizes
 #>                key predicted_ml   true_ml error_pct
-#> 1 patient06_study1         0.31 0.2680826        16
-#> 2 patient06_study2         0.31 0.2680826        16
-#> 3 patient10_study1         1.00 0.9047787        11
-#> 4 patient10_study2         1.00 0.9047787        11
-#> 5 patient11_study1         0.59 0.5235988        13
-#> 6 patient11_study2         0.60 0.5235988        15
+#> 1 patient06_study1         0.27 0.2680826         1
+#> 2 patient06_study2         0.27 0.2680826         1
+#> 3 patient10_study1         0.90 0.9047787        -1
+#> 4 patient10_study2         0.90 0.9047787        -1
+#> 5 patient11_study1         0.53 0.5235988         1
+#> 6 patient11_study2         0.52 0.5235988        -1
 ```
 
 These lesions are spheres, so the true volume is known exactly - which is worth doing in a
 synthetic example, because it asks a question Dice cannot. The overlap scores above were
-around 0.88, respectable by any standard; the volumes are 11% to
-16% out.
+around 0.88, respectable by any standard; the volumes are -1% to
+1% out.
 
 That is not a contradiction. Dice is dominated by the interior of an object and forgiving about
 its boundary, and for a small lesion the boundary *is* most of it. A model that draws every
@@ -338,64 +333,59 @@ March*, this table is, and the two do not follow from each other.
 ## Writing a mask back onto its scan
 
 `save_volumes()` writes a prediction as NIfTI carrying the affine of the scan it came from.
-Without that affine a mask cannot be laid over its scan by any viewer or registration tool -
-it either lands in the wrong place or is refused, and nothing about the file looks wrong.
+Without that affine a mask cannot be laid over its scan by any viewer or registration tool - it
+either lands in the wrong place or is refused, and nothing about the file looks wrong.
 
-Carrying the affine means the mask has to be **on the same grid as the scan**, and that is a
-real constraint rather than a formality. A prediction comes back on the model's grid: these
-scans are 48 x 48 x 32 voxels and the model works at 32 x 32 x 32 after resampling, so writing
-one over the other is refused:
+Carrying the affine means the mask has to be **on the same grid as the scan**, and after
+resampling it is not: these scans are 48 x 48 x 32 voxels while the model works at 32 x 32 x 32.
+`space = "source"` maps each prediction back out of the model's grid onto the scan's, undoing
+the resampling and the crop:
 
 
 ``` r
-save_volumes(prediction, file.path(tempdir(), "predictions"),
-             reference = validation$images)
-#> Error in `save_volumes()`:
-#> ! mask (32, 32, 32) does not match '/tmp/RtmpIVafEh/scans/patient06_study1/images/ct.nii.gz' (48, 48, 32). A mask written with the wrong geometry lands in the wrong place, which is worse than failing.
+masks <- predict(fit, split = "validation", space = "source")
+length(masks)
+#> [1] 6
+dim(masks[[1]])
+#> [1] 48 48 32
 ```
 
-To get a mask in the scan's own space, predict in it: no resampling, and an `input_shape` that
-matches the scans. Here that is a second short run.
+A list rather than an array, because scans differ in size and a stack needs one shape. That is
+the API being explicit rather than resizing them to match, which is how a mask ends up
+describing anatomy it was not computed from.
+
+Names come from the reference files unless you say otherwise, and here every scan is called
+`ct.nii.gz` inside its own directory - so the masks would all be written to one name. That is an
+error rather than five silently lost files, and the case keys are what to use instead:
 
 
 ``` r
-native <- platypus_spec(
-  data = segmentation_data(split, labels = c(0, 1), window = "soft_tissue"),
-  models = list(u_net("native", input_shape = c(48, 48, 32), channels = 1, blocks = 3,
-                      filters = 8, epochs = 4, batch_size = 1,
-                      metrics = list(metric_dice(include_background = FALSE))))
-)
-native_fit <- platypus_fit(native, verbose = FALSE)
-#> Warning: Training on the processor: this machine has a GPU, but the installed PyTorch build
-#>   cannot use it. For a GTX 10-series card or older, restart R and call platypus_use_torch("pascal").
-#>   See ?platypus_device.
-native_prediction <- predict(native_fit, split = "validation")
-
-written <- save_volumes(
-  native_prediction, file.path(tempdir(), "predictions"),
-  reference = validation$images
-)
+written <- save_volumes(masks, file.path(tempdir(), "predictions"),
+                        reference = validation$images, names = validation$key)
 basename(written)
-#> [1] "ct.nii.gz" "ct.nii.gz" "ct.nii.gz" "ct.nii.gz" "ct.nii.gz" "ct.nii.gz"
+#> [1] "patient06_study1.nii.gz" "patient06_study2.nii.gz"
+#> [3] "patient11_study1.nii.gz" "patient11_study2.nii.gz"
+#> [5] "patient10_study1.nii.gz" "patient10_study2.nii.gz"
 ```
 
-The written masks carry the scans' spacing, which is what makes them open on top of them:
+The written masks carry the scans' geometry, which is what makes them open on top of them:
 
 
 ``` r
 volume_info(written)[, c("spacing_1", "spacing_3", "shape_1", "shape_3")]
 #>   spacing_1 spacing_3 shape_1 shape_3
-#> 1         1         1      48      32
-#> 2         1         1      48      32
-#> 3         1         1      48      32
-#> 4         1         1      48      32
-#> 5         1         1      48      32
-#> 6         1         1      48      32
+#> 1         1       1.0      48      32
+#> 2         1       1.0      48      32
+#> 3         1       2.5      48      32
+#> 4         1       2.5      48      32
+#> 5         1       1.0      48      32
+#> 6         1       1.0      48      32
 ```
 
-Mapping a resampled prediction back onto the original grid is the obvious missing piece, and
-it is not here yet. Until it is, the choice is explicit: resample and measure in millilitres,
-or predict in the scan's space and write the mask back.
+Two things are lost on the way back and it is worth knowing which. Interpolation softens a
+boundary, so the mask is slightly smoother than the model drew it. And where reading cropped
+anatomy away, the mask returns padded with background - which means *not examined*, not *nothing
+there*. If that distinction matters, give the model an `input_shape` that covers the anatomy.
 
 ## DICOM, which is how the data usually arrives
 
@@ -423,19 +413,12 @@ past the gap.
 Resampling is offered, not imposed. Several volumes per sample - one per modality, as BraTS
 ships - works through `channels_from`, where the order is stated rather than inferred.
 
-Two things are missing rather than declined. A resampled prediction cannot yet be mapped back
-onto the scan's own grid, which is what the two runs above work around. And object detection,
-ensembling and pretrained encoders are not here at all.
+Object detection, ensembling and pretrained encoders are not here at all.
 
 
 ``` r
 platypus_device()
-#> torch      : 2.14.0+cu130 
-#> cuda build : 13.0 
-#> device     : cpu 
-#> 
-#>   This machine has a GPU that this PyTorch build cannot use, so the work will
-#>   run on the processor instead - often about ten times slower.
-#>   For a GTX 10-series card or older, restart R and call:
-#>       platypus_use_torch("pascal")
+#> torch      : 2.7.1+cu126 
+#> cuda build : 12.6 
+#> device     : NVIDIA GeForce GTX 1070
 ```

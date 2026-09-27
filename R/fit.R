@@ -116,27 +116,54 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 
 #' Predict masks
 #'
+#' @section Which grid the answer is on:
+#'
+#' `space = "model"` returns everything on the grid the model worked at, stacked into one
+#' array. That is what training saw, and it is the only form that can be a single array,
+#' because a stack needs one shape.
+#'
+#' `space = "source"` maps each prediction back onto the grid of the scan it was computed
+#' from - undoing the resampling and the crop - and therefore returns a **list**, one mask per
+#' scan. This is what you want for anything that has to meet the original data: laying a mask
+#' over the scan in a viewer, writing it beside the scan with [save_volumes()], or measuring it
+#' in millilitres of the scan's own voxels. Scans differ in size, so the list is not a
+#' limitation being worked around - resizing them to a common shape is exactly how a mask ends
+#' up describing anatomy it was not computed from.
+#'
+#' Two things are lost mapping back, and neither can be recovered. Interpolation softens a
+#' boundary, so the mask returns slightly smoother than the model drew it. And where reading
+#' cropped anatomy away, the mask comes back padded with background - which means *not
+#' examined*, not *nothing there*. Give the model an `input_shape` that covers the anatomy if
+#' that distinction matters.
+#'
 #' @param object A [platypus_fit()].
 #' @param model Which model, by the name given in the specification. Defaults to the
 #'   first one trained.
 #' @param split Which data to predict on.
 #' @param type `"class"` gives the class index per pixel, which is the mask to look at;
 #'   `"probability"` keeps the per-class channel.
+#' @param space `"model"` or `"source"`; see above. Note that the two return different
+#'   shapes of thing, an array and a list, because they are different things.
 #' @param ... Unused.
-#' @return For `"class"`, an integer array of `image x height x width`, with classes
-#'   numbered from 1 to match the colormap. For `"probability"`, the same with a trailing
-#'   class axis. Tiled models return images at their original size, reassembled.
+#' @return With `space = "model"`: for `"class"`, an integer array of
+#'   `image x height x width`, classes numbered from 1 to match the colormap; for
+#'   `"probability"`, the same with a trailing class axis. Tiled models return images at their
+#'   original size, reassembled.
+#'
+#'   With `space = "source"`: a list of such arrays, one per scan, each on that scan's grid.
 #' @export
 predict.platypus_fit <- function(object, model = NULL, split = "test",
-                                 type = c("class", "probability"), ...) {
+                                 type = c("class", "probability"),
+                                 space = c("model", "source"), ...) {
   type <- match.arg(type)
+  space <- match.arg(space)
   model <- model %||% object$models[[1]]
   if (!model %in% object$models) {
     stop("no model called '", model, "'; this fit has: ",
          paste(object$models, collapse = ", "), call. = FALSE)
   }
   result <- shim()$predictions(object$engine, model, split = split,
-                               as_class = identical(type, "class"))
+                              as_class = identical(type, "class"), space = space)
   if (!isTRUE(result$ok)) abort_engine(result)
   result$masks
 }

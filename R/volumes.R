@@ -70,35 +70,30 @@ mask_volume <- function(mask, spacing, class = 2L) {
   voxels * prod(as.numeric(spacing)) / 1000
 }
 
-#' Save predicted volumes as NIfTI
+#' One volume per element, whatever form the masks arrived in
 #'
-#' Writes each mask as a label-map NIfTI carrying the geometry of the scan it was predicted
-#' from. That is the whole reason this is not `save_masks()` with a different extension: a
-#' mask array without an affine cannot be laid over its scan by any viewer, any registration
-#' tool or any volume calculation - it either lands in the wrong place or is refused.
-#'
-#' @param masks Masks of class indices, as [predict()] returns. One volume is
-#'   `depth x height x width`; a stack is `volume x depth x height x width`; probabilities
-#'   are `volume x depth x height x width x class` and are collapsed to the most likely
-#'   class. A single volume's probabilities have the same rank as a stack of masks and are
-#'   not guessed at - collapse them yourself, or keep the volume axis.
-#' @param dir Where to write. Created if it does not exist.
-#' @param reference The scan each mask was predicted from, in the same order. Its affine is
-#'   what the mask is written with, so this is required rather than optional.
-#' @param names File names, without extension. Taken from `reference` when unset, which is
-#'   usually what you want - `case_01.nii.gz` next to the scan it belongs to.
-#' @param suffix Appended to each name, for telling two models' output apart.
-#' @return The paths written, invisibly.
-#' @seealso [save_masks()] for 2D masks as pictures.
-#' @examples
-#' \dontrun{
-#' masks <- predict(fit, split = "validation")
-#' scans <- list.files("scans", pattern = "[.]nii[.]gz$", recursive = TRUE,
-#'                     full.names = TRUE)
-#' save_volumes(masks, "predictions", reference = scans)
-#' }
-#' @export
-save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
+#' A list from `predict(space = "source")` passes through untouched, which is the point of that
+#' argument existing: its members are already on their scans' grids and need not agree with each
+#' other. An array is unstacked instead, and probabilities are collapsed.
+#' @keywords internal
+#' @noRd
+as_volume_list <- function(masks) {
+  if (is.list(masks)) {
+    volumes <- lapply(masks, function(one) {
+      dims <- length(dim(one))
+      if (dims == 4L) {
+        # (d, h, w, class): probabilities for one volume.
+        apply(one, seq_len(3L), which.max)
+      } else if (dims == 3L) {
+        one
+      } else {
+        stop("a mask in the list has ", dims, " dimensions; expected 3 (class indices) or ",
+             "4 (probabilities for one volume).", call. = FALSE)
+      }
+    })
+    return(volumes)
+  }
+
   dimensions <- length(dim(masks))
   if (dimensions == 5L) {
     # Probabilities: (n, d, h, w, class). Collapse as predict(type = "class") would.
@@ -113,8 +108,54 @@ save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
   # probabilities have exactly the same rank, and guessing between them by looking at the
   # sizes is how a silent misinterpretation gets into a package: it worked here for a stack
   # of two and would have written one wrong file for a stack of four.
+  lapply(seq_len(dim(masks)[1]), function(i) masks[i, , , , drop = TRUE])
+}
 
-  count <- dim(masks)[1]
+#' Save predicted volumes as NIfTI
+#'
+#' Writes each mask as a label-map NIfTI carrying the geometry of the scan it was predicted
+#' from. That is the whole reason this is not `save_masks()` with a different extension: a
+#' mask array without an affine cannot be laid over its scan by any viewer, any registration
+#' tool or any volume calculation - it either lands in the wrong place or is refused.
+#'
+#' Carrying the affine means the mask has to be on the same grid as the scan, which is what
+#' `predict(space = "source")` is for: it maps each prediction back out of the model's grid onto
+#' the scan's. Without it, a resampled or resized prediction will be refused here rather than
+#' written somewhere wrong.
+#'
+#' @param masks Masks of class indices, as [predict()] returns.
+#'
+#'   A **list** of volumes is what `predict(space = "source")` gives, and the form to prefer:
+#'   each mask is already on the grid of the scan it was computed from, so the geometry matches
+#'   by construction and the scans need not be the same size as each other.
+#'
+#'   An array is also accepted: one volume as `depth x height x width`, a stack as
+#'   `volume x depth x height x width`, probabilities as `volume x depth x height x width x class`
+#'   which are collapsed to the most likely class. A single volume's probabilities have the same
+#'   rank as a stack of masks and are not guessed at - collapse them yourself, or keep the volume
+#'   axis.
+#' @param dir Where to write. Created if it does not exist.
+#' @param reference The scan each mask was predicted from, in the same order. Its affine is
+#'   what the mask is written with, so this is required rather than optional.
+#' @param names File names, without extension. Taken from `reference` when unset, which works
+#'   when the scans have distinct filenames. They often do not - one directory per case, the same
+#'   `ct.nii.gz` inside each - and writing every mask to one name would silently keep only the
+#'   last, so that case is an error asking for this argument. `split_files(split, "validation")$key`
+#'   is usually the answer.
+#' @param suffix Appended to each name, for telling two models' output apart.
+#' @return The paths written, invisibly.
+#' @seealso [save_masks()] for 2D masks as pictures.
+#' @examples
+#' \dontrun{
+#' validation <- split_files(split, "validation")
+#' masks <- predict(fit, split = "validation", space = "source")
+#' save_volumes(masks, "predictions", reference = validation$images)
+#' }
+#' @export
+save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
+  volumes <- as_volume_list(masks)
+
+  count <- length(volumes)
   reference <- as.character(reference)
   if (length(reference) != count) {
     stop("`reference` has ", length(reference), " entries but there are ", count,
@@ -131,8 +172,20 @@ save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
     stop("`names` has ", length(names), " entries but there are ", count, " masks.",
          call. = FALSE)
   }
+  if (anyDuplicated(names)) {
+    # Datasets that keep one directory per case usually name the file inside it the same way -
+    # `case_01/images/ct.nii.gz` - so basenames collide and every mask would be written to one
+    # path, each overwriting the last. Silently losing five of six masks is the worst outcome
+    # available here, and the fix is one argument.
+    repeated <- unique(names[duplicated(names)])
+    stop("the masks would be written to the same name: ",
+         paste(utils::head(repeated, 3), collapse = ", "),
+         if (length(repeated) > 3) ", ..." else "",
+         ". Names come from the reference files, and one directory per case usually means ",
+         "the same filename in each. Pass `names` - `split_files(split, \"validation\")$key` ",
+         "is what you want.", call. = FALSE)
+  }
 
-  volumes <- lapply(seq_len(count), function(i) masks[i, , , , drop = TRUE])
   paths <- file.path(dir, paste0(names, suffix, ".nii.gz"))
 
   result <- shim()$write_volumes(volumes, as.list(paths), as.list(reference))

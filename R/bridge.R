@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_VERSION <- "0.3.0a5"
+PYPLATYPUS_VERSION <- "0.3.0a6"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -96,9 +96,12 @@ engine_start_failure <- function(message) {
     paste0(
       out,
       "  ", .platypus_requirement(), " does exist. uv is answering from a cached copy of ",
-      "the package\n  index, which happens for a while after a release. Clear that one ",
-      "entry and try again:\n\n",
-      "    uv cache clean pyplatypus\n"
+      "the package\n  index, which happens for a while after a release.\n\n",
+      "  Clear the index cache - not the whole cache, which would throw away the multi-",
+      "gigabyte\n  PyTorch download along with it:\n\n",
+      "    rm -rf \"$(uv cache dir)\"/simple-v*\n\n",
+      "  `uv cache clean pyplatypus` is not enough: it removes that package's built ",
+      "artifacts\n  and leaves the index response that says the version does not exist.\n"
     )
   } else {
     paste0(

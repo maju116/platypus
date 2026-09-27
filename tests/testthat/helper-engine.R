@@ -344,3 +344,21 @@ skip_if_no_3d_augmentation <- function() {
     "the engine in use predates 3D augmentation"
   )
 }
+
+#' Can the engine in use map predictions back to the source grid?
+engine_maps_to_source <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    schema <- platypus:::engine()$spec_schema()   # started, so the version is answerable
+    version <- platypus_status()$engine_version
+    !is.na(version) && utils::compareVersion(gsub("a", ".", version), "0.3.0.6") >= 0
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_source_space <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_maps_to_source(),
+    "the engine in use predates predictions in source space"
+  )
+}

@@ -64,8 +64,11 @@ test_that("save_volumes states what each rank means rather than guessing", {
   scans <- sort(list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE,
                            full.names = TRUE))
   written <- save_volumes(array(1L, c(2, 8, 8, 4)), withr::local_tempdir(),
-                          reference = scans)
-  expect_length(written, 2)
+                          reference = scans, names = c("first", "second"))
+  # Files on disk, not just returned paths: the earlier version of these tests counted paths
+  # while both masks went to one file, and passed.
+  expect_length(unique(written), 2)
+  expect_true(all(file.exists(written)))
 
   expect_error(save_volumes(array(1L, c(8, 8)), withr::local_tempdir(), reference = scans),
                "expected 3")
@@ -120,10 +123,10 @@ test_that("a predicted volume is written with the geometry of the scan it came f
   masks <- array(1L, dim = c(2, 8, 8, 4))
   masks[, 3:6, 3:6, 2:3] <- 2L
 
-  written <- save_volumes(masks, out, reference = scans)
-  expect_length(written, 2)
+  written <- save_volumes(masks, out, reference = scans, names = c("case_00", "case_01"))
+  expect_length(unique(written), 2)
   expect_true(all(file.exists(written)))
-  expect_match(basename(written[[1]]), "^ct[.]nii[.]gz$")
+  expect_match(basename(written[[1]]), "^case_00[.]nii[.]gz$")
 
   # Same spacing as the scan, which is the part that makes it overlay.
   expect_equal(volume_info(written)$spacing_3, volume_info(scans)$spacing_3)
@@ -484,4 +487,122 @@ test_that("a label that misses becomes background rather than an error", {
   masks <- list.files(root, pattern = "seg[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
   classes <- read_masks(masks, labels = c(0, 7), size = c(8, 8, 4))
   expect_setequal(unique(as.vector(classes)), 1L)
+})
+
+# --------------------------------------------- predictions in the scan's space
+test_that("`space` is checked before Python starts", {
+  fit <- structure(list(models = "m", engine = NULL), class = "platypus_fit")
+  expect_error(predict(fit, space = "patient"), "'arg' should be one of")
+})
+
+test_that("source space returns one mask per scan, on that scan's grid", {
+  # The two spaces return different shapes of thing, and that is the API being explicit: scans
+  # differ in size, so they cannot be stacked, and resizing them to match is how a mask ends up
+  # describing anatomy it was not computed from.
+  skip_if_no_source_space()
+  root <- tiny_volume_dataset(cases = 2, shape = c(16, 16, 8), spacing = c(1, 1, 2))
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue",
+                             target_spacing = c(1, 1, 1)),
+    models = list(u_net("u", input_shape = c(8, 8, 8), channels = 1, blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 1))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+
+  on_model <- predict(fit, split = "validation")
+  expect_true(is.array(on_model))
+  expect_equal(dim(on_model), c(2L, 8L, 8L, 8L))
+
+  on_source <- predict(fit, split = "validation", space = "source")
+  expect_true(is.list(on_source))
+  expect_length(on_source, 2)
+  # Back to the scan's own shape - 16 x 16 x 8 - not the model's 8 x 8 x 8.
+  expect_equal(dim(on_source[[1]]), c(16L, 16L, 8L))
+})
+
+test_that("a mask in the scan's space can be written over that scan", {
+  # The whole point of the feature: with resampling, this used to be refused because the
+  # prediction was on the model's grid and a mask with the wrong geometry lands in the wrong
+  # place. Now the two agree by construction.
+  skip_if_no_source_space()
+  root <- tiny_volume_dataset(cases = 2, shape = c(16, 16, 8), spacing = c(1, 1, 2))
+  scans <- sort(list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE,
+                           full.names = TRUE))
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue",
+                             target_spacing = c(1, 1, 1)),
+    models = list(u_net("u", input_shape = c(8, 8, 8), channels = 1, blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 1))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  masks <- predict(fit, split = "validation", space = "source")
+
+  written <- save_volumes(masks, withr::local_tempdir(), reference = scans,
+                          names = c("case_00", "case_01"))
+  expect_length(unique(written), 2)
+  expect_true(all(file.exists(written)))
+  expect_equal(volume_info(written)$spacing_3, volume_info(scans)$spacing_3)
+  expect_equal(volume_info(written)$shape_1, volume_info(scans)$shape_1)
+})
+
+test_that("a prediction on the model's grid is still refused, with the reason", {
+  skip_if_no_source_space()
+  root <- tiny_volume_dataset(cases = 1, shape = c(16, 16, 8), spacing = c(1, 1, 2))
+  scan <- list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue",
+                             target_spacing = c(1, 1, 1)),
+    models = list(u_net("u", input_shape = c(8, 8, 8), channels = 1, blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 1))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  expect_error(
+    save_volumes(predict(fit, split = "validation"), withr::local_tempdir(),
+                 reference = scan),
+    "does not match"
+  )
+})
+
+test_that("save_volumes takes probabilities in a list too", {
+  skip_if_no_source_space()
+  root <- tiny_volume_dataset(cases = 1, shape = c(16, 16, 8), spacing = c(1, 1, 2))
+  scan <- list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(0, 1), window = "soft_tissue",
+                             target_spacing = c(1, 1, 1)),
+    models = list(u_net("u", input_shape = c(8, 8, 8), channels = 1, blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 1))
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  probabilities <- predict(fit, split = "validation", type = "probability",
+                           space = "source")
+  expect_equal(dim(probabilities[[1]]), c(16L, 16L, 8L, 2L))
+
+  written <- save_volumes(probabilities, withr::local_tempdir(), reference = scan)
+  expect_length(written, 1)
+})
+
+test_that("a list member of the wrong rank is refused", {
+  expect_error(
+    save_volumes(list(array(1L, c(8, 8))), tempdir(), reference = "a.nii.gz"),
+    "expected 3"
+  )
+})
+
+test_that("masks that would overwrite each other are refused", {
+  # One directory per case with the same filename inside is the normal layout, so the default
+  # names collide and every mask would be written to one path - keeping the last and losing the
+  # rest without a word. The vignette walked into this: six masks, one file.
+  skip_if_no_volumes()
+  root <- tiny_volume_dataset(cases = 3)
+  scans <- sort(list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE,
+                           full.names = TRUE))
+  masks <- lapply(seq_along(scans), function(i) array(1L, dim = c(8, 8, 4)))
+
+  expect_error(save_volumes(masks, withr::local_tempdir(), reference = scans),
+               "written to the same name")
+
+  written <- save_volumes(masks, withr::local_tempdir(), reference = scans,
+                          names = c("case_a", "case_b", "case_c"))
+  expect_length(unique(basename(written)), 3)
 })

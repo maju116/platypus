@@ -111,6 +111,12 @@ BraTS ships and how satellite bands arrive. The order is stated rather than infe
 those names come out flair, t1, t1ce, t2 — reproducible and anatomically meaningless, and a
 model trained with FLAIR in channel one answers plausibly on data where channel one is T1.
 
+**The mask comes back on the scan's grid.** `predict(fit, space = "source")` maps each
+prediction out of the model's grid onto the one its scan arrived on, undoing the resampling and
+the crop, so `save_volumes()` can write a mask that opens on top of that scan in any viewer. It
+returns a list rather than an array, because scans differ in size and resizing them to match is
+how a mask ends up describing the wrong anatomy.
+
 **Volumes.** NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same
 tiling. `target_spacing = c(1, 1, 1)` resamples every scan to a common voxel size and then
 crops or pads to the model's shape, rather than squeezing each one into the same box — forty
@@ -198,11 +204,16 @@ with nothing obviously wrong. `platypus_device()` will tell you which is happeni
 
 **If the engine will not start and the error says there is no such version of
 pyplatypus**, the version does exist and uv is answering from a cached copy of the package
-index — likely because the engine was published minutes ago. Clear that one entry:
+index — likely because the engine was published minutes ago. Clear the index cache:
 
 ```bash
-uv cache clean pyplatypus
+rm -rf "$(uv cache dir)"/simple-v*
 ```
+
+Only the index: that directory is tens of megabytes, while the wheels beside it are tens of
+gigabytes and include PyTorch. `uv cache clean pyplatypus` is *not* enough — it removes that
+package's built artifacts and leaves behind the index response saying the version does not
+exist.
 
 ## Licence
 

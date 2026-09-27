@@ -294,48 +294,44 @@ March*, this table is, and the two do not follow from each other.
 ## Writing a mask back onto its scan
 
 `save_volumes()` writes a prediction as NIfTI carrying the affine of the scan it came from.
-Without that affine a mask cannot be laid over its scan by any viewer or registration tool -
-it either lands in the wrong place or is refused, and nothing about the file looks wrong.
+Without that affine a mask cannot be laid over its scan by any viewer or registration tool - it
+either lands in the wrong place or is refused, and nothing about the file looks wrong.
 
-Carrying the affine means the mask has to be **on the same grid as the scan**, and that is a
-real constraint rather than a formality. A prediction comes back on the model's grid: these
-scans are 48 x 48 x 32 voxels and the model works at 32 x 32 x 32 after resampling, so writing
-one over the other is refused:
+Carrying the affine means the mask has to be **on the same grid as the scan**, and after
+resampling it is not: these scans are 48 x 48 x 32 voxels while the model works at 32 x 32 x 32.
+`space = "source"` maps each prediction back out of the model's grid onto the scan's, undoing
+the resampling and the crop:
 
-```{r save-refused, error = TRUE}
-save_volumes(prediction, file.path(tempdir(), "predictions"),
-             reference = validation$images)
+```{r source-space}
+masks <- predict(fit, split = "validation", space = "source")
+length(masks)
+dim(masks[[1]])
 ```
 
-To get a mask in the scan's own space, predict in it: no resampling, and an `input_shape` that
-matches the scans. Here that is a second short run.
+A list rather than an array, because scans differ in size and a stack needs one shape. That is
+the API being explicit rather than resizing them to match, which is how a mask ends up
+describing anatomy it was not computed from.
+
+Names come from the reference files unless you say otherwise, and here every scan is called
+`ct.nii.gz` inside its own directory - so the masks would all be written to one name. That is an
+error rather than five silently lost files, and the case keys are what to use instead:
 
 ```{r save}
-native <- platypus_spec(
-  data = segmentation_data(split, labels = c(0, 1), window = "soft_tissue"),
-  models = list(u_net("native", input_shape = c(48, 48, 32), channels = 1, blocks = 3,
-                      filters = 8, epochs = 4, batch_size = 1,
-                      metrics = list(metric_dice(include_background = FALSE))))
-)
-native_fit <- platypus_fit(native, verbose = FALSE)
-native_prediction <- predict(native_fit, split = "validation")
-
-written <- save_volumes(
-  native_prediction, file.path(tempdir(), "predictions"),
-  reference = validation$images
-)
+written <- save_volumes(masks, file.path(tempdir(), "predictions"),
+                        reference = validation$images, names = validation$key)
 basename(written)
 ```
 
-The written masks carry the scans' spacing, which is what makes them open on top of them:
+The written masks carry the scans' geometry, which is what makes them open on top of them:
 
 ```{r written-geometry}
 volume_info(written)[, c("spacing_1", "spacing_3", "shape_1", "shape_3")]
 ```
 
-Mapping a resampled prediction back onto the original grid is the obvious missing piece, and
-it is not here yet. Until it is, the choice is explicit: resample and measure in millilitres,
-or predict in the scan's space and write the mask back.
+Two things are lost on the way back and it is worth knowing which. Interpolation softens a
+boundary, so the mask is slightly smoother than the model drew it. And where reading cropped
+anatomy away, the mask returns padded with background - which means *not examined*, not *nothing
+there*. If that distinction matters, give the model an `input_shape` that covers the anatomy.
 
 ## DICOM, which is how the data usually arrives
 
@@ -362,9 +358,7 @@ past the gap.
 Resampling is offered, not imposed. Several volumes per sample - one per modality, as BraTS
 ships - works through `channels_from`, where the order is stated rather than inferred.
 
-Two things are missing rather than declined. A resampled prediction cannot yet be mapped back
-onto the scan's own grid, which is what the two runs above work around. And object detection,
-ensembling and pretrained encoders are not here at all.
+Object detection, ensembling and pretrained encoders are not here at all.
 
 ```{r device}
 platypus_device()

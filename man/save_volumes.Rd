@@ -7,11 +7,17 @@
 save_volumes(masks, dir, reference, names = NULL, suffix = "")
 }
 \arguments{
-\item{masks}{Masks of class indices, as [predict()] returns. One volume is
-`depth x height x width`; a stack is `volume x depth x height x width`; probabilities
-are `volume x depth x height x width x class` and are collapsed to the most likely
-class. A single volume's probabilities have the same rank as a stack of masks and are
-not guessed at - collapse them yourself, or keep the volume axis.}
+\item{masks}{Masks of class indices, as [predict()] returns.
+
+  A **list** of volumes is what `predict(space = "source")` gives, and the form to prefer:
+  each mask is already on the grid of the scan it was computed from, so the geometry matches
+  by construction and the scans need not be the same size as each other.
+
+  An array is also accepted: one volume as `depth x height x width`, a stack as
+  `volume x depth x height x width`, probabilities as `volume x depth x height x width x class`
+  which are collapsed to the most likely class. A single volume's probabilities have the same
+  rank as a stack of masks and are not guessed at - collapse them yourself, or keep the volume
+  axis.}
 
 \item{dir}{Where to write. Created if it does not exist.}
 
@@ -32,12 +38,17 @@ from. That is the whole reason this is not `save_masks()` with a different exten
 mask array without an affine cannot be laid over its scan by any viewer, any registration
 tool or any volume calculation - it either lands in the wrong place or is refused.
 }
+\details{
+Carrying the affine means the mask has to be on the same grid as the scan, which is what
+`predict(space = "source")` is for: it maps each prediction back out of the model's grid onto
+the scan's. Without it, a resampled or resized prediction will be refused here rather than
+written somewhere wrong.
+}
 \examples{
 \dontrun{
-masks <- predict(fit, split = "validation")
-scans <- list.files("scans", pattern = "[.]nii[.]gz$", recursive = TRUE,
-                    full.names = TRUE)
-save_volumes(masks, "predictions", reference = scans)
+validation <- split_files(split, "validation")
+masks <- predict(fit, split = "validation", space = "source")
+save_volumes(masks, "predictions", reference = validation$images)
 }
 }
 \seealso{

@@ -130,7 +130,11 @@ test_that("a stale uv index cache is explained, because it sounds permanent", {
     "pyplatypus==0.2.0a2, we can conclude that your requirements are unsatisfiable."
   )
   explained <- platypus:::engine_start_failure(uv_said)
-  expect_match(explained, "uv cache clean pyplatypus", fixed = TRUE)
+  # The advice points at the index cache, and says why the obvious command is not the one:
+  # `uv cache clean pyplatypus` removes that package's built artifacts and leaves the index
+  # response claiming the version does not exist. Measured on 2026-09-27 against 0.3.0a6.
+  expect_match(explained, "simple-v", fixed = TRUE)
+  expect_match(explained, "not enough", fixed = TRUE)
   expect_match(explained, "does exist", fixed = TRUE)
   # The download advice would be wrong here: the network is fine, the cache is not.
   expect_false(grepl("needs a network", explained, fixed = TRUE))
