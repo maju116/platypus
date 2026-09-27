@@ -492,3 +492,43 @@ def transform_names(rank: int = 2) -> dict:
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
     return {"ok": True, "transforms": names, "rank": int(rank)}
+
+
+def weights_listing() -> dict:
+    """The published weights and what each one is."""
+    import pyplatypus
+
+    try:
+        from pyplatypus.weights import REGISTRY
+    except Exception as error:  # noqa: BLE001 - an engine older than the registry
+        return _engine_failure(error)
+
+    try:
+        rows = [
+            {"name": name, "repo": entry.repo, "filename": entry.filename,
+             "revision": entry.revision, "description": entry.description}
+            for name, entry in sorted(REGISTRY.items())
+        ]
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    return {"ok": True, "weights": rows}
+
+
+def save_weights(engine: Any, model_name: str, path: str, extra: dict | None = None) -> dict:
+    """Write one trained model's weights, with the sidecar describing them."""
+    import pyplatypus
+
+    try:
+        written = engine.export_weights(model_name, path, **(extra or {}))
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    import json
+
+    sidecar = written.with_suffix(".json")
+    # The contents as well as the path. R has no JSON reader of its own here, and adding a
+    # dependency so that a caller can see what was recorded would be a poor trade: the engine
+    # already has the data in hand.
+    return {"ok": True, "path": str(written), "sidecar": str(sidecar),
+            "recorded": json.loads(sidecar.read_text())}

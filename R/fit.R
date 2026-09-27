@@ -291,3 +291,86 @@ print.platypus_cases <- function(x, ...) {
   if (nrow(x) > 10) cat("  ... ", nrow(x) - 10, " more. summary() gives the distribution.\n", sep = "")
   invisible(x)
 }
+
+#' The published weights, and what they are
+#'
+#' Weights are named rather than downloaded by hand, and a name is pinned to one commit of the
+#' repository holding it - so `"dsbowl-unet"` means one set of numbers today and the same set next
+#' year. This lists what is published, with the commit each name resolves to.
+#'
+#' Read the descriptions rather than only the names. A model's limitations decide whether it
+#' answers your question: the nuclei weights are semantic, so touching nuclei come back as one
+#' region and a count taken from them would be wrong.
+#'
+#' @return A data frame with `name`, `repo`, `filename`, `revision` and `description`.
+#' @seealso [u_net()] and the other architectures, whose `weights` argument takes a name from
+#'   here, a `hf://owner/repo/file.safetensors@commit` reference, or a path to a local file.
+#' @examples
+#' \dontrun{
+#' available_weights()
+#'
+#' spec <- platypus_spec(
+#'   data = segmentation_data("images/", "images/", colormap = binary_colormap),
+#'   models = list(u_net("nuclei", input_shape = c(256, 256), blocks = 4, filters = 16,
+#'                       weights = "dsbowl-unet", fit = FALSE))
+#' )
+#' masks <- predict(platypus_fit(spec), split = "validation")
+#' }
+#' @export
+available_weights <- function() {
+  result <- shim()$weights_listing()
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  rows <- lapply(result$weights, function(row) {
+    data.frame(name = row$name, repo = row$repo, filename = row$filename,
+               revision = row$revision, description = row$description,
+               stringsAsFactors = FALSE)
+  })
+  if (!length(rows)) {
+    return(data.frame(name = character(), repo = character(), filename = character(),
+                      revision = character(), description = character(),
+                      stringsAsFactors = FALSE))
+  }
+  do.call(rbind, rows)
+}
+
+#' Save a trained model's weights
+#'
+#' Writes safetensors plus a `.json` sidecar recording what the weights are for: architecture,
+#' input shape, channels, classes, and whatever else you pass. Loading refuses a model they do not
+#' belong to, which is what the sidecar is for - weights trained on a different colormap with the
+#' same number of classes load cleanly and predict nonsense.
+#'
+#' Anything in `...` joins the sidecar. The data they were trained on and its licence belong there:
+#' weights whose provenance lives in somebody's memory cannot be used by anybody else, including
+#' you in a year.
+#'
+#' @param object A [platypus_fit()].
+#' @param path Where to write, with or without the `.safetensors` extension.
+#' @param model Which model, by the name in the specification. Defaults to the first.
+#' @param ... Extra fields for the sidecar, for instance `data = "BBBC038v1"`,
+#'   `licence = "CC0 1.0"`.
+#' @return The path written, invisibly, with the sidecar's contents attached as the `recorded`
+#'   attribute - so you can see what was put beside the weights without opening the file.
+#' @examples
+#' \dontrun{
+#' save_weights(fit, "weights/my-run",
+#'              data = "our 2026 cohort", licence = "internal use only")
+#' }
+#' @export
+save_weights <- function(object, path, model = NULL, ...) {
+  if (!inherits(object, "platypus_fit")) {
+    stop("`object` must come from `platypus_fit()`.", call. = FALSE)
+  }
+  model <- model %||% object$models[[1]]
+  if (!model %in% object$models) {
+    stop("no model called '", model, "'; this fit has: ",
+         paste(object$models, collapse = ", "), call. = FALSE)
+  }
+
+  extra <- list(...)
+  result <- shim()$save_weights(object$engine, model, path.expand(path),
+                                extra = if (length(extra)) extra else NULL)
+  if (!isTRUE(result$ok)) abort_engine(result)
+  invisible(structure(result$path, recorded = result$recorded, sidecar = result$sidecar))
+}

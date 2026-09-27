@@ -152,6 +152,12 @@ combining the per-object mask files that datasets like the Data Science Bowl shi
 converting between class indices and colours, overlaying, and drawing the comparison
 above. These work on ordinary R arrays and need no Python at all.
 
+**Published weights, by name.** `weights = "dsbowl-unet"` in an architecture loads a trained
+model instead of training one — `available_weights()` lists what is published and what each one
+can and cannot do. A name is pinned to one commit of the repository holding it, so it means the
+same numbers next year. `save_weights()` writes your own the same way, with a sidecar recording
+what they were trained on, which is what makes them usable by anybody else.
+
 ## Learning it
 
 Two vignettes, both precomputed from real runs — every number and figure in them came out of

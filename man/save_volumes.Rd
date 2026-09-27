@@ -24,8 +24,11 @@ save_volumes(masks, dir, reference, names = NULL, suffix = "")
 \item{reference}{The scan each mask was predicted from, in the same order. Its affine is
 what the mask is written with, so this is required rather than optional.}
 
-\item{names}{File names, without extension. Taken from `reference` when unset, which is
-usually what you want - `case_01.nii.gz` next to the scan it belongs to.}
+\item{names}{File names, without extension. Taken from `reference` when unset, which works
+when the scans have distinct filenames. They often do not - one directory per case, the same
+`ct.nii.gz` inside each - and writing every mask to one name would silently keep only the
+last, so that case is an error asking for this argument. `split_files(split, "validation")$key`
+is usually the answer.}
 
 \item{suffix}{Appended to each name, for telling two models' output apart.}
 }

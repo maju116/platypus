@@ -362,3 +362,20 @@ skip_if_no_source_space <- function() {
     "the engine in use predates predictions in source space"
   )
 }
+
+#' Does the engine in use have the weights registry?
+engine_has_weights_registry <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    result <- platypus:::shim()$weights_listing()
+    isTRUE(result$ok)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_weights_registry <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_has_weights_registry(),
+    "the engine in use predates the weights registry"
+  )
+}
