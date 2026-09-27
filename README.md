@@ -31,6 +31,40 @@ There is nothing to set up afterwards. The first call that needs the engine buil
 isolated Python environment for it, and everything after that uses the cache. You never
 choose an interpreter, activate anything, or match a version.
 
+### Coming from platypus 0.1.1
+
+**Code written against the 2020 release will not run on this one.** That version built Keras
+models through the R `keras` package and handed them back to you; this one describes a whole
+run as a specification and computes it in PyTorch. Of the 37 functions and objects the old
+version exported, **30 are gone** — including all of `yolo3()`, `darknet53()`,
+`load_darknet_weights()`, `get_boxes()`, `non_max_suppression()`, `plot_boxes()`,
+`segmentation_generator()` and the annotation readers.
+
+Seven names survive, and **three of them are the ones to watch**, because they are still
+exported, still callable, and mean something different:
+
+| name | 0.1.1 | now |
+|---|---|---|
+| `u_net()` | `u_net(net_h, net_w, grayscale, ...)` → a Keras model | `u_net(name, input_shape, ...)` → one model in a specification |
+| `plot_masks()` | `plot_masks(images_paths, masks, labels, colormap)` | `plot_masks(images, prediction, truth, ...)` |
+| `loss_dice()` | no arguments, returns a Keras loss | `loss_dice(smooth = 1)`, returns a loss to name in a specification |
+
+The other four — `binary_colormap`, `voc_colormap`, `binary_labels`, `voc_labels` — are the
+same data as before.
+
+Object detection is **not** in this version yet, so there is no replacement for the YOLOv3
+half of the old package rather than a moved one.
+
+The old release is still there and still installable, pinned:
+
+```r
+remotes::install_github("maju116/platypus@0.1.1")
+```
+
+Its source is on the `master` branch, and the issues filed against it stay open. What has aged
+is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
+Python, which is the reason for a rewrite rather than a consequence of one.
+
 ## A worked example
 
 ```r
@@ -174,14 +208,20 @@ is the reason to report both.
 
 ## What is not in it yet
 
-Object detection, ensembling, pretrained encoders. Augmentation in 3D, which albumentations
-offers through a different call signature — a 3D specification asking for it is refused
-rather than quietly ignored. Resampling volumes to isotropic spacing: the spacing is read
-and reported by `volume_info()`, but applying it changes the voxel grid the model sees, and
-that is a decision to take deliberately rather than inside a reader.
+Object detection, ensembling, pretrained encoders.
 
-The package is **not on CRAN**: the name collides, case-insensitively, with an unrelated
-immunology package archived there in February 2026. That is being taken up with CRAN.
+Augmentation in 3D works, but unevenly, because albumentations supports volumes for most of
+its transforms and not all of them. Every transform in a 3D specification is probed while the
+pipeline is built, so one that cannot take a volume is named at that point rather than failing
+mid-run; `available_augmentations(rank = 3)` lists what is usable.
+
+Resampling volumes to isotropic spacing is deliberate rather than automatic: `volume_info()`
+reads and reports the spacing, and `target_spacing` applies it, but applying it changes the
+voxel grid the model sees, which is a decision to take rather than a default to inherit.
+
+The package is **not on CRAN**, and not submitted yet. The name also collides,
+case-insensitively, with an unrelated immunology package archived there in February 2026,
+which is a question to settle before a submission rather than after.
 
 ## About the engine
 
