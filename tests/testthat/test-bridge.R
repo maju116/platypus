@@ -22,9 +22,13 @@ test_that("status reports the pinned engine before anything has started", {
   if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
     expect_true(dir.exists(status$requirement))
   } else {
+    # `hub` is always in the extras, and that is the assertion worth making rather than the shape
+    # of the string: without it `weights = "dsbowl-unet"` cannot work from R, which is how the
+    # feature shipped unusable until a vignette tried it.
     expect_match(
       status$requirement,
-      paste0("^pyplatypus(\\[[a-z]+\\])?==", gsub(".", "\\.", platypus:::PYPLATYPUS_VERSION, fixed = TRUE), "$")
+      paste0("^pyplatypus\\[[a-z,]*hub\\]==",
+             gsub(".", "\\.", platypus:::PYPLATYPUS_VERSION, fixed = TRUE), "$")
     )
   }
   expect_type(status$started, "logical")
@@ -145,4 +149,18 @@ test_that("any other startup failure still gets the download advice", {
   expect_match(explained, "needs a network", fixed = TRUE)
   expect_match(explained, "works offline", fixed = TRUE)
   expect_false(grepl("uv cache clean", explained, fixed = TRUE))
+})
+
+test_that("the hub extra is asked for whatever else is", {
+  # Two paths into the requirement, and both must carry `hub`: fetching published weights is part
+  # of the R surface, and an environment built without it cannot do it at all.
+  withr::with_envvar(c(PLATYPUS_ENGINE_PATH = NA), {
+    on.exit(platypus:::.platypus_requirement(set = NULL), add = TRUE)
+
+    platypus:::.platypus_requirement(set = NULL)
+    expect_match(platypus:::.platypus_requirement(), "^pyplatypus\\[hub\\]==")
+
+    platypus:::.platypus_requirement(set = "pascal")
+    expect_match(platypus:::.platypus_requirement(), "^pyplatypus\\[pascal,hub\\]==")
+  })
 })

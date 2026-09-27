@@ -10,7 +10,11 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE, comment = "#>",
-  fig.path = "figures/", fig.width = 8, dpi = 110
+  fig.path = "figures/", fig.width = 8, dpi = 110,
+  # A failure has to stop the knit. knitr's default pastes the error into the document and exits
+  # zero, which is how this vignette was nearly shipped with "could not find huggingface_hub"
+  # printed four times. Chunks that demonstrate a refusal set `error = TRUE` themselves.
+  error = FALSE
 )
 library(platypus)
 ```
@@ -29,6 +33,64 @@ problem because it is genuinely varied and genuinely small.
 
 This walks through it end to end. Every number and every picture below was produced by
 running the code shown.
+
+## Before any of that: a mask in four lines
+
+A model trained on this data is published, so the shortest way to see whether the package does
+anything useful is to borrow it. No training, no waiting:
+
+```{r published-weights}
+validation_dir <- file.path(data_dir, "stage1_validation")
+
+published <- platypus_spec(
+  data = segmentation_data(validation_dir, validation_dir, colormap = binary_colormap),
+  models = list(u_net("nuclei", input_shape = c(256, 256), blocks = 4, filters = 16,
+                      weights = "dsbowl-unet", fit = FALSE))
+)
+borrowed <- platypus_fit(published, verbose = FALSE)
+masks <- predict(borrowed, split = "validation")
+dim(masks)
+```
+
+```{r published-plot, fig.height = 3.6}
+found <- list.files(validation_dir, pattern = "[.]png$", recursive = TRUE, full.names = TRUE)
+images <- read_images(head(grep("/images/", found, value = TRUE), 3), size = c(256, 256))
+plot_masks(images, prediction = masks[1:3, , ], colormap = binary_colormap,
+           which = 1:3)
+```
+
+The weights came down from the Hub on first use and are cached afterwards, so running this again
+costs nothing.
+
+**No score is reported here, on purpose.** This directory and the one the weights were trained on
+come from the same collection and overlap, so anything measured here would flatter the model. The numbers that mean something were
+measured on a held-out split when the weights were published, and travel with them:
+
+```{r published-listing}
+available_weights()[, c("name", "revision")]
+```
+
+The description in that table is the part to read before trusting them - these are *semantic*, so
+touching nuclei come back as one region and a count taken from them would be wrong.
+
+One thing worth meeting here rather than later. Weights belong to an exact model, not to a task,
+and the rest of this vignette trains at 160 x 160 while these were trained at 256:
+
+```{r weights-refused, error = TRUE}
+mismatched <- platypus_spec(
+  data = segmentation_data(validation_dir, validation_dir, colormap = binary_colormap),
+  models = list(u_net("nuclei", input_shape = c(160, 160), blocks = 4, filters = 16,
+                      weights = "dsbowl-unet", fit = FALSE))
+)
+platypus_fit(mismatched)
+```
+
+Refused, with the field that differs, before anything was loaded. That check exists because the
+failure it prevents is silent: weights trained on a different colormap with the same number of
+classes load perfectly and predict nonsense.
+
+Everything below trains a model from scratch instead, which is what you will actually do on your
+own data - the published weights are a demonstration and a baseline, not an answer to your problem.
 
 ## The data
 

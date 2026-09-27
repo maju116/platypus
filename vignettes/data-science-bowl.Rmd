@@ -19,6 +19,77 @@ problem because it is genuinely varied and genuinely small.
 This walks through it end to end. Every number and every picture below was produced by
 running the code shown.
 
+## Before any of that: a mask in four lines
+
+A model trained on this data is published, so the shortest way to see whether the package does
+anything useful is to borrow it. No training, no waiting:
+
+
+``` r
+validation_dir <- file.path(data_dir, "stage1_validation")
+
+published <- platypus_spec(
+  data = segmentation_data(validation_dir, validation_dir, colormap = binary_colormap),
+  models = list(u_net("nuclei", input_shape = c(256, 256), blocks = 4, filters = 16,
+                      weights = "dsbowl-unet", fit = FALSE))
+)
+borrowed <- platypus_fit(published, verbose = FALSE)
+masks <- predict(borrowed, split = "validation")
+dim(masks)
+#> [1] 134 256 256
+```
+
+
+``` r
+found <- list.files(validation_dir, pattern = "[.]png$", recursive = TRUE, full.names = TRUE)
+images <- read_images(head(grep("/images/", found, value = TRUE), 3), size = c(256, 256))
+plot_masks(images, prediction = masks[1:3, , ], colormap = binary_colormap,
+           which = 1:3)
+```
+
+![plot of chunk published-plot](figures/published-plot-1.png)
+
+The weights came down from the Hub on first use and are cached afterwards, so running this again
+costs nothing.
+
+**No score is reported here, on purpose.** This directory and the one the weights were trained on
+come from the same collection and overlap, so anything measured here would flatter the model. The numbers that mean something were
+measured on a held-out split when the weights were published, and travel with them:
+
+
+``` r
+available_weights()[, c("name", "revision")]
+#>          name                                 revision
+#> 1 dsbowl-unet 5e035c6a39827c33e19507affb9415c3908ae383
+```
+
+The description in that table is the part to read before trusting them - these are *semantic*, so
+touching nuclei come back as one region and a count taken from them would be wrong.
+
+One thing worth meeting here rather than later. Weights belong to an exact model, not to a task,
+and the rest of this vignette trains at 160 x 160 while these were trained at 256:
+
+
+``` r
+mismatched <- platypus_spec(
+  data = segmentation_data(validation_dir, validation_dir, colormap = binary_colormap),
+  models = list(u_net("nuclei", input_shape = c(160, 160), blocks = 4, filters = 16,
+                      weights = "dsbowl-unet", fit = FALSE))
+)
+platypus_fit(mismatched)
+#> Error in `platypus_fit()`:
+#> ! 'dsbowl-unet' was trained for a different model:
+#>   - input_shape: weights say (256, 256), the model says (160, 160)
+#> Loading anyway would either fail inside torch or, where the shapes happen to agree, produce a model that predicts confidently and means nothing.
+```
+
+Refused, with the field that differs, before anything was loaded. That check exists because the
+failure it prevents is silent: weights trained on a different colormap with the same number of
+classes load perfectly and predict nonsense.
+
+Everything below trains a model from scratch instead, which is what you will actually do on your
+own data - the published weights are a demonstration and a baseline, not an answer to your problem.
+
 ## The data
 
 One directory per image, each holding an `images` and a `masks` subdirectory. The masks
@@ -163,11 +234,11 @@ plot(fit)
 ``` r
 evaluate(fit)
 #>     model architecture loss_function parameters epochs_run best_epoch
-#> 1    unet        u_net      cce_dice    1942594         12         10
+#> 1    unet        u_net      cce_dice    1942594         12         12
 #> 2 linknet      linknet focal_tversky    1746754         12         11
 #>         loss      dice       iou
-#> 1 0.09589598 0.8776243 0.7967962
-#> 2 0.07148733 0.8807744 0.7970832
+#> 1 0.08948598 0.8726893 0.7932749
+#> 2 0.07810771 0.8796270 0.7943703
 ```
 
 Read the `loss` column with care, and note that `loss_function` sits beside it. These two

@@ -34,8 +34,15 @@ PYPLATYPUS_VERSION <- "0.3.0a8"
       return(normalizePath(local_engine, mustWork = TRUE))
     }
 
-    if (is.null(extra)) paste0("pyplatypus==", PYPLATYPUS_VERSION)
-    else sprintf("pyplatypus[%s]==%s", extra, PYPLATYPUS_VERSION)
+    # `hub` is always asked for. It is optional in the Python package because most runs never
+    # fetch published weights and an air-gapped one cannot - but from R the environment is built
+    # by this package, torch already dominates the download by three orders of magnitude, and
+    # without it `weights = "dsbowl-unet"` cannot work at all. That was not a hypothetical: the
+    # vignette caught it, with the feature unusable from R in every release that had it.
+    #
+    # Installing it needs a network once; using it needs one only when a name is fetched.
+    extras <- if (is.null(extra)) "hub" else paste(extra, "hub", sep = ",")
+    sprintf("pyplatypus[%s]==%s", extras, PYPLATYPUS_VERSION)
   }
 })
 
