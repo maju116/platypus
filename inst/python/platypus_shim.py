@@ -22,6 +22,11 @@ def _failure(error: Any) -> dict:
     return payload
 
 
+def _failure_message(message: str, kind: str = "engine_error") -> dict:
+    """A failure this shim itself diagnosed, rather than one an exception described."""
+    return {"ok": False, "kind": kind, "message": message, "problems": []}
+
+
 def build_spec(config: dict, check_paths: bool = True) -> dict:
     """A validated spec, or the reasons it is not one."""
     import pyplatypus
@@ -66,18 +71,59 @@ def _engine_failure(error: Any) -> dict:
 
 
 def build_engine(spec: Any, device: str | None = None, num_workers: int = 0,
-                 strict_data: bool = True) -> dict:
+                 strict_data: bool = True, check_masks: bool = True) -> dict:
     import pyplatypus
 
+    options = {}
+    # Passed only when it is not the default, so this shim keeps working against an engine
+    # that predates the argument - which is the same rule the R options follow.
+    if not check_masks:
+        options["check_masks"] = False
     try:
         engine = pyplatypus.Engine(
-            spec, device=device, num_workers=int(num_workers), strict_data=strict_data
+            spec, device=device, num_workers=int(num_workers), strict_data=strict_data,
+            **options,
         )
+    except TypeError as error:
+        if "check_masks" in str(error):
+            return _failure_message(
+                "This engine predates `check_masks`, so the check cannot be turned off. "
+                "Correct the colormap or labels instead, or update platypus."
+            )
+        return _engine_failure(error)
     except pyplatypus.PlatypusError as error:
         return _failure(error)
     except Exception as error:  # noqa: BLE001 - see _engine_failure
         return _engine_failure(error)
     return {"ok": True, "engine": engine}
+
+
+def mask_report(spec: Any, split: str = "train", limit: int = 500) -> dict:
+    """What the colormap or labels match in one split's masks, over `limit` samples.
+
+    The engine reads a small sample before training and refuses when a declared class
+    appears in none of it. This is the same question asked deliberately and over as much
+    of the data as wanted - which is what the refusal tells someone to do next, and it has
+    to be reachable from R or the advice is worthless.
+    """
+    import pyplatypus
+
+    try:
+        engine = pyplatypus.Engine(spec, check_masks=False)
+        model = spec.models[0]
+        report = engine.dataset(model, split).inspect_masks(limit=int(limit))
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001 - see _engine_failure
+        return _engine_failure(error)
+    return {
+        "ok": True,
+        "unmatched": float(report.unmatched),
+        "present_classes": [int(c) for c in report.present_classes],
+        "missing_classes": [int(c) for c in report.missing_classes],
+        "samples_checked": int(report.samples_checked),
+        "total_samples": int(report.total_samples),
+    }
 
 
 def run_fit(engine: Any, verbose: bool = False) -> dict:

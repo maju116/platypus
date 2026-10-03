@@ -192,6 +192,15 @@ can and cannot do. A name is pinned to one commit of the repository holding it, 
 same numbers next year. `save_weights()` writes your own the same way, with a sidecar recording
 what they were trained on, which is what makes them usable by anybody else.
 
+**A refusal before a wasted day.** A colormap or set of labels that matches none of your
+masks is the quietest failure in segmentation: every mask reads as background, the loss falls
+because background is most of a medical image, the metrics look respectable for the same
+reason, and the model learns to answer "nothing here". `platypus_fit()` reads a sample of the
+training masks first and **refuses when a class the specification declares appears in none of
+them** — which is provable rather than suspicious, because a class with no examples has no
+gradient towards it. `mask_report(spec)` asks the same question over as much of the data as
+you like, and `check_masks = FALSE` proceeds regardless.
+
 **A backbone where one helps.** `encoder = "resnet34"` swaps the contracting path for a timm
 architecture and `pretrained = TRUE` loads its ImageNet weights, with `freeze_encoder` to keep
 them from being undone. Whether that is worth doing is a measured question rather than a

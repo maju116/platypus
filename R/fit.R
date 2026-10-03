@@ -26,6 +26,13 @@
 #'   avoid multiprocessing entirely if it causes trouble.
 #' @param strict_data Treat an incomplete sample as an error. Set `FALSE` to train on the
 #'   rest and be told what was skipped.
+#' @param check_masks Read a sample of the training masks before training, and refuse when
+#'   a class the specification declares appears in none of them. A colormap or set of
+#'   labels that matches none of the labelled tissue is the quietest way a run wastes a
+#'   day: every mask reads as background, the loss falls because background is most of a
+#'   medical image, and the model learns to answer "nothing here". Set `FALSE` only when
+#'   the missing class is real but rarer than the sample - and see [mask_report()] first,
+#'   which asks the same question over as much of the data as you like.
 #' @param verbose Report each epoch as it finishes.
 #' @return A `platypus_fit`.
 #' @export
@@ -36,14 +43,15 @@
 #' masks <- predict(fit, "unet")
 #' }
 platypus_fit <- function(spec, device = NULL, num_workers = "auto", strict_data = TRUE,
-                         verbose = FALSE) {
+                         check_masks = TRUE, verbose = FALSE) {
   if (!inherits(spec, "platypus_spec")) {
     stop("`spec` must come from `platypus_spec()`; see `?platypus_spec`.", call. = FALSE)
   }
 
   built <- shim()$build_engine(spec$py, device = device,
                                num_workers = resolve_workers(num_workers),
-                               strict_data = strict_data)
+                               strict_data = strict_data,
+                               check_masks = isTRUE(check_masks))
   if (!isTRUE(built$ok)) abort_engine(built)
 
   # Said before the wait, not after: a run that quietly fell back to the processor looks
@@ -373,4 +381,70 @@ save_weights <- function(object, path, model = NULL, ...) {
                                 extra = if (length(extra)) extra else NULL)
   if (!isTRUE(result$ok)) abort_engine(result)
   invisible(structure(result$path, recorded = result$recorded, sidecar = result$sidecar))
+}
+
+
+#' What the colormap or labels match in your masks
+#'
+#' Reads a sample of one split's masks and reports what the specification's colours, or
+#' list of labels, actually matched. Trains nothing and loads no model.
+#'
+#' [platypus_fit()] does a small version of this before every run and refuses when a
+#' declared class appears in none of the masks it read. This is the same question asked
+#' deliberately, over as much of the data as you want - which is what to reach for when
+#' that refusal looks wrong.
+#'
+#' @section What the numbers mean:
+#'
+#' `missing_classes` is the one to act on. A class that appears in no mask cannot be
+#' learned: its channel of the target is zero everywhere, so there is no gradient towards
+#' it and the model is never shown the thing it is being asked to find. Either the colours
+#' do not describe these masks, or `n_class` counts a class the data does not contain.
+#'
+#' `unmatched` is the fraction of mask pixels matching no entry, which fall back to the
+#' background class. **Read it knowing that it scales with the size of the thing being
+#' segmented**, so it is loud for a large structure and almost silent for a small lesion.
+#' Measured on masks that are white, with a colormap asking for a colour that is not
+#' there: a foreground covering 20% of the image gives 19.8%, and one covering 0.6% gives
+#' 0.61% - which is less than the 0.72% that JPEG compression leaves around the edge of a
+#' perfectly correct mask. That is why the refusal is built on class presence instead.
+#'
+#' @param spec A [platypus_spec()].
+#' @param split `"train"`, `"validation"` or `"test"`.
+#' @param limit How many masks to read. They are spread across the split rather than
+#'   taken from its start, because datasets arrive sorted and a prefix would answer about
+#'   the beginning.
+#' @return A one-row data frame: `unmatched`, `samples_checked`, `total_samples`, and
+#'   `present_classes` and `missing_classes` as comma-separated strings so the frame
+#'   stays printable. The classes are also attached as integer vectors in the attributes
+#'   `present` and `missing`.
+#' @export
+#' @examples
+#' \dontrun{
+#' mask_report(spec)
+#' mask_report(spec, split = "validation", limit = 2000)
+#' }
+mask_report <- function(spec, split = c("train", "validation", "test"), limit = 500) {
+  if (!inherits(spec, "platypus_spec")) {
+    stop("`spec` must come from `platypus_spec()`; see `?platypus_spec`.", call. = FALSE)
+  }
+  split <- match.arg(split)
+  result <- shim()$mask_report(spec$py, split = split, limit = as.integer(limit))
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  present <- as.integer(unlist(result$present_classes))
+  missing <- as.integer(unlist(result$missing_classes))
+  out <- data.frame(
+    split = split,
+    unmatched = as.numeric(result$unmatched),
+    samples_checked = as.integer(result$samples_checked),
+    total_samples = as.integer(result$total_samples),
+    present_classes = paste(present, collapse = ", "),
+    # An empty string rather than NA: nothing missing is a result, not an absence of one.
+    missing_classes = paste(missing, collapse = ", "),
+    stringsAsFactors = FALSE
+  )
+  attr(out, "present") <- present
+  attr(out, "missing") <- missing
+  out
 }

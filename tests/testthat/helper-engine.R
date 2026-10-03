@@ -429,3 +429,35 @@ skip_if_no_timm <- function() {
   skip_if_no_engine()
   testthat::skip_if_not(engine_has_timm(), "timm is not installed in this environment")
 }
+
+#' Does the engine in use refuse masks the colormap does not describe?
+#'
+#' Asked of `Engine`'s signature rather than by trying it, which is unusual here and
+#' deliberate. The first version of this probe built an engine with `check_masks = FALSE`
+#' over a path with no data, and got back "'.' yielded no usable samples" - so it reported
+#' the feature missing when the engine had it, and every test below skipped against a
+#' published engine that supports them. **It was conflating "no data" with "no feature".**
+#'
+#' What is actually being asked is whether R may pass this argument at all, and that is a
+#' property of the signature. The behaviour behind it is what the tests themselves cover.
+engine_checks_masks <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    # Asked entirely in Python. `names()` on a reticulate-wrapped mapping returns the
+    # mapping's *methods* - copy, get, items, keys, values - not its keys, so asking R for
+    # the parameter names answers a different question and answers it quietly: the probe
+    # reported the feature missing against an engine that has it.
+    reticulate::py_eval(paste0(
+      "'check_masks' in __import__('inspect')",
+      ".signature(__import__('pyplatypus').Engine.__init__).parameters"
+    ))
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_mask_check <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_checks_masks(),
+    "the engine in use predates the mask check"
+  )
+}
