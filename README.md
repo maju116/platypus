@@ -192,6 +192,11 @@ can and cannot do. A name is pinned to one commit of the repository holding it, 
 same numbers next year. `save_weights()` writes your own the same way, with a sidecar recording
 what they were trained on, which is what makes them usable by anybody else.
 
+**A backbone where one helps.** `encoder = "resnet34"` swaps the contracting path for a timm
+architecture and `pretrained = TRUE` loads its ImageNet weights, with `freeze_encoder` to keep
+them from being undone. Whether that is worth doing is a measured question rather than a
+rhetorical one — see below, and `?encoders` for the table.
+
 ## Learning it
 
 Two vignettes, both precomputed from real runs — every number and figure in them came out of
@@ -206,9 +211,47 @@ slice to look at, and the size of a finding in millilitres. It ends on something
 a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and
 is the reason to report both.
 
+## A backbone instead of the built-in encoder
+
+`encoder = "resnet34"` replaces the contracting path with a timm backbone, and `pretrained =
+TRUE` is a separate flag that loads its ImageNet weights — separate so that naming an
+architecture never reaches the network on a machine that has none.
+
+```r
+u_net("polyps", input_shape = c(256, 256),
+      encoder = "resnet34", pretrained = TRUE, freeze_encoder = 5)
+```
+
+**What it is worth was measured rather than assumed**, on three datasets, one per modality,
+three seeds each, every configuration judged at its best validation Dice:
+
+| | DS Bowl, microscopy | SIIM-ACR, chest X-ray | Kvasir-SEG, endoscopy |
+|---|---|---|---|
+| built-in encoder, 1.9M | **0.8460** | 0.0531 | 0.5830 |
+| `encoder = "resnet34"`, 9.0M | 0.7891 | 0.1073 | 0.5670 |
+| the same, pretrained, `freeze_encoder = 5` | 0.8333 | **0.1203** | **0.5932** |
+| the same, `encoder_learning_rate = lr/10` | 0.8326 | 0.1011 | 0.5329 |
+
+The short version, and `?encoders` has the long one:
+
+- **Use `freeze_encoder`, not `encoder_learning_rate` alone.** Freezing was better on all
+  three; on Kvasir a tenth of the rate is the *worst* row in the table, below even the same
+  backbone trained from nothing.
+- **Do not expect a better score. Expect to reach it sooner.** On Kvasir the built-in encoder
+  needed 150, 110 and 83 epochs across its seeds; pretrained and frozen needed 64, 82 and 83.
+- **A bigger encoder earns its place where the target is thin.** On chest X-ray, where a
+  pneumothorax covers a median 0.59% of the frame, every backbone roughly doubles the built-in
+  encoder — whose spread between seeds there is larger than its own mean, two of three seeds
+  never learning at all.
+- And the part worth saying plainly: **platypus's own 1.9M-parameter encoder beats
+  ResNet-34's 9.0M on two of the three.**
+
+Measure on your own images before trusting any of this. The regime where transfer helps is
+narrow, and three public datasets are three public datasets.
+
 ## What is not in it yet
 
-Object detection, ensembling, pretrained encoders.
+Object detection and ensembling.
 
 Augmentation in 3D works, but unevenly, because albumentations supports volumes for most of
 its transforms and not all of them. Every transform in a 3D specification is probed while the

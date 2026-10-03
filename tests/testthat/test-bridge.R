@@ -22,13 +22,19 @@ test_that("status reports the pinned engine before anything has started", {
   if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
     expect_true(dir.exists(status$requirement))
   } else {
-    # `hub` is always in the extras, and that is the assertion worth making rather than the shape
-    # of the string: without it `weights = "dsbowl-unet"` cannot work from R, which is how the
-    # feature shipped unusable until a vignette tried it.
+    # The extras that are always asked for, and the pinned version. Asserted as parts
+    # rather than as one pattern over the whole string: the previous version of this
+    # expectation was `[a-z,]*hub\]`, which quietly required `hub` to be the *last* extra
+    # and failed the moment a second one was added. A pattern that encodes the order of a
+    # set is describing today's implementation, not the intention.
+    expect_match(status$requirement, "^pyplatypus\\[")
+    for (extra in c("hub", "encoders")) {
+      expect_match(status$requirement, extra, fixed = TRUE)
+    }
     expect_match(
       status$requirement,
-      paste0("^pyplatypus\\[[a-z,]*hub\\]==",
-             gsub(".", "\\.", platypus:::PYPLATYPUS_VERSION, fixed = TRUE), "$")
+      paste0("==", platypus:::PYPLATYPUS_VERSION, "$"),
+      fixed = FALSE
     )
   }
   expect_type(status$started, "logical")
@@ -151,16 +157,33 @@ test_that("any other startup failure still gets the download advice", {
   expect_false(grepl("uv cache clean", explained, fixed = TRUE))
 })
 
-test_that("the hub extra is asked for whatever else is", {
-  # Two paths into the requirement, and both must carry `hub`: fetching published weights is part
-  # of the R surface, and an environment built without it cannot do it at all.
+test_that("the always-on extras are asked for whatever else is", {
+  # Two paths into the requirement, and both must carry every extra the R surface depends
+  # on: fetching published weights and naming a backbone are both documented features, and
+  # an environment built without the extra behind one cannot do it at all. `hub` shipped
+  # missing once and the feature was unusable from R in every release that advertised it.
+  #
+  # The parts are asserted separately rather than as one literal string. A single pattern
+  # restating the whole bracket has to be rewritten whenever an extra is added, which is
+  # how a test stops describing an intention and starts describing an implementation - and
+  # the version literal in this file already hid from a grep once for the same reason.
+  always <- c("hub", "encoders")
+
   withr::with_envvar(c(PLATYPUS_ENGINE_PATH = NA), {
     on.exit(platypus:::.platypus_requirement(set = NULL), add = TRUE)
 
     platypus:::.platypus_requirement(set = NULL)
-    expect_match(platypus:::.platypus_requirement(), "^pyplatypus\\[hub\\]==")
+    plain <- platypus:::.platypus_requirement()
+    expect_match(plain, "^pyplatypus\\[")
+    for (extra in always) expect_match(plain, extra, fixed = TRUE)
+    expect_match(plain, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
 
     platypus:::.platypus_requirement(set = "pascal")
-    expect_match(platypus:::.platypus_requirement(), "^pyplatypus\\[pascal,hub\\]==")
+    pascal <- platypus:::.platypus_requirement()
+    # A torch build asked for explicitly comes first, so the thing the user chose is the
+    # thing they see at the front of the message platypus_status() prints.
+    expect_match(pascal, "^pyplatypus\\[pascal,")
+    for (extra in always) expect_match(pascal, extra, fixed = TRUE)
+    expect_match(pascal, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
   })
 })

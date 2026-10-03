@@ -379,3 +379,53 @@ skip_if_no_weights_registry <- function() {
     "the engine in use predates the weights registry"
   )
 }
+
+#' Does the engine in use accept a pretrained encoder?
+#'
+#' Probed by offering it the field and seeing whether it is refused. The spec forbids
+#' unknown keys, so an engine that predates `encoder` rejects this outright - which is the
+#' pin working, and exactly what §4f of the project notes predicts. No new engine function
+#' is needed to ask the question, which matters: adding one would have meant another
+#' release before this could be tested at all.
+engine_has_encoders <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    result <- platypus:::shim()$build_spec(
+      list(
+        data = list(train_path = ".", validation_path = ".",
+                    colormap = list(c(0L, 0L, 0L), c(255L, 255L, 255L))),
+        models = list(list(name = "probe", input_shape = c(64L, 64L),
+                           encoder = "resnet34"))
+      ),
+      check_paths = FALSE
+    )
+    isTRUE(result$ok)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_encoders <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_has_encoders(),
+    "the engine in use predates pretrained encoders"
+  )
+}
+
+#' Is timm actually installed in the environment the engine runs in?
+#'
+#' Separate from `engine_has_encoders()` on purpose. The engine can accept the field while
+#' the extra that implements it is missing, and those are different failures with different
+#' fixes: one is an old engine, the other an environment built without `[encoders]`. Keeping
+#' them apart is what would have caught the `hub` hole a release earlier.
+engine_has_timm <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_module_available("timm"),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_timm <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_timm(), "timm is not installed in this environment")
+}

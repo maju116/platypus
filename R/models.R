@@ -50,6 +50,27 @@
 #'   without throwing away resolution; predictions are reassembled to the original size.
 #' @param weights A checkpoint to start from, or to use as-is with `fit = FALSE`.
 #' @param fit Set `FALSE` to load `weights` and skip training.
+#' @param encoder A pretrained-architecture backbone to use as the contracting path
+#'   instead of the built-in encoder, named as timm names it: `"resnet34"`,
+#'   `"efficientnet_b0"`, `"mobilenetv3_large_100"`, `"densenet121"`, `"vgg16"` and the
+#'   other convolutional families. Naming one builds that architecture; it does not load
+#'   anything. **2D only** - ImageNet is images, so a backbone with a 3D `input_shape` is
+#'   refused while the specification is read. The patch-based families (`convnext_*`,
+#'   `swin_*`) are refused too: their features start at a quarter of the input, and the
+#'   half-resolution level a U-shaped decoder recovers fine detail from does not exist.
+#'   `blocks` then says how many of the backbone's stages to use.
+#' @param pretrained Load the backbone's ImageNet weights. Separate from `encoder` on
+#'   purpose, so naming an architecture never reaches the network on a machine that has
+#'   none. Measured on three datasets, transfer does not beat the built-in encoder here -
+#'   see [encoders] for the table and what it is actually good for.
+#' @param freeze_encoder Hold the transferred layers still for this many epochs, then
+#'   train them. **Use this rather than `encoder_learning_rate` alone**: it was the better
+#'   of the two on all three datasets measured. A number at or above `epochs` keeps them
+#'   fixed for the whole run.
+#' @param encoder_learning_rate A separate, smaller rate for the layers that arrived
+#'   pretrained. The full-resolution stage in front of them is platypus's own and starts
+#'   random, so it keeps the optimiser's rate. Giving this instead of `freeze_encoder`
+#'   measured worse everywhere, and on one dataset worse than no backbone at all.
 #' @return A model specification, to be passed to [platypus_spec()].
 #' @name models
 #' @examples
@@ -67,7 +88,9 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
                                batch_normalization, separable_conv, spatial_dropout,
                                upsample, deep_supervision, activation, initialiser,
                                loss, metrics, optimizer, callbacks, augmentation,
-                               epochs, batch_size, splits, weights, fit) {
+                               epochs, batch_size, splits, weights, fit,
+                               encoder, pretrained, freeze_encoder,
+                               encoder_learning_rate) {
   list(
     name = name,
     architecture = architecture,
@@ -94,7 +117,14 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
     batch_size = int1(batch_size),
     splits = if (is.null(splits)) NULL else as.integer(splits),
     weights = weights,
-    fit = fit
+    fit = fit,
+    # All four stay NULL unless asked for, and `compact()` drops a NULL before the
+    # request is built. An engine that has never heard of these keeps working for
+    # everyone who is not asking, and only the person who asks meets the requirement.
+    encoder = encoder,
+    pretrained = pretrained,
+    freeze_encoder = if (is.null(freeze_encoder)) NULL else int1(freeze_encoder),
+    encoder_learning_rate = encoder_learning_rate
   )
 }
 
@@ -108,7 +138,9 @@ u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
                    initialiser = "he_normal", loss = loss_cce(),
                    metrics = list(metric_iou()), optimizer = optimizer_adam(),
                    callbacks = list(), augmentation = NULL, epochs = 10,
-                   batch_size = 8, splits = NULL, weights = NULL, fit = TRUE) {
+                   batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                   encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "u_net",
     name = name,
@@ -135,7 +167,11 @@ u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
     batch_size = batch_size,
     splits = splits,
     weights = weights,
-    fit = fit
+    fit = fit,
+    encoder = encoder,
+    pretrained = pretrained,
+    freeze_encoder = freeze_encoder,
+    encoder_learning_rate = encoder_learning_rate
   )
 }
 
@@ -149,7 +185,9 @@ u_net_plus_plus <- function(name, input_shape, channels = 3, n_class = 2, blocks
                              initialiser = "he_normal", loss = loss_cce(),
                              metrics = list(metric_iou()), optimizer = optimizer_adam(),
                              callbacks = list(), augmentation = NULL, epochs = 10,
-                             batch_size = 8, splits = NULL, weights = NULL, fit = TRUE) {
+                             batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                   encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "u_net_plus_plus",
     name = name,
@@ -176,7 +214,11 @@ u_net_plus_plus <- function(name, input_shape, channels = 3, n_class = 2, blocks
     batch_size = batch_size,
     splits = splits,
     weights = weights,
-    fit = fit
+    fit = fit,
+    encoder = encoder,
+    pretrained = pretrained,
+    freeze_encoder = freeze_encoder,
+    encoder_learning_rate = encoder_learning_rate
   )
 }
 
@@ -190,7 +232,9 @@ res_u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
                        initialiser = "he_normal", loss = loss_cce(),
                        metrics = list(metric_iou()), optimizer = optimizer_adam(),
                        callbacks = list(), augmentation = NULL, epochs = 10,
-                       batch_size = 8, splits = NULL, weights = NULL, fit = TRUE) {
+                       batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                   encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "res_u_net",
     name = name,
@@ -217,7 +261,11 @@ res_u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
     batch_size = batch_size,
     splits = splits,
     weights = weights,
-    fit = fit
+    fit = fit,
+    encoder = encoder,
+    pretrained = pretrained,
+    freeze_encoder = freeze_encoder,
+    encoder_learning_rate = encoder_learning_rate
   )
 }
 
@@ -231,7 +279,9 @@ linknet <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
                      initialiser = "he_normal", loss = loss_cce(),
                      metrics = list(metric_iou()), optimizer = optimizer_adam(),
                      callbacks = list(), augmentation = NULL, epochs = 10,
-                     batch_size = 8, splits = NULL, weights = NULL, fit = TRUE) {
+                     batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                   encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "linknet",
     name = name,
@@ -258,6 +308,10 @@ linknet <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
     batch_size = batch_size,
     splits = splits,
     weights = weights,
-    fit = fit
+    fit = fit,
+    encoder = encoder,
+    pretrained = pretrained,
+    freeze_encoder = freeze_encoder,
+    encoder_learning_rate = encoder_learning_rate
   )
 }

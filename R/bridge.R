@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_VERSION <- "0.3.0a8"
+PYPLATYPUS_VERSION <- "0.3.0a10"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -34,14 +34,27 @@ PYPLATYPUS_VERSION <- "0.3.0a8"
       return(normalizePath(local_engine, mustWork = TRUE))
     }
 
-    # `hub` is always asked for. It is optional in the Python package because most runs never
-    # fetch published weights and an air-gapped one cannot - but from R the environment is built
-    # by this package, torch already dominates the download by three orders of magnitude, and
-    # without it `weights = "dsbowl-unet"` cannot work at all. That was not a hypothetical: the
-    # vignette caught it, with the feature unusable from R in every release that had it.
+    # `hub` and `encoders` are always asked for, although both are optional in the Python
+    # package. They are optional there because most runs never fetch published weights or
+    # name a backbone, and an air-gapped install cannot do the first at all. From R the
+    # environment is built by this package, and leaving either out means a documented
+    # feature that cannot work for anybody.
     #
-    # Installing it needs a network once; using it needs one only when a name is fetched.
-    extras <- if (is.null(extra)) "hub" else paste(extra, "hub", sep = ",")
+    # That was not hypothetical for `hub`: `weights = "dsbowl-unet"` was unusable from R in
+    # every release that had it, and nothing in either test suite could see it, because the
+    # pin's test surface is the package and never its extras. The only thing that found it
+    # was writing the documentation as a user would run it.
+    #
+    # The cost is measured rather than assumed. `hub` adds huggingface_hub, 0.8 MB.
+    # `encoders` adds timm and torchvision, 10.3 MB together - against torch's own 555 MB
+    # wheel, and several gigabytes once its CUDA libraries arrive. Under 2% of torch alone,
+    # which is not a trade worth making someone opt into.
+    #
+    # Nothing here reaches the network at import. Installing needs one connection; after
+    # that the cache serves everything, and only fetching weights by name needs a network
+    # again.
+    always <- c("hub", "encoders")
+    extras <- paste(c(extra, always), collapse = ",")
     sprintf("pyplatypus[%s]==%s", extras, PYPLATYPUS_VERSION)
   }
 })

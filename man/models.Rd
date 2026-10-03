@@ -33,7 +33,11 @@ u_net(
   batch_size = 8,
   splits = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = TRUE,
+  encoder = NULL,
+  pretrained = NULL,
+  freeze_encoder = NULL,
+  encoder_learning_rate = NULL
 )
 
 u_net_plus_plus(
@@ -61,7 +65,11 @@ u_net_plus_plus(
   batch_size = 8,
   splits = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = TRUE,
+  encoder = NULL,
+  pretrained = NULL,
+  freeze_encoder = NULL,
+  encoder_learning_rate = NULL
 )
 
 res_u_net(
@@ -89,7 +97,11 @@ res_u_net(
   batch_size = 8,
   splits = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = TRUE,
+  encoder = NULL,
+  pretrained = NULL,
+  freeze_encoder = NULL,
+  encoder_learning_rate = NULL
 )
 
 linknet(
@@ -117,7 +129,11 @@ linknet(
   batch_size = 8,
   splits = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = TRUE,
+  encoder = NULL,
+  pretrained = NULL,
+  freeze_encoder = NULL,
+  encoder_learning_rate = NULL
 )
 }
 \arguments{
@@ -174,6 +190,31 @@ without throwing away resolution; predictions are reassembled to the original si
 \item{weights}{A checkpoint to start from, or to use as-is with \code{fit = FALSE}.}
 
 \item{fit}{Set \code{FALSE} to load \code{weights} and skip training.}
+
+\item{encoder}{A pretrained-architecture backbone to use as the contracting path
+instead of the built-in encoder, named as timm names it: \code{"resnet34"},
+\code{"efficientnet_b0"}, \code{"mobilenetv3_large_100"}, \code{"densenet121"}, \code{"vgg16"} and the
+other convolutional families. Naming one builds that architecture; it does not load
+anything. \strong{2D only} - ImageNet is images, so a backbone with a 3D \code{input_shape} is
+refused while the specification is read. The patch-based families (\verb{convnext_*},
+\verb{swin_*}) are refused too: their features start at a quarter of the input, and the
+half-resolution level a U-shaped decoder recovers fine detail from does not exist.
+\code{blocks} then says how many of the backbone's stages to use.}
+
+\item{pretrained}{Load the backbone's ImageNet weights. Separate from \code{encoder} on
+purpose, so naming an architecture never reaches the network on a machine that has
+none. Measured on three datasets, transfer does not beat the built-in encoder here -
+see \link{encoders} for the table and what it is actually good for.}
+
+\item{freeze_encoder}{Hold the transferred layers still for this many epochs, then
+train them. \strong{Use this rather than \code{encoder_learning_rate} alone}: it was the better
+of the two on all three datasets measured. A number at or above \code{epochs} keeps them
+fixed for the whole run.}
+
+\item{encoder_learning_rate}{A separate, smaller rate for the layers that arrived
+pretrained. The full-resolution stage in front of them is platypus's own and starts
+random, so it keeps the optimiser's rate. Giving this instead of \code{freeze_encoder}
+measured worse everywhere, and on one dataset worse than no backbone at all.}
 }
 \value{
 A model specification, to be passed to \code{\link[=platypus_spec]{platypus_spec()}}.
