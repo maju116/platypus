@@ -39,7 +39,7 @@ loss_lovasz(per_image = FALSE)
 \item{gamma}{For focal losses, how hard to discount the pixels already classified well.}
 
 \item{alpha}{For Tversky, the weight on false negatives; raising it buys recall.
-Note that `alpha = 0.5` is Dice exactly only when `smooth = 0`.}
+Note that \code{alpha = 0.5} is Dice exactly only when \code{smooth = 0}.}
 }
 \value{
 A loss specification, to be passed to a model constructor.

@@ -7,11 +7,11 @@
 ct_windows()
 }
 \value{
-A named list of `c(centre, width)` pairs.
+A named list of \code{c(centre, width)} pairs.
 }
 \description{
-The windows radiologists use, as `c(centre, width)` in Hounsfield units. Pass a name to
-[segmentation_data()] rather than the numbers; this is here for looking them up.
+The windows radiologists use, as \code{c(centre, width)} in Hounsfield units. Pass a name to
+\code{\link[=segmentation_data]{segmentation_data()}} rather than the numbers; this is here for looking them up.
 }
 \details{
 Held here rather than fetched from the engine so that looking up a constant does not

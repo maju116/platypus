@@ -8,7 +8,7 @@ platypus_status()
 }
 \value{
 A list with the engine version, the interpreter in use and where its
-  environment lives, or `NULL` fields when Python has not been started yet.
+environment lives, or \code{NULL} fields when Python has not been started yet.
 }
 \description{
 Reports whether the Python side has been started, and what it is. Calling this does

@@ -7,9 +7,9 @@
 augment(name, ...)
 }
 \arguments{
-\item{name}{The transform, for instance `"HorizontalFlip"`.}
+\item{name}{The transform, for instance \code{"HorizontalFlip"}.}
 
-\item{...}{Its parameters, for instance `p = 0.5`.}
+\item{...}{Its parameters, for instance \code{p = 0.5}.}
 }
 \value{
 An augmentation specification.

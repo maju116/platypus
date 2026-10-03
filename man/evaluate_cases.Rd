@@ -19,7 +19,7 @@ evaluate_cases(object, ...)
 \method{summary}{platypus_cases}(object, ...)
 }
 \arguments{
-\item{object}{A `platypus_cases` from [evaluate_cases()].}
+\item{object}{A \code{platypus_cases} from \code{\link[=evaluate_cases]{evaluate_cases()}}.}
 
 \item{...}{Unused.}
 
@@ -28,20 +28,20 @@ evaluate_cases(object, ...)
 \item{split}{Which data to score on.}
 
 \item{group_by}{A pattern picking a group out of each case's name, as in
-[platypus_split()]. With it, the rows are patients rather than slices: a patient's
+\code{\link[=platypus_split]{platypus_split()}}. With it, the rows are patients rather than slices: a patient's
 slices are pooled into one score, the way a volume would be.}
 }
 \value{
-A data frame with one row per case, of class `platypus_cases`.
+A data frame with one row per case, of class \code{platypus_cases}.
 }
 \description{
-`evaluate()` gives one row per model: one number for a whole set. This gives one row per
-case - each image, or each patient when `group_by` is set - because one number hides the
+\code{evaluate()} gives one row per model: one number for a whole set. This gives one row per
+case - each image, or each patient when \code{group_by} is set - because one number hides the
 distribution, and the distribution is usually the finding. A model averaging Dice 0.86
 that scores 0.1 on three patients has a failure mode, and the mean is where it hides.
 }
 \details{
-`summary()` on the result gives the distribution: mean, standard deviation, median,
+\code{summary()} on the result gives the distribution: mean, standard deviation, median,
 range, and which case scored worst.
 
 Tiled models are scored on the whole image, not on tiles. Overlaps are accumulated
@@ -59,5 +59,5 @@ evaluate_cases(fit, group_by = "^(patient\\\\\\\\d+)_")
 }
 }
 \seealso{
-[platypus_split()] for keeping a patient out of two sets in the first place.
+\code{\link[=platypus_split]{platypus_split()}} for keeping a patient out of two sets in the first place.
 }

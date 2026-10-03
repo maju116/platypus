@@ -16,10 +16,10 @@ plot_masks(
 )
 }
 \arguments{
-\item{images}{An `image x height x width x channels` array, or one
-`height x width x channels` image.}
+\item{images}{An \verb{image x height x width x channels} array, or one
+\verb{height x width x channels} image.}
 
-\item{prediction}{Predicted class indices, from [predict.platypus_fit()].}
+\item{prediction}{Predicted class indices, from \code{\link[=predict.platypus_fit]{predict.platypus_fit()}}.}
 
 \item{truth}{True class indices, if you have them.}
 
@@ -34,11 +34,11 @@ plot_masks(
 \item{slice}{For volumes, which slice to draw. A volume cannot honestly be shown as one
 picture, so one plane is chosen and said out loud rather than a projection being
 invented. Counted along the last axis, which after the canonical reorientation is the
-axial direction - the view a radiologist scrolls through. `"middle"` takes the middle
+axial direction - the view a radiologist scrolls through. \code{"middle"} takes the middle
 slice, which is the sensible first look.}
 }
 \value{
-A `ggplot`.
+A \code{ggplot}.
 }
 \description{
 Builds a grid: one row per image, one column per panel. Which panels appear depends on

@@ -7,20 +7,20 @@
 mask_classes(mask, colormap, tolerance = 0)
 }
 \arguments{
-\item{mask}{An RGB array: `height x width x 3`, or with a leading image axis.}
+\item{mask}{An RGB array: \verb{height x width x 3}, or with a leading image axis.}
 
 \item{colormap}{A list of RGB triples, one per class.}
 
 \item{tolerance}{Allow this much difference per channel. Useful after lossy resizing,
-though masks should be resized with `nearest = TRUE` so it is not needed.}
+though masks should be resized with \code{nearest = TRUE} so it is not needed.}
 }
 \value{
-A list with `classes` (indices counted from 1) and `coverage` (the fraction of
-  pixels that matched a colour).
+A list with \code{classes} (indices counted from 1) and \code{coverage} (the fraction of
+pixels that matched a colour).
 }
 \description{
-The inverse of [mask_colours()]. Anything matching no colour becomes background, and
-`coverage` in the result says how much of the mask that was - a number near 1 means the
+The inverse of \code{\link[=mask_colours]{mask_colours()}}. Anything matching no colour becomes background, and
+\code{coverage} in the result says how much of the mask that was - a number near 1 means the
 colormap does not describe this dataset, which is the quietest way to train on nothing.
 }
 \examples{

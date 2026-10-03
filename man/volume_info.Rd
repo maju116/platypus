@@ -10,8 +10,8 @@ volume_info(paths)
 \item{paths}{One or more paths to NIfTI files.}
 }
 \value{
-A data frame with one row per file: `path`, `spacing_1/2/3` in millimetres,
-  `shape_1/2/3` in voxels, and `voxel_ml`, the volume of one voxel in millilitres.
+A data frame with one row per file: \code{path}, \code{spacing_1/2/3} in millimetres,
+\code{shape_1/2/3} in voxels, and \code{voxel_ml}, the volume of one voxel in millilitres.
 }
 \description{
 Shape and voxel spacing, read through the engine so the numbers are the ones training
@@ -24,5 +24,5 @@ volume_info("scans/case_01/images/ct.nii.gz")
 }
 }
 \seealso{
-[mask_volume()], which turns a segmentation into millilitres.
+\code{\link[=mask_volume]{mask_volume()}}, which turns a segmentation into millilitres.
 }

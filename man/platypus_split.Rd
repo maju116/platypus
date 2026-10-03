@@ -18,11 +18,11 @@ platypus_split(
 )
 }
 \arguments{
-\item{root}{The directory holding the samples, laid out as `mode` describes.}
+\item{root}{The directory holding the samples, laid out as \code{mode} describes.}
 
-\item{out_dir}{Where to write `train.csv`, `validation.csv` and `test.csv`.}
+\item{out_dir}{Where to write \code{train.csv}, \code{validation.csv} and \code{test.csv}.}
 
-\item{group_by}{A pattern picking the group out of a sample's name; see above. `NULL`
+\item{group_by}{A pattern picking the group out of a sample's name; see above. \code{NULL}
 treats every sample as its own group, which is right when one sample is one patient.}
 
 \item{fractions}{Two or three shares that add up to 1: train, validation and optionally
@@ -33,9 +33,9 @@ slices do not skew them.}
 on any machine and in any file order - without that, two runs are not comparable and
 the reason for a difference is impossible to find.}
 
-\item{mode}{`"nested_dirs"` for one directory per sample, `"config_file"` for a CSV.}
+\item{mode}{\code{"nested_dirs"} for one directory per sample, \code{"config_file"} for a CSV.}
 
-\item{subdirs}{The image and mask subdirectory names, for `nested_dirs`.}
+\item{subdirs}{The image and mask subdirectory names, for \code{nested_dirs}.}
 
 \item{column_sep}{Separator between several paths in one CSV cell.}
 
@@ -45,15 +45,15 @@ the reason for a difference is impossible to find.}
 split can be moved together.}
 }
 \value{
-A `platypus_split`: the three paths, plus how many samples and groups each set
-  received. Pass it straight to [segmentation_data()].
+A \code{platypus_split}: the three paths, plus how many samples and groups each set
+received. Pass it straight to \code{\link[=segmentation_data]{segmentation_data()}}.
 }
 \description{
 Divides one directory of samples into three sets and writes each as a CSV the
 specification can point at. Nothing is copied: the files stay where they are and the
 CSVs list them, which matters when the data is large or read-only.
 }
-\section{Why `group_by` exists}{
+\section{Why \code{group_by} exists}{
 
 
 Splitting per file is the obvious thing and, for medical images, the wrong one. A scan
@@ -62,19 +62,21 @@ training and in validation at once. The model then meets the neighbouring slice 
 it is being tested on, validation measures memory rather than generalisation, and Dice
 comes out several points too high with nothing in the result to say so.
 
-`group_by` names the unit that must not be split - usually a patient, sometimes a study,
+\code{group_by} names the unit that must not be split - usually a patient, sometimes a study,
 a scanner or a site. Every sample sharing a group lands in exactly one set.
 }
 
 \section{Patterns are Python regular expressions}{
 
 
-`group_by` is passed to the engine exactly as written, and read there as a Python
+\code{group_by} is passed to the engine exactly as written, and read there as a Python
 regular expression. In practice the dialects agree on everything you are likely to need
-- `^`, `$`, `\\d`, `[A-Z]`, `+`, `*`, `()` - and R's own quoting rules still apply, so a
-backslash is doubled: `"^(patient\\\\d+)_"`. It is not translated on the way through,
+\itemize{
+\item \code{^}, \code{$}, \verb{\\\\d}, \verb{[A-Z]}, \code{+}, \code{*}, \verb{()} - and R's own quoting rules still apply, so a
+backslash is doubled: \code{"^(patient\\\\\\\\d+)_"}. It is not translated on the way through,
 deliberately: a translation that quietly got it wrong would produce a working split with
 the wrong groups in it, which is the failure this argument exists to prevent.
+}
 
 A pattern that matches no sample is an error, never a fallback to one-group-per-sample.
 }
@@ -95,5 +97,5 @@ spec <- platypus_spec(
 }
 }
 \seealso{
-[evaluate_cases()], which reports a score per case rather than one per set.
+\code{\link[=evaluate_cases]{evaluate_cases()}}, which reports a score per case rather than one per set.
 }

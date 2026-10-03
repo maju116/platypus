@@ -7,7 +7,7 @@
 training_history(object)
 }
 \arguments{
-\item{object}{A [platypus_fit()].}
+\item{object}{A \code{\link[=platypus_fit]{platypus_fit()}}.}
 }
 \value{
 A data frame with one row per model per epoch.

@@ -13,23 +13,23 @@ platypus_fit(
 )
 }
 \arguments{
-\item{spec}{A [platypus_spec()].}
+\item{spec}{A \code{\link[=platypus_spec]{platypus_spec()}}.}
 
-\item{device}{`"cuda"`, `"cpu"`, or `NULL` to use a GPU when one is present.}
+\item{device}{\code{"cuda"}, \code{"cpu"}, or \code{NULL} to use a GPU when one is present.}
 
-\item{num_workers}{Processes used to read and decode images. `"auto"` picks a small
+\item{num_workers}{Processes used to read and decode images. \code{"auto"} picks a small
 number based on the machine. This matters more than it sounds: reading in the main
 process alone leaves the GPU waiting on the disk, and on the Data Science Bowl at
-128x128 that is the difference between 35 seconds an epoch and under 10. Set `0` to
+128x128 that is the difference between 35 seconds an epoch and under 10. Set \code{0} to
 avoid multiprocessing entirely if it causes trouble.}
 
-\item{strict_data}{Treat an incomplete sample as an error. Set `FALSE` to train on the
+\item{strict_data}{Treat an incomplete sample as an error. Set \code{FALSE} to train on the
 rest and be told what was skipped.}
 
 \item{verbose}{Report each epoch as it finishes.}
 }
 \value{
-A `platypus_fit`.
+A \code{platypus_fit}.
 }
 \description{
 Trains every model the specification asks for, in order, each with its own data
@@ -40,7 +40,7 @@ fairly, on the same data.
 Validation data is never augmented. Measuring a model on distorted images measures the
 distortion.
 
-This blocks until training finishes. With `verbose = TRUE` each epoch is reported as it
+This blocks until training finishes. With \code{verbose = TRUE} each epoch is reported as it
 completes, which on anything longer than a few minutes is the difference between
 waiting and wondering.
 }

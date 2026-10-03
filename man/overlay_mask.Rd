@@ -7,7 +7,7 @@
 overlay_mask(image, mask, colormap, alpha = 0.55)
 }
 \arguments{
-\item{image}{A `height x width x channels` array. Values in 0-1 or 0-255; greyscale is
+\item{image}{A \verb{height x width x channels} array. Values in 0-1 or 0-255; greyscale is
 repeated across three channels.}
 
 \item{mask}{Class indices, counted from 1, matching the image's height and width.}
@@ -17,7 +17,7 @@ repeated across three channels.}
 \item{alpha}{How strongly to tint, 0 to 1.}
 }
 \value{
-A `height x width x 3` array of 0-255 integers.
+A \verb{height x width x 3} array of 0-255 integers.
 }
 \description{
 The picture that answers "where is it looking". Background - class 1 - is left alone,

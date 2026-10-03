@@ -7,10 +7,10 @@
 mask_colours(mask, colormap)
 }
 \arguments{
-\item{mask}{Class indices, counted from 1: a `height x width` matrix, or an
-`image x height x width` array for several at once.}
+\item{mask}{Class indices, counted from 1: a \verb{height x width} matrix, or an
+\verb{image x height x width} array for several at once.}
 
-\item{colormap}{A list of RGB triples, one per class; see [binary_colormap].}
+\item{colormap}{A list of RGB triples, one per class; see \link{binary_colormap}.}
 }
 \value{
 The same shape with a trailing RGB axis, values 0-255.

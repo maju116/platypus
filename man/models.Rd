@@ -123,7 +123,7 @@ linknet(
 \arguments{
 \item{name}{Unique within a specification; names the outputs and the table rows.}
 
-\item{input_shape}{Tile size: `c(height, width)`, or `c(depth, height, width)`.}
+\item{input_shape}{Tile size: \code{c(height, width)}, or \code{c(depth, height, width)}.}
 
 \item{channels}{Input channels. 3 for colour, 1 for greyscale.}
 
@@ -146,48 +146,48 @@ slower to converge.}
 
 \item{upsample}{Interpolate and convolve instead of using a transposed convolution.}
 
-\item{deep_supervision}{Train every decoder depth, not only the last. `u_net_plus_plus`
+\item{deep_supervision}{Train every decoder depth, not only the last. \code{u_net_plus_plus}
 only, since it is the one with intermediate outputs to supervise.}
 
-\item{activation}{One of `"relu"`, `"leaky_relu"`, `"elu"`, `"selu"`, `"gelu"`,
-`"silu"`, `"tanh"`.}
+\item{activation}{One of \code{"relu"}, \code{"leaky_relu"}, \code{"elu"}, \code{"selu"}, \code{"gelu"},
+\code{"silu"}, \code{"tanh"}.}
 
-\item{initialiser}{One of `"he_normal"`, `"he_uniform"`, `"glorot_normal"`,
-`"glorot_uniform"`.}
+\item{initialiser}{One of \code{"he_normal"}, \code{"he_uniform"}, \code{"glorot_normal"},
+\code{"glorot_uniform"}.}
 
-\item{loss}{A loss, see [losses].}
+\item{loss}{A loss, see \link{losses}.}
 
-\item{metrics}{A list of metrics, see [metrics].}
+\item{metrics}{A list of metrics, see \link{metrics}.}
 
-\item{optimizer}{An optimiser, see [optimizers].}
+\item{optimizer}{An optimiser, see \link{optimizers}.}
 
-\item{callbacks}{A list of callbacks, see [callbacks].}
+\item{callbacks}{A list of callbacks, see \link{callbacks}.}
 
-\item{augmentation}{A list of [augment()] steps, applied to training data only.}
+\item{augmentation}{A list of \code{\link[=augment]{augment()}} steps, applied to training data only.}
 
 \item{epochs, batch_size}{Training length and batch size.}
 
 \item{splits}{Cut each image into a grid of tiles instead of shrinking it: one number
-per spatial dimension, so `c(2, 3)` gives six tiles. Use it to segment a large image
+per spatial dimension, so \code{c(2, 3)} gives six tiles. Use it to segment a large image
 without throwing away resolution; predictions are reassembled to the original size.}
 
-\item{weights}{A checkpoint to start from, or to use as-is with `fit = FALSE`.}
+\item{weights}{A checkpoint to start from, or to use as-is with \code{fit = FALSE}.}
 
-\item{fit}{Set `FALSE` to load `weights` and skip training.}
+\item{fit}{Set \code{FALSE} to load \code{weights} and skip training.}
 }
 \value{
-A model specification, to be passed to [platypus_spec()].
+A model specification, to be passed to \code{\link[=platypus_spec]{platypus_spec()}}.
 }
 \description{
 Four members of the U-shaped family. They take the same arguments and differ only in
-what happens between the contracting and expanding paths: `u_net` concatenates its skip
-connections, `linknet` adds them, `res_u_net` makes each block residual, and
-`u_net_plus_plus` fills in the nested skip pathways.
+what happens between the contracting and expanding paths: \code{u_net} concatenates its skip
+connections, \code{linknet} adds them, \code{res_u_net} makes each block residual, and
+\code{u_net_plus_plus} fills in the nested skip pathways.
 }
 \details{
-`input_shape` is the tile the model sees: two numbers for images, three for volumes.
+\code{input_shape} is the tile the model sees: two numbers for images, three for volumes.
 Its length is what makes a model 2D or 3D - there is no separate switch. Every spatial
-dimension must divide by `2^blocks`, or the decoder cannot line up with the encoder,
+dimension must divide by \code{2^blocks}, or the decoder cannot line up with the encoder,
 and that is checked when the specification is built rather than part-way through
 training.
 }

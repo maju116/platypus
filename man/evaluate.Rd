@@ -10,11 +10,11 @@ evaluate(object, ...)
 \method{evaluate}{platypus_fit}(object, split = "validation", ...)
 }
 \arguments{
-\item{object}{A [platypus_fit()].}
+\item{object}{A \code{\link[=platypus_fit]{platypus_fit()}}.}
 
 \item{...}{Unused.}
 
-\item{split}{Which data to score on: `"validation"`, `"train"` or `"test"`.}
+\item{split}{Which data to score on: \code{"validation"}, \code{"train"} or \code{"test"}.}
 }
 \value{
 A data frame, one row per model.
@@ -23,8 +23,8 @@ A data frame, one row per model.
 One row per model: what it is, how big it is, how long it trained, and how it scored.
 }
 \details{
-The `loss` column is only comparable between models trained on the same loss, which is
-why `loss_function` is there beside it. A Focal-Tversky of 0.05 is not better than a
+The \code{loss} column is only comparable between models trained on the same loss, which is
+why \code{loss_function} is there beside it. A Focal-Tversky of 0.05 is not better than a
 CCE-Dice of 0.14; it is not even the same question. Metrics stay comparable, because
 they measure the mask rather than the objective.
 }

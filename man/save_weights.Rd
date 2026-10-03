@@ -7,27 +7,27 @@
 save_weights(object, path, model = NULL, ...)
 }
 \arguments{
-\item{object}{A [platypus_fit()].}
+\item{object}{A \code{\link[=platypus_fit]{platypus_fit()}}.}
 
-\item{path}{Where to write, with or without the `.safetensors` extension.}
+\item{path}{Where to write, with or without the \code{.safetensors} extension.}
 
 \item{model}{Which model, by the name in the specification. Defaults to the first.}
 
-\item{...}{Extra fields for the sidecar, for instance `data = "BBBC038v1"`,
-`licence = "CC0 1.0"`.}
+\item{...}{Extra fields for the sidecar, for instance \code{data = "BBBC038v1"},
+\code{licence = "CC0 1.0"}.}
 }
 \value{
-The path written, invisibly, with the sidecar's contents attached as the `recorded`
-  attribute - so you can see what was put beside the weights without opening the file.
+The path written, invisibly, with the sidecar's contents attached as the \code{recorded}
+attribute - so you can see what was put beside the weights without opening the file.
 }
 \description{
-Writes safetensors plus a `.json` sidecar recording what the weights are for: architecture,
+Writes safetensors plus a \code{.json} sidecar recording what the weights are for: architecture,
 input shape, channels, classes, and whatever else you pass. Loading refuses a model they do not
 belong to, which is what the sidecar is for - weights trained on a different colormap with the
 same number of classes load cleanly and predict nonsense.
 }
 \details{
-Anything in `...` joins the sidecar. The data they were trained on and its licence belong there:
+Anything in \code{...} joins the sidecar. The data they were trained on and its licence belong there:
 weights whose provenance lives in somebody's memory cannot be used by anybody else, including
 you in a year.
 }

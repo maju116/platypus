@@ -10,8 +10,8 @@ series_report(paths)
 \item{paths}{Directories, each holding the slices of one series.}
 }
 \value{
-A data frame with one row per directory: `path`, `ok`, `slices`, `sorted_by`,
-  `spacing_1/2/3`, `series_uid` and `problem`.
+A data frame with one row per directory: \code{path}, \code{ok}, \code{slices}, \code{sorted_by},
+\code{spacing_1/2/3}, \code{series_uid} and \code{problem}.
 }
 \description{
 One row per directory, saying whether it is a usable series and what is wrong with it if it
@@ -26,14 +26,14 @@ gigabytes of data and is the first thing worth running on a new dataset.
 \section{What it catches}{
 
 
-A **missing slice**, which does not make a volume shorter - it puts everything past the gap
-in the wrong place, and no metric would show it. **Two series in one folder**, which is the
+A \strong{missing slice}, which does not make a volume shorter - it puts everything past the gap
+in the wrong place, and no metric would show it. \strong{Two series in one folder}, which is the
 normal state of an archive export: a scout, a reconstruction and a phase sitting together,
-which stacked would interleave two anatomies. **Duplicated slices**, from a copy or from
-several echoes mixed together. Slices of different **size**, **angle** or **spacing**.
+which stacked would interleave two anatomies. \strong{Duplicated slices}, from a copy or from
+several echoes mixed together. Slices of different \strong{size}, \strong{angle} or \strong{spacing}.
 
-It also reports how the slices were ordered. `"position"` means the geometry decided, which
-is what you want. `"instance_number"` means the files carry no positions and the order came
+It also reports how the slices were ordered. \code{"position"} means the geometry decided, which
+is what you want. \code{"instance_number"} means the files carry no positions and the order came
 from a number that is only required to be unique - worth knowing before trusting the result.
 }
 
@@ -47,5 +47,5 @@ table(report$sorted_by)
 }
 }
 \seealso{
-[volume_info()] for NIfTI files, [platypus_split()] for dividing the cases up.
+\code{\link[=volume_info]{volume_info()}} for NIfTI files, \code{\link[=platypus_split]{platypus_split()}} for dividing the cases up.
 }

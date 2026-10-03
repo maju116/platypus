@@ -7,7 +7,7 @@
 \method{as.list}{platypus_spec}(x, ...)
 }
 \arguments{
-\item{x}{A `platypus_spec`.}
+\item{x}{A \code{platypus_spec}.}
 
 \item{...}{Unused.}
 }

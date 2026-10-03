@@ -7,18 +7,18 @@
 platypus_use_torch(build = c("pascal", "default"))
 }
 \arguments{
-\item{build}{`"pascal"` for the last PyTorch built against CUDA 12, or `NULL` for the
+\item{build}{\code{"pascal"} for the last PyTorch built against CUDA 12, or \code{NULL} for the
 default.}
 }
 \value{
 The requirement string now in force, invisibly.
 }
 \description{
-Call this before anything starts the engine - straight after `library(platypus)` - and
+Call this before anything starts the engine - straight after \code{library(platypus)} - and
 before the first call that needs Python.
 }
 \details{
-There is one reason to: **a GeForce GTX 10-series card, or anything older**. PyTorch
+There is one reason to: \strong{a GeForce GTX 10-series card, or anything older}. PyTorch
 2.8 and later ship CUDA 13 builds, and CUDA 13 dropped the Maxwell, Pascal and Volta
 generations outright. No driver update brings them back. Without this, such a card is
 simply not used and everything runs on the processor, perhaps ten times slower, with

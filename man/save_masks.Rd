@@ -7,21 +7,21 @@
 save_masks(masks, dir, colormap, names = NULL, suffix = "")
 }
 \arguments{
-\item{masks}{Class indices from [predict.platypus_fit()] - an `image x height x width`
-  array, or one `height x width` matrix. Probabilities are accepted too and reduced to
-  the most likely class.
+\item{masks}{Class indices from \code{\link[=predict.platypus_fit]{predict.platypus_fit()}} - an \verb{image x height x width}
+array, or one \verb{height x width} matrix. Probabilities are accepted too and reduced to
+the most likely class.
 
-  For **volumes** use [save_volumes()], which writes NIfTI carrying the geometry of the
-  scan each mask came from. This function cannot reliably tell a stack of volumes from a
-  stack of images with a class axis - the ranks are identical - so it does not try; it
-  refuses only the case a shape can prove.}
+For \strong{volumes} use \code{\link[=save_volumes]{save_volumes()}}, which writes NIfTI carrying the geometry of the
+scan each mask came from. This function cannot reliably tell a stack of volumes from a
+stack of images with a class axis - the ranks are identical - so it does not try; it
+refuses only the case a shape can prove.}
 
 \item{dir}{Directory to write into; created if it does not exist.}
 
 \item{colormap}{A list of RGB triples, one per class.}
 
 \item{names}{File names, or the source image paths to take names from. Defaults to
-`mask_0001.png` and so on.}
+\code{mask_0001.png} and so on.}
 
 \item{suffix}{Added before the extension, so predictions from different models can sit
 in one directory without overwriting each other.}

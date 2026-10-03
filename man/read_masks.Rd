@@ -9,15 +9,15 @@ read_masks(paths, colormap = NULL, labels = NULL, size = NULL, tolerance = 0)
 \arguments{
 \item{paths}{Image files.}
 
-\item{colormap}{A list of RGB triples, one per class. Give this or `labels`.}
+\item{colormap}{A list of RGB triples, one per class. Give this or \code{labels}.}
 
-\item{labels}{The voxel value of each class, in class order: `c(0, 1)` for a binary
-segmentation. For NIfTI and other label maps. Give this or `colormap`.}
+\item{labels}{The voxel value of each class, in class order: \code{c(0, 1)} for a binary
+segmentation. For NIfTI and other label maps. Give this or \code{colormap}.}
 
-\item{size}{`c(height, width)` to read at, or `NULL` to keep each image's own size -
+\item{size}{\code{c(height, width)} to read at, or \code{NULL} to keep each image's own size -
 which only works if they all agree.}
 
-\item{tolerance}{Passed to [mask_classes()]. Ignored for label maps, which are compared to
+\item{tolerance}{Passed to \code{\link[=mask_classes]{mask_classes()}}. Ignored for label maps, which are compared to
 within half a unit - a label map that has been resampled or merely passed through a float
 will not satisfy an exact comparison, and a label that fails to match becomes background.}
 }
@@ -25,7 +25,7 @@ will not satisfy an exact comparison, and a label that fails to match becomes ba
 An array of class indices, counted from 1.
 }
 \description{
-Masks come two ways, and this reads both. `colormap` is for masks stored as pictures, one
-colour per class. `labels` is for masks stored as label maps - a vector of the voxel values,
+Masks come two ways, and this reads both. \code{colormap} is for masks stored as pictures, one
+colour per class. \code{labels} is for masks stored as label maps - a vector of the voxel values,
 in class order - which is how volume formats store them.
 }

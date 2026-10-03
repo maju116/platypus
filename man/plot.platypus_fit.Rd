@@ -7,14 +7,14 @@
 \method{plot}{platypus_fit}(x, metrics = NULL, ...)
 }
 \arguments{
-\item{x}{A [platypus_fit()].}
+\item{x}{A \code{\link[=platypus_fit]{platypus_fit()}}.}
 
 \item{metrics}{Which columns to plot; defaults to the losses and metrics.}
 
 \item{...}{Unused.}
 }
 \value{
-A `ggplot`.
+A \code{ggplot}.
 }
 \description{
 One panel per quantity, one line per model. Useful for the thing a final number cannot

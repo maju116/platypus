@@ -7,12 +7,12 @@
 mask_volume(mask, spacing, class = 2L)
 }
 \arguments{
-\item{mask}{A mask of class indices, as [predict()] returns - one volume, not a stack.}
+\item{mask}{A mask of class indices, as \code{\link[=predict]{predict()}} returns - one volume, not a stack.}
 
-\item{spacing}{Voxel size in millimetres, length 3. [volume_info()] reports it; so does
-the `spacing_1/2/3` columns of its output.}
+\item{spacing}{Voxel size in millimetres, length 3. \code{\link[=volume_info]{volume_info()}} reports it; so does
+the \code{spacing_1/2/3} columns of its output.}
 
-\item{class}{Which class to measure, numbered from 1 as the colormap and `labels` are.
+\item{class}{Which class to measure, numbered from 1 as the colormap and \code{labels} are.
 Defaults to 2, which is the foreground in a binary segmentation.}
 }
 \value{

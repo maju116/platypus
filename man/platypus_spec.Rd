@@ -13,9 +13,9 @@ platypus_spec(
 )
 }
 \arguments{
-\item{data}{A [segmentation_data()] specification, or the path to a YAML file.}
+\item{data}{A \code{\link[=segmentation_data]{segmentation_data()}} specification, or the path to a YAML file.}
 
-\item{models}{A list of model specifications, see [models].}
+\item{models}{A list of model specifications, see \link{models}.}
 
 \item{seed}{Set it for a reproducible run.}
 
@@ -25,7 +25,7 @@ platypus_spec(
 specification on a machine that does not hold the data.}
 }
 \value{
-A `platypus_spec`.
+A \code{platypus_spec}.
 }
 \description{
 Either from arguments, or from a YAML file by passing its path as the only argument.

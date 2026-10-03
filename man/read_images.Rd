@@ -9,7 +9,7 @@ read_images(paths, size = NULL, channels = 3, nearest = FALSE)
 \arguments{
 \item{paths}{Image files.}
 
-\item{size}{`c(height, width)` to read at, or `NULL` to keep each image's own size -
+\item{size}{\code{c(height, width)} to read at, or \code{NULL} to keep each image's own size -
 which only works if they all agree.}
 
 \item{channels}{3 for colour, 1 for greyscale.}
@@ -18,7 +18,7 @@ which only works if they all agree.}
 invents colours belonging to no class, which then quietly become background.}
 }
 \value{
-An `image x height x width x channels` array of 0-255 values.
+An \verb{image x height x width x channels} array of 0-255 values.
 }
 \description{
 Reads through the engine's own pipeline rather than a separate decoder, so what you

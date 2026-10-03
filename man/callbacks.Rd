@@ -30,8 +30,8 @@ callback_csv_logger(path)
 callback_terminate_on_nan()
 }
 \arguments{
-\item{monitor}{What to watch: `"val_loss"`, `"train_loss"`, or `"val_"` followed by a
-metric name, such as `"val_dice"`.}
+\item{monitor}{What to watch: \code{"val_loss"}, \code{"train_loss"}, or \code{"val_"} followed by a
+metric name, such as \code{"val_dice"}.}
 
 \item{patience}{Epochs to wait before acting.}
 
@@ -49,13 +49,13 @@ metric name, such as `"val_dice"`.}
 A callback specification.
 }
 \description{
-Things that happen between epochs. `monitor` is checked against the metrics the model
+Things that happen between epochs. \code{monitor} is checked against the metrics the model
 actually asks for, so a callback watching a number that will never arrive is refused
 when the specification is built rather than waited on forever.
 }
 \details{
 Whether the watched quantity should rise or fall is worked out from its name: anything
-ending in `loss` is minimised, everything else maximised.
+ending in \code{loss} is minimised, everything else maximised.
 }
 \examples{
 callback_early_stopping(monitor = "val_dice", patience = 10)

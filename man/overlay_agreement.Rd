@@ -13,16 +13,16 @@ overlay_agreement(
 )
 }
 \arguments{
-\item{image}{A `height x width x channels` array.}
+\item{image}{A \verb{height x width x channels} array.}
 
 \item{prediction, truth}{Class indices, counted from 1.}
 
 \item{alpha}{How strongly to tint.}
 
-\item{colours}{Named colours for `hit`, `missed` and `false_alarm`.}
+\item{colours}{Named colours for \code{hit}, \code{missed} and \code{false_alarm}.}
 }
 \value{
-A `height x width x 3` array of 0-255 integers.
+A \verb{height x width x 3} array of 0-255 integers.
 }
 \description{
 Three colours rather than one: what was found, what was missed, and what was invented.

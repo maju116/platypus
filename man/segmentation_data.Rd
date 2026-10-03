@@ -22,82 +22,82 @@ segmentation_data(
 }
 \arguments{
 \item{train, validation}{Paths to the training and validation data. A
-[platypus_split()] may be given as `train` on its own: it carries all three
-paths and selects `config_file` mode, so a split needs no unpacking.}
+\code{\link[=platypus_split]{platypus_split()}} may be given as \code{train} on its own: it carries all three
+paths and selects \code{config_file} mode, so a split needs no unpacking.}
 
 \item{colormap}{A list of RGB triples, one per class, background first. For masks stored
-as pictures. Give this or `labels`, not both.}
+as pictures. Give this or \code{labels}, not both.}
 
 \item{labels}{The voxel value of each class, in class order, for masks stored as label
-maps - `c(0, 1)` for a binary segmentation, `c(0, 1, 2)` where 1 is liver and 2 is
+maps - \code{c(0, 1)} for a binary segmentation, \code{c(0, 1, 2)} where 1 is liver and 2 is
 tumour. This is how NIfTI and every other volume format label anything. Give this or
-`colormap`, not both.}
+\code{colormap}, not both.}
 
 \item{test}{Optional test data. Only images are read from it.}
 
-\item{mode}{`"nested_dirs"` or `"config_file"`.}
+\item{mode}{\code{"nested_dirs"} or \code{"config_file"}.}
 
-\item{window}{How values in real units reach the model. A named window - `"lung"`,
-  `"soft_tissue"`, `"bone"`, `"brain"`, `"abdomen"`, `"liver"`, `"mediastinum"`,
-  `"subdural"`, `"stroke"` - or an explicit `c(centre, width)` in Hounsfield units, or
-  `"auto"` for the window the file recorded, which only DICOM has, or `"full"` for the
-  whole range present. Applies to DICOM and to NIfTI; ignored for ordinary pictures,
-  which are already 0-255.
+\item{window}{How values in real units reach the model. A named window - \code{"lung"},
+\code{"soft_tissue"}, \code{"bone"}, \code{"brain"}, \code{"abdomen"}, \code{"liver"}, \code{"mediastinum"},
+\code{"subdural"}, \code{"stroke"} - or an explicit \code{c(centre, width)} in Hounsfield units, or
+\code{"auto"} for the window the file recorded, which only DICOM has, or \code{"full"} for the
+whole range present. Applies to DICOM and to NIfTI; ignored for ordinary pictures,
+which are already 0-255.
 
-  Worth choosing rather than leaving: a fixed window is what makes two scans comparable.
-  Scaling each scan by its own darkest and brightest voxel lets a single metal implant or
-  marker rescale everything else in it.
+Worth choosing rather than leaving: a fixed window is what makes two scans comparable.
+Scaling each scan by its own darkest and brightest voxel lets a single metal implant or
+marker rescale everything else in it.
 
-  `NULL`, the default, sends nothing and lets the engine decide - which also keeps
-  ordinary image work running against an engine too old to know the setting exists.}
+\code{NULL}, the default, sends nothing and lets the engine decide - which also keeps
+ordinary image work running against an engine too old to know the setting exists.}
 
-\item{dicom_window}{The former name of `window`, still accepted. It was accurate while
+\item{dicom_window}{The former name of \code{window}, still accepted. It was accurate while
 DICOM was the only format that needed it.}
 
 \item{target_spacing}{For volumes: resample every scan to this many millimetres per voxel,
-  then centre-crop or pad to the model's `input_shape`. Without it a volume is simply
-  resized into that shape, which is only harmless when every scan covers the same amount of
-  the patient - and clinical scans do not. Forty slices of 1 mm is 40 mm of patient and
-  forty of 2.5 mm is 100 mm, so resizing alone leaves the same organ a different size in
-  each, and nothing in the data says so.
+then centre-crop or pad to the model's \code{input_shape}. Without it a volume is simply
+resized into that shape, which is only harmless when every scan covers the same amount of
+the patient - and clinical scans do not. Forty slices of 1 mm is 40 mm of patient and
+forty of 2.5 mm is 100 mm, so resizing alone leaves the same organ a different size in
+each, and nothing in the data says so.
 
-  `c(1, 1, 1)` is the usual starting point. Ignored for 2D.}
+\code{c(1, 1, 1)} is the usual starting point. Ignored for 2D.}
 
 \item{channels_from}{For datasets that keep one channel per file: one pattern per channel,
-  in channel order. BraTS ships four MRI sequences per patient - T1, T1 after contrast, T2
-  and FLAIR - because different tumour structures are visible in different sequences;
-  satellite sets keep their bands apart the same way.
+in channel order. BraTS ships four MRI sequences per patient - T1, T1 after contrast, T2
+and FLAIR - because different tumour structures are visible in different sequences;
+satellite sets keep their bands apart the same way.
 
-  The order is stated rather than inferred, and that is the point. Sorted, the BraTS names
-  come out flair, t1, t1ce, t2 - reproducible and anatomically meaningless. A model trained
-  with FLAIR in channel one and used on data whose channel one is T1 returns a plausible
-  answer with the right shape and the right range, and nothing further down can notice.
+The order is stated rather than inferred, and that is the point. Sorted, the BraTS names
+come out flair, t1, t1ce, t2 - reproducible and anatomically meaningless. A model trained
+with FLAIR in channel one and used on data whose channel one is T1 returns a plausible
+answer with the right shape and the right range, and nothing further down can notice.
 
-  Patterns are Python regular expressions, like `group_by` in [platypus_split()], and R's
-  own quoting applies: `c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")`.
-  Each must match exactly one of a sample's files - `"_t1"` would match both `_t1.nii.gz`
-  and `_t1ce.nii.gz`, which is an error rather than a race - and every file must be claimed
-  by some pattern, because one left out is data the model never sees.}
+Patterns are Python regular expressions, like \code{group_by} in \code{\link[=platypus_split]{platypus_split()}}, and R's
+own quoting applies: \code{c("_t1\\\\.nii", "_t1ce\\\\.nii", "_t2\\\\.nii", "_flair\\\\.nii")}.
+Each must match exactly one of a sample's files - \code{"_t1"} would match both \verb{_t1.nii.gz}
+and \verb{_t1ce.nii.gz}, which is an error rather than a race - and every file must be claimed
+by some pattern, because one left out is data the model never sees.}
 
-\item{subdirs}{For `nested_dirs`, the names of the image and mask subdirectories.}
+\item{subdirs}{For \code{nested_dirs}, the names of the image and mask subdirectories.}
 
-\item{column_sep}{For `config_file`, what separates several paths in one cell.}
+\item{column_sep}{For \code{config_file}, what separates several paths in one cell.}
 
 \item{shuffle}{Shuffle the training data between epochs.}
 }
 \value{
-A data specification, to be passed to [platypus_spec()].
+A data specification, to be passed to \code{\link[=platypus_spec]{platypus_spec()}}.
 }
 \description{
-Two layouts. `nested_dirs` expects one directory per sample containing an `images` and
-a `masks` subdirectory - the Data Science Bowl arrangement, where a sample may hold
-dozens of separate mask files that are combined into one. `config_file` expects a CSV
-with `images` and `masks` columns, several paths per cell if needed, resolved relative
+Two layouts. \code{nested_dirs} expects one directory per sample containing an \code{images} and
+a \code{masks} subdirectory - the Data Science Bowl arrangement, where a sample may hold
+dozens of separate mask files that are combined into one. \code{config_file} expects a CSV
+with \code{images} and \code{masks} columns, several paths per cell if needed, resolved relative
 to the file itself so a configuration travels with its data.
 }
 \details{
-Classes are named one of two ways, and exactly one of them. `colormap` is for masks
-stored as pictures: a list of RGB triples where position is the class index. `labels` is
+Classes are named one of two ways, and exactly one of them. \code{colormap} is for masks
+stored as pictures: a list of RGB triples where position is the class index. \code{labels} is
 for masks stored as label maps - a vector of the voxel values, in class order - which is
 how every volume format stores them, and how a single-channel PNG can be read as well.
 

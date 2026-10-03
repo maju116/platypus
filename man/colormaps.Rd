@@ -20,12 +20,12 @@ voc_colormap
 voc_labels
 }
 \description{
-`binary_colormap` is black background, white foreground: the ordinary two-class
-problem. `voc_colormap` is the twenty-one class palette used by Pascal VOC, kept
+\code{binary_colormap} is black background, white foreground: the ordinary two-class
+problem. \code{voc_colormap} is the twenty-one class palette used by Pascal VOC, kept
 because datasets and other people's masks still arrive in it.
 }
 \details{
-The labels are the matching class names, for figure legends and [mask_coverage()].
+The labels are the matching class names, for figure legends and \code{\link[=mask_coverage]{mask_coverage()}}.
 Position in the list is the class index throughout, counting from 1.
 }
 \examples{

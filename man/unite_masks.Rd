@@ -7,10 +7,10 @@
 unite_masks(masks)
 }
 \arguments{
-\item{masks}{A list of `height x width` matrices of class indices.}
+\item{masks}{A list of \verb{height x width} matrices of class indices.}
 }
 \value{
-One `height x width` matrix.
+One \verb{height x width} matrix.
 }
 \description{
 The Data Science Bowl stores one file per nucleus; datasets like it are common. Later

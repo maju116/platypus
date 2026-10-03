@@ -7,11 +7,11 @@
 available_weights()
 }
 \value{
-A data frame with `name`, `repo`, `filename`, `revision` and `description`.
+A data frame with \code{name}, \code{repo}, \code{filename}, \code{revision} and \code{description}.
 }
 \description{
 Weights are named rather than downloaded by hand, and a name is pinned to one commit of the
-repository holding it - so `"dsbowl-unet"` means one set of numbers today and the same set next
+repository holding it - so \code{"dsbowl-unet"} means one set of numbers today and the same set next
 year. This lists what is published, with the commit each name resolves to.
 }
 \details{
@@ -32,6 +32,6 @@ masks <- predict(platypus_fit(spec), split = "validation")
 }
 }
 \seealso{
-[u_net()] and the other architectures, whose `weights` argument takes a name from
-  here, a `hf://owner/repo/file.safetensors@commit` reference, or a path to a local file.
+\code{\link[=u_net]{u_net()}} and the other architectures, whose \code{weights} argument takes a name from
+here, a \verb{hf://owner/repo/file.safetensors@commit} reference, or a path to a local file.
 }

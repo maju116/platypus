@@ -7,21 +7,21 @@
 split_files(split, which = c("train", "validation", "test"))
 }
 \arguments{
-\item{split}{A [platypus_split()].}
+\item{split}{A \code{\link[=platypus_split]{platypus_split()}}.}
 
-\item{which}{`"train"`, `"validation"` or `"test"`.}
+\item{which}{\code{"train"}, \code{"validation"} or \code{"test"}.}
 }
 \value{
-A data frame with `key`, `group`, `images` and `masks`, the paths made absolute.
-  `images` and `masks` hold one path per sample, or several separated by the split's
-  separator when a sample has several files.
+A data frame with \code{key}, \code{group}, \code{images} and \code{masks}, the paths made absolute.
+\code{images} and \code{masks} hold one path per sample, or several separated by the split's
+separator when a sample has several files.
 }
 \description{
-Reads the CSV that [platypus_split()] wrote and hands back the paths ready to use.
+Reads the CSV that \code{\link[=platypus_split]{platypus_split()}} wrote and hands back the paths ready to use.
 }
 \details{
-The reason this exists rather than `read.csv()`: the CSVs store paths **relative to
-themselves**, so that a dataset and its split can be moved or mounted elsewhere together.
+The reason this exists rather than \code{read.csv()}: the CSVs store paths \strong{relative to
+themselves}, so that a dataset and its split can be moved or mounted elsewhere together.
 Read directly, those paths do not open from wherever your session happens to be - which is a
 trap worth removing rather than documenting.
 }
