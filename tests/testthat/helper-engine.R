@@ -524,3 +524,25 @@ write_detection_split <- function(root, prefix, count, seed = 1) {
   }
   root
 }
+
+
+#' Does the engine in use draw the anchor fit?
+#'
+#' Asked of the class rather than by calling it, because calling needs a trained detector
+#' and "no model called 'd'" would read as "no feature" - the conflation the mask probe
+#' made twice before it was asked in Python.
+engine_has_anchor_plot <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').DetectionEngine, 'box_shapes')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_anchor_plot <- function() {
+  skip_if_no_detection()
+  testthat::skip_if_not(engine_has_anchor_plot(),
+                        "the engine in use predates the anchor plot")
+}

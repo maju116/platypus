@@ -228,7 +228,15 @@ ct_windows <- function() {
 #' @param data A [segmentation_data()] specification, or the path to a YAML file.
 #' @param models A list of model specifications, see [models].
 #' @param seed Set it for a reproducible run.
-#' @param output_dir Where the engine writes.
+#' @param output_dir Where to write a record of the run: the specification, the history,
+#'   and anything the run worked out that the specification does not already say - a
+#'   detector's fitted anchors, which it cannot be reloaded without. `NULL`, the default,
+#'   writes nothing.
+#'
+#'   Unset means *nothing is written*, not "written to a default place". A field with a
+#'   default cannot be told apart from one somebody set to that default, so sending the
+#'   default from here would have put files in every user's working directory the moment
+#'   the engine learned to write them - which it just did.
 #' @param check_paths Verify that the data paths exist. Turn it off to build a
 #'   specification on a machine that does not hold the data.
 #' @return A `platypus_spec`.
@@ -247,7 +255,7 @@ ct_windows <- function() {
 #' spec <- platypus_spec("experiment.yaml")
 #' }
 platypus_spec <- function(data, models = NULL, seed = NULL,
-                          output_dir = "platypus_output", check_paths = TRUE) {
+                          output_dir = NULL, check_paths = TRUE) {
   from_file <- is.character(data) && length(data) == 1L && is.null(models)
 
   result <- if (from_file) {

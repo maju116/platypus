@@ -359,3 +359,138 @@ test_that("every callback the engine offers has an R constructor", {
 
   expect_setequal(names_in_engine, in_r)
 })
+
+
+# --- the picture of the anchor fit --------------------------------------------------------
+
+test_that("plot_anchors draws the boxes and the anchors in one frame", {
+  skip_if_no_anchor_plot()
+  skip_if_not_installed("png")
+  skip_if_not_installed("ggplot2")
+
+  root <- withr::local_tempdir()
+  write_detection_split(file.path(root, "train"), "train", 8, seed = 11)
+  write_detection_split(file.path(root, "valid"), "valid", 4, seed = 12)
+
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2)),
+    seed = 1
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+
+  plot <- plot_anchors(fit)
+  expect_s3_class(plot, "ggplot")
+
+  # Two layers: the cloud and the anchors. A picture with only one of them is the failure
+  # worth catching, and `ggplot` is happy to produce it.
+  expect_length(plot$layers, 2L)
+
+  cloud <- plot$layers[[1]]$data
+  expect_equal(nrow(cloud), 16L)              # eight images, two boxes each
+  expect_setequal(unique(cloud$name), c("square", "bar"))
+
+  anchors <- plot$layers[[2]]$data
+  expect_equal(nrow(anchors), 6L)             # three grids, two each
+})
+
+test_that("the cloud and the anchors are in the same coordinates", {
+  skip_if_no_anchor_plot()
+  skip_if_not_installed("png")
+  skip_if_not_installed("ggplot2")
+
+  root <- withr::local_tempdir()
+  write_detection_split(file.path(root, "train"), "train", 8, seed = 13)
+  write_detection_split(file.path(root, "valid"), "valid", 4, seed = 14)
+
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2)),
+    seed = 1
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+  plot <- plot_anchors(fit)
+
+  cloud <- plot$layers[[1]]$data
+  anchors <- plot$layers[[2]]$data
+
+  # The property the picture rests on. k-means puts its centres among their points, so an
+  # anchor far outside the cloud means the two were computed in different coordinates -
+  # which would look like a bad fit rather than like a bug.
+  expect_gte(min(anchors$width), min(cloud$width) * 0.5)
+  expect_lte(max(anchors$width), max(cloud$width) * 2)
+  expect_gte(min(anchors$height), min(cloud$height) * 0.5)
+  expect_lte(max(anchors$height), max(cloud$height) * 2)
+
+  # And both are fractions of the input, not pixels.
+  expect_true(all(cloud$width > 0 & cloud$width <= 1))
+  expect_true(all(anchors$width > 0 & anchors$width <= 1))
+})
+
+test_that("plot_anchors refuses a segmentation fit", {
+  skip_if_not_installed("ggplot2")
+  fake <- structure(list(task = "segmentation", models = "u"), class = "platypus_fit")
+  expect_error(plot_anchors(fake), "a U-Net has none")
+})
+
+
+# --- the run record, which is where fitted anchors survive --------------------------------
+
+test_that("nothing is written when output_dir was not given", {
+  skip_if_no_detection()
+  skip_if_not_installed("png")
+
+  root <- withr::local_tempdir()
+  write_detection_split(file.path(root, "train"), "train", 8, seed = 15)
+  write_detection_split(file.path(root, "valid"), "valid", 4, seed = 16)
+
+  # R used to send its own default, which would have put a record in every user's working
+  # directory the moment the engine learned to write them. `output_dir` is NULL here and
+  # `compact()` drops it, so the engine never hears about it.
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2))
+  )
+  withr::with_dir(root, platypus_fit(spec, device = "cpu"))
+  expect_false(dir.exists(file.path(root, "platypus_output")))
+})
+
+test_that("a record appears when output_dir was given, and carries the fitted anchors", {
+  skip_if_no_detection()
+  skip_if_not_installed("png")
+
+  root <- withr::local_tempdir()
+  write_detection_split(file.path(root, "train"), "train", 8, seed = 17)
+  write_detection_split(file.path(root, "valid"), "valid", 4, seed = 18)
+  out <- file.path(root, "runs")
+
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2)),
+    output_dir = out
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+
+  path <- file.path(out, "d", "run.json")
+  expect_true(file.exists(path))
+
+  # The reason it exists: the specification does not name the anchors when they were
+  # fitted, so this is the only copy outside a weights sidecar somebody has to remember
+  # to export.
+  skip_if_not_installed("jsonlite")
+  record <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  expect_true(record$derived$anchors_were_fitted)
+  expect_length(record$derived$anchors, 3L)
+  expect_equal(
+    lapply(record$derived$anchors, function(g) lapply(g, unlist)),
+    lapply(detection_anchors(fit)$anchors, function(g) lapply(g, unlist))
+  )
+})
