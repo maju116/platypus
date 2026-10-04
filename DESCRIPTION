@@ -11,7 +11,7 @@ Description: Semantic segmentation and object detection for medical images, from
     has to be set up by hand. R keeps the parts that make an analysis fast - reading and
     combining masks, drawing boxes, plotting, comparing models.
 License: MIT + file LICENSE
-URL: https://github.com/maju116/platypus
+URL: https://github.com/maju116/platypus, https://maju116.github.io/platypus/
 BugReports: https://github.com/maju116/platypus/issues
 Encoding: UTF-8
 Depends:

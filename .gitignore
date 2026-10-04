@@ -6,7 +6,7 @@
 src/*.o
 src/*.so
 src/*.dll
-..Rcheck/
+*.Rcheck/
 *.tar.gz
 
 # Leading slashes on purpose. An unanchored rule also matches the same name nested
@@ -27,3 +27,8 @@ src/*.dll
 # ship: a .pyc is tied to one interpreter version.
 __pycache__/
 *.py[cod]
+
+# The pkgdown site is built by CI and deployed to the gh-pages branch, so the built
+# copy has no business in history - it is several megabytes of generated HTML that
+# would change on every documentation edit.
+/docs/

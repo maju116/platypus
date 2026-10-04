@@ -1,0 +1,72 @@
+# The documentation as a website, because GitHub cannot render an .Rmd.
+#
+# Asked for a vignette, GitHub's own API answers `class="Rmd"` wrapped in
+# `<div class="plain"><pre>` - the source, with no figures. A committed .html file gets
+# exactly the same treatment. So a reader who is not running R has no way to see any of
+# this, and the vignettes are where most of the package's argument lives.
+#
+# Nothing here runs a model. The vignettes are precomputed - the checked-in .Rmd holds no
+# live code at all, only its output and the figures beside it - so this needs pandoc and
+# no Python, which is why it can afford to run on every push.
+#
+# Derived from https://github.com/r-lib/actions/tree/v2/examples, with one step added.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: pkgdown
+
+permissions: read-all
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-latest
+    # Only restrict concurrency for non-PR jobs: a pull request build is cheap and
+    # cancelling it tells you nothing.
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    # Write access is needed only by the deploy step, which a pull request does not reach.
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+
+      # Every documented topic has to appear in the reference index or pkgdown refuses to
+      # build, and an article has to exist for every entry naming one. Adding a function
+      # and forgetting the index is the ordinary way to break this, and two seconds here
+      # names it rather than a failure four minutes into a build.
+      - name: Check the site's configuration
+        run: pkgdown::check_pkgdown()
+        shell: Rscript {0}
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      - name: Deploy to GitHub pages
+        if: github.event_name != 'pull_request'
+        # Third-party, so pinned by commit rather than by tag - this is the pin r-lib's
+        # own reference workflow ships.
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs

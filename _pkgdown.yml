@@ -1,0 +1,122 @@
+url: https://maju116.github.io/platypus/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1c5d99"
+    code_font: {google: "JetBrains Mono"}
+
+# The version is a development one and will stay that way for a while (no formal
+# release yet), so do not file the whole site under /dev/ - there is nothing else
+# for it to sit beside.
+development:
+  mode: release
+
+navbar:
+  structure:
+    # No `news`: there is no NEWS.md, because there has been no formal release on the
+    # R side yet. A navbar entry for it would be a link to nothing.
+    left:  [intro, articles, reference]
+    right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+      - text: "Segmentation: nuclei in microscopy"
+        href: articles/data-science-bowl.html
+      - text: "Detection: blood cells"
+        href: articles/blood-cells.html
+      - text: "Volumes: 3D segmentation"
+        href: articles/volumes.html
+
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - data-science-bowl
+  - blood-cells
+  - volumes
+
+reference:
+- title: Setting up
+  desc: >
+    The engine is Python, installed on first use. These three say where it is, what
+    it found, and which build of PyTorch to ask for.
+  contents:
+  - platypus_status
+  - platypus_device
+  - platypus_use_torch
+
+- title: A specification
+  desc: >
+    One object says what to train, on what data, with what. Built from arguments or
+    from YAML - the same specification either way.
+  contents:
+  - platypus_spec
+  - segmentation_data
+  - detection_data
+  - models
+  - yolo3
+  - as.list.platypus_spec
+
+- title: What a model is made of
+  desc: Losses, metrics, optimisers, callbacks, augmentation, encoders.
+  contents:
+  - losses
+  - metrics
+  - optimizers
+  - callbacks
+  - augment
+  - available_augmentations
+  - encoders
+
+- title: The data on disk
+  desc: >
+    Splitting by patient rather than by slice, and looking at what is actually there
+    before spending an afternoon training on it.
+  contents:
+  - platypus_split
+  - split_files
+  - read_images
+  - read_masks
+  - volume_info
+  - series_report
+  - mask_report
+
+- title: Training
+  contents:
+  - platypus_fit
+  - training_history
+  - plot.platypus_fit
+  - save_weights
+  - available_weights
+
+- title: Predicting and scoring
+  contents:
+  - predict.platypus_fit
+  - evaluate
+  - evaluate_cases
+  - evaluate_classes
+  - detection_anchors
+
+- title: Looking at the results
+  desc: >
+    A figure is the point. These are the ones you put in a paper.
+  contents:
+  - plot_masks
+  - plot_boxes
+  - plot_anchors
+  - overlay_mask
+  - overlay_agreement
+
+- title: Masks and volumes
+  contents:
+  - mask_classes
+  - mask_colours
+  - mask_coverage
+  - mask_volume
+  - unite_masks
+  - colormaps
+  - ct_windows
+  - save_masks
+  - save_volumes

@@ -7,6 +7,7 @@ figure.**
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/maju116/platypus/actions/workflows/pkgdown.yaml/badge.svg)](https://maju116.github.io/platypus/)
 <!-- badges: end -->
 
 > **This is a rewrite, and an alpha.** The package released in 2020 was built on
@@ -291,6 +292,11 @@ description is the part to read, and for this one it says platelets are the unre
 
 Three vignettes, all precomputed from real runs — every number and figure in them came out of
 running the code shown.
+
+**Read them at [maju116.github.io/platypus](https://maju116.github.io/platypus/)**, which also
+carries the reference for every function. Browsing them here on GitHub does not work: GitHub has
+no renderer for `.Rmd` and serves the source, figures and all, as plain text. From R,
+`vignette("blood-cells")` opens the same document locally.
 
 `vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
 mask per nucleus, from a folder of images to a figure.
