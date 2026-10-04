@@ -79,8 +79,22 @@ def build_engine(spec: Any, device: str | None = None, num_workers: int = 0,
     # that predates the argument - which is the same rule the R options follow.
     if not check_masks:
         options["check_masks"] = False
+
+    # `build_engine` picks the engine the spec's task asks for. A detector has no masks to
+    # check, so the option is dropped rather than sent and refused: it is meaningless
+    # there, not disallowed.
+    maker = getattr(pyplatypus, "build_engine", None)
+    if maker is None:
+        return _failure_message(
+            "This engine predates `build_engine`, so it cannot tell a detection "
+            "specification from a segmentation one. Update platypus, or point "
+            "PLATYPUS_ENGINE_PATH at a newer source tree."
+        )
+    if getattr(getattr(spec, "task", None), "value", None) == "detection":
+        options.pop("check_masks", None)
+
     try:
-        engine = pyplatypus.Engine(
+        engine = maker(
             spec, device=device, num_workers=int(num_workers), strict_data=strict_data,
             **options,
         )
@@ -195,6 +209,119 @@ def predictions(engine: Any, model_name: str, split: str = "test",
     masks = to_class(probabilities) if as_class else probabilities
     return {"ok": True, "masks": masks, "type": "class" if as_class else "probability",
             "space": "model"}
+
+
+# ---------------------------------------------------------------------- detection
+
+
+def detections(engine: Any, model_name: str, split: str = "test") -> dict:
+    """Boxes for a split, one entry per image, in each image's own pixels.
+
+    Not masks, and not an array. Images differ in size and so does the number of boxes
+    found in each, so this is a list - and the boxes are in the coordinates of the file
+    they came from rather than the network's letterboxed frame, because that is where a
+    person can draw them.
+
+    Labels arrive **1-based**, like the class indices `predictions` returns: R indexes
+    from one, and a label whose first class is 0 while `classes` starts at 1 is a trap
+    laid for later. `names` comes along so nothing downstream has to do the lookup.
+    """
+    import numpy as np
+    import pyplatypus
+
+    try:
+        found = engine.predict(model_name, split=split)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    out = []
+    for entry in found:
+        out.append({
+            "key": entry["key"],
+            "boxes": np.asarray(entry["boxes"], dtype=float).reshape(-1, 4),
+            "scores": np.asarray(entry["scores"], dtype=float).reshape(-1),
+            "labels": (np.asarray(entry["labels"], dtype=np.int32) + 1).reshape(-1),
+            "names": list(entry["names"]),
+        })
+    return {"ok": True, "detections": out}
+
+
+def detection_table(engine: Any, split: str = "validation") -> dict:
+    """One row per model, with detection's columns."""
+    import pyplatypus
+
+    try:
+        return {"ok": True, "table": engine.evaluate(split)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
+def detection_classes(engine: Any, model_name: str,
+                      split: str = "validation") -> dict:
+    """One row per class, which is the row that matters on unbalanced data."""
+    import pyplatypus
+
+    try:
+        return {"ok": True, "rows": engine.evaluate_classes(model_name, split)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
+def anchor_report(engine: Any, model_name: str, split: str = "train") -> dict:
+    """How well the anchors in use cover a split's boxes.
+
+    Worth asking of a split they were *not* fitted on: 0.92 on training and 0.70 on
+    validation says the two hold different objects, and no training curve shows that.
+    """
+    import pyplatypus
+
+    try:
+        return {"ok": True, "coverage": engine.anchor_coverage(model_name, split)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
+def run_anchors(engine: Any, model_name: str) -> dict:
+    """The anchors a run used, and whether they were fitted or given.
+
+    A detector cannot be reloaded without them, so this is how R gets at the only record
+    when they were fitted rather than named in the specification.
+    """
+    try:
+        run = engine.runs[model_name]
+    except KeyError:
+        known = ", ".join(engine.runs) or "none"
+        return _failure_message(f"no model called '{model_name}'; trained so far: {known}")
+    fitted = run.anchor_fit
+    return {
+        "ok": True,
+        "anchors": [[list(pair) for pair in group] for group in run.anchors],
+        "fitted": fitted is not None,
+        "mean_iou": None if fitted is None else float(fitted.mean_iou),
+        "boxes_used": None if fitted is None else int(fitted.boxes_used),
+        "rows": [] if fitted is None else fitted.as_rows(),
+    }
+
+
+def target_survey(engine: Any, model_name: str) -> dict:
+    """What the target could and could not hold, measured before training."""
+    try:
+        run = engine.runs[model_name]
+    except KeyError:
+        return _failure_message(f"no model called '{model_name}'")
+    if run.survey is None:
+        return _failure_message(
+            f"'{model_name}' was not trained, so its targets were never surveyed."
+        )
+    return {"ok": True, "survey": run.survey.to_dict()}
 
 
 def model_names(engine: Any) -> list:

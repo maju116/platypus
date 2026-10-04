@@ -45,14 +45,25 @@ test_that("every architecture takes a backbone", {
   }
 })
 
-test_that("the bridge always asks for the encoders extra", {
+test_that("the bridge always asks for both extras, on either route", {
   requirement <- platypus:::.platypus_requirement()
-  skip_if(grepl("^/", requirement), "PLATYPUS_ENGINE_PATH is set, so no requirement string")
+
   # Both extras, every time. Leaving one out is how `weights = "dsbowl-unet"` shipped
   # unusable from R: the pin's test surface is the package, never its extras.
   expect_match(requirement, "hub")
   expect_match(requirement, "encoders")
-  expect_match(requirement, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
+
+  # This used to skip whenever PLATYPUS_ENGINE_PATH was set, because the development route
+  # returned a bare path with no extras at all. That was the defect rather than a reason to
+  # skip: the blood-cell vignette could not be precomputed, since `weights = "bccd-yolo3"`
+  # found no huggingface_hub in the environment the development route builds. A development
+  # route that differs from the installed one hides exactly the class of problem it exists
+  # to surface, so now both carry the extras and both are checked here.
+  if (grepl("^/", requirement)) {
+    expect_true(dir.exists(sub("\\[.*$", "", requirement)))
+  } else {
+    expect_match(requirement, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
+  }
 })
 
 

@@ -7,16 +7,23 @@
 #
 # Run from the package root:
 #
-#     PLATYPUS_DSBOWL=/path/to/data_science_bowl Rscript vignettes/precompute.R
+#     PLATYPUS_DSBOWL=/path/to/data_science_bowl \
+#     PLATYPUS_BCCD=/path/to/BCCD Rscript vignettes/precompute.R
 #
-# The volume vignette generates its own data, so it needs nothing but a working engine. Pass
-# `volumes` as an argument to knit only that one.
+# The volume vignette generates its own data, so it needs nothing but a working engine. Name
+# one or more vignettes as arguments to knit only those.
+#
+# The blood-cell one trains a 61.5-million-parameter detector for 150 epochs - about 37
+# minutes on a GTX 1070 - so it is the slow one.
 
 which <- commandArgs(trailingOnly = TRUE)
-if (!length(which)) which <- c("data-science-bowl", "volumes")
+if (!length(which)) which <- c("data-science-bowl", "volumes", "blood-cells")
 
 if ("data-science-bowl" %in% which) {
   stopifnot(nzchar(Sys.getenv("PLATYPUS_DSBOWL")))
+}
+if ("blood-cells" %in% which) {
+  stopifnot(nzchar(Sys.getenv("PLATYPUS_BCCD")))
 }
 
 # Against the sources, not whatever is installed. The first run of the volume vignette knitted

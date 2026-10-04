@@ -2,7 +2,8 @@
 
 # platypus
 
-**Segmentation for medical images, from a folder of pictures to a figure.**
+**Segmentation and object detection for medical images, from a folder of pictures to a
+figure.**
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml)
@@ -52,8 +53,19 @@ exported, still callable, and mean something different:
 The other four — `binary_colormap`, `voc_colormap`, `binary_labels`, `voc_labels` — are the
 same data as before.
 
-Object detection is **not** in this version yet, so there is no replacement for the YOLOv3
-half of the old package rather than a moved one.
+**Object detection is back, and the names are different.** The old package handed you a Keras
+YOLOv3; this one describes a detector in a specification like everything else. So those five
+names are gone rather than moved, and what replaces them is:
+
+| 0.1.1 | now |
+|---|---|
+| `yolo3()`, `darknet53()` | `yolo3()` as one entry in `platypus_spec()` - same name, a specification rather than a model |
+| `load_darknet_weights()` | `weights = "bccd-yolo3"`, or a path, or `hf://owner/repo/file@commit` |
+| `get_boxes()`, `non_max_suppression()` | done inside `predict()`, which returns boxes already suppressed and in each image's own pixels |
+| `plot_boxes()` | `plot_boxes()` - same name, takes what `predict()` returns |
+
+The annotation readers are gone as functions and are now what `detection_data()` reads for
+you: Pascal VOC XML or LabelMe JSON, named rather than guessed.
 
 The old release is still there and still installable, pinned:
 
@@ -206,13 +218,74 @@ architecture and `pretrained = TRUE` loads its ImageNet weights, with `freeze_en
 them from being undone. Whether that is worth doing is a measured question rather than a
 rhetorical one — see below, and `?encoders` for the table.
 
+## Boxes instead of masks
+
+`task` is never typed. `detection_data()` and `yolo3()` carry it, and a specification that
+mixes a detection data block with a segmentation model is refused by name.
+
+```r
+cells <- c("RBC", "WBC", "Platelets")
+
+spec <- platypus_spec(
+  data = detection_data("train.csv", "valid.csv", classes = cells, mode = "config_file"),
+  models = list(yolo3("cells", input_shape = c(416, 416), epochs = 150,
+                      augmentation = list(augment("HorizontalFlip", p = 0.5)),
+                      callbacks = list(callback_cosine_annealing())))
+)
+
+fit   <- platypus_fit(spec)
+found <- predict(fit, split = "test")     # one data frame per image, in its own pixels
+plot_boxes(read_images(files, size = NULL), found, min_score = 0.5)
+```
+
+`classes` is in class order and is written down rather than read from the files, because
+position **is** the class index the model learns: sorted, BCCD's three come out `Platelets,
+RBC, WBC`, which is reproducible and anatomically meaningless.
+
+Four things differ from the segmentation path and each is a decision rather than an omission:
+
+**Anchors are fitted to your boxes** unless you name them. COCO's nine borrowed for blood
+cells cover their boxes at a mean overlap of 0.67 against 0.92 for fitted ones, which is the
+difference between a correction and a rewrite. They come back from `detection_anchors()`, and
+they travel with exported weights — **a detector cannot be reloaded without them**, because
+read with other anchors the same weights decode every box scaled by a fixed factor, plausibly
+and in the wrong places.
+
+**No `loss` and no `metrics` on the model.** YOLOv3's objective is part of its architecture
+and mean average precision is not one option among several.
+
+**No overall precision or recall** in `evaluate()`. Averaging them over classes needs a
+weighting and every weighting is a different claim: over BCCD's 4,155 red cells, 372 white and
+361 platelets, a single precision is a statement about red cells. `evaluate_classes()` gives
+the per-class rows, which is the form in which they mean something.
+
+**A published detector to start from**, so boxes on an image need no GPU:
+
+```r
+borrowed <- platypus_fit(platypus_spec(
+  data = detection_data("images.csv", "images.csv", classes = cells, mode = "config_file"),
+  models = list(yolo3("cells", input_shape = c(416, 416),
+                      weights = "bccd-yolo3", fit = FALSE))
+))
+```
+
+`bccd-yolo3` scores mAP@0.5 0.857 on BCCD's own held-out split — the **median of five seeds**,
+not the best, because the spread across them is 0.016 and a single number would be whichever
+seed got reported. `available_weights()` lists what is published and what it is for; the
+description is the part to read, and for this one it says platelets are the unreliable class.
+
 ## Learning it
 
-Two vignettes, both precomputed from real runs — every number and figure in them came out of
+Three vignettes, all precomputed from real runs — every number and figure in them came out of
 running the code shown.
 
 `vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
 mask per nucleus, from a folder of images to a figure.
+
+`vignette("blood-cells")` is detection: BCCD, boxes rather than masks, opening with a
+published detector before any training. It ends on the finding that made the measurement
+honest — across five seeds the overlap of the matched boxes varies six times less than the
+average precision does, so on a dataset that size a point of mAP is not a result.
 
 `vignette("volumes")` is CT, and generates its own synthetic data so it can be run without
 downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a
@@ -260,7 +333,8 @@ narrow, and three public datasets are three public datasets.
 
 ## What is not in it yet
 
-Object detection and ensembling.
+Ensembling. Classification. Boxes in three dimensions - `yolo3()` is 2D and says so rather
+than accepting a third number and ignoring it.
 
 Augmentation in 3D works, but unevenly, because albumentations supports volumes for most of
 its transforms and not all of them. Every transform in a 3D specification is probed while the

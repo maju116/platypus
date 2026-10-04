@@ -461,3 +461,66 @@ skip_if_no_mask_check <- function() {
     "the engine in use predates the mask check"
   )
 }
+
+#' Does the engine in use train detectors?
+#'
+#' Asked of the module rather than by trying it, because building a detection engine needs
+#' data on disk and "no usable samples" would read as "no feature" - the mistake the mask
+#' probe made twice before it was asked in Python (see `engine_checks_masks`).
+engine_does_detection <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus'), 'DetectionEngine')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_detection <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_does_detection(),
+                        "the engine in use predates object detection")
+}
+
+#' A tiny detection dataset in nested_dirs layout, written with the png package
+#'
+#' Deliberately not square and not the model's size, so the letterbox is exercised rather
+#' than an identity transform.
+write_detection_split <- function(root, prefix, count, seed = 1) {
+  set.seed(seed)
+  classes <- c("square", "bar")
+  for (n in seq_len(count)) {
+    key <- sprintf("%s_%d", prefix, n)
+    sample_dir <- file.path(root, key)
+    dir.create(file.path(sample_dir, "images"), recursive = TRUE, showWarnings = FALSE)
+    dir.create(file.path(sample_dir, "annotations"), recursive = TRUE,
+               showWarnings = FALSE)
+
+    height <- 128L
+    width <- 160L
+    image <- array(30 / 255, dim = c(height, width, 3))
+    x0 <- sample(4:50, 1); y0 <- sample(4:50, 1)
+    side <- sample(16:38, 1); bar <- sample(28:56, 1)
+    boxes <- list(c(x0, y0, x0 + side, y0 + side), c(96, 20, 96 + bar, 34))
+    for (k in seq_along(boxes)) {
+      b <- boxes[[k]]
+      image[b[2]:b[4], b[1]:b[3], ] <- if (k == 1L) 220 / 255 else 120 / 255
+    }
+    png::writePNG(image, file.path(sample_dir, "images", paste0(key, ".png")))
+
+    objects <- vapply(seq_along(boxes), function(k) {
+      b <- boxes[[k]]
+      sprintf(paste0("<object><name>%s</name><bndbox><xmin>%d</xmin><ymin>%d</ymin>",
+                     "<xmax>%d</xmax><ymax>%d</ymax></bndbox></object>"),
+              classes[k], b[1] + 1L, b[2] + 1L, b[3], b[4])
+    }, character(1))
+    writeLines(
+      sprintf(paste0("<annotation><size><width>%d</width><height>%d</height>",
+                     "<depth>3</depth></size>%s</annotation>"),
+              width, height, paste(objects, collapse = "")),
+      file.path(sample_dir, "annotations", paste0(key, ".xml"))
+    )
+  }
+  root
+}

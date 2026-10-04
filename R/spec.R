@@ -256,7 +256,12 @@ platypus_spec <- function(data, models = NULL, seed = NULL,
     if (is.null(models) || !length(models)) {
       stop("`models` must contain at least one model; see `?models`.", call. = FALSE)
     }
+    task <- agreed_task(data, models)
     config <- compact(list(
+      # `task` is sent always, not only for detection. The engine defaults a missing one
+      # to segmentation, so omitting it would work - and then a reader of the request
+      # could not tell which task was meant, which is the thing `task` exists to say.
+      task = task,
       data = data, models = models,
       seed = int1(seed), output_dir = output_dir
     ))
@@ -314,4 +319,35 @@ compact <- function(x) {
   if (!is.list(x)) return(x)
   x <- lapply(x, compact)
   x[!vapply(x, function(v) is.null(v) || (is.list(v) && !length(v)), logical(1))]
+}
+
+
+#' The one task a specification describes, or a refusal naming the disagreement
+#'
+#' Inferred from the objects rather than asked for: `detection_data()` and `yolo3()` carry
+#' it, and a user who chose them has said which they meant twice already.
+#'
+#' Caught here rather than across the bridge because the engine's refusal would be
+#' "data.classes: Extra inputs are not permitted", which describes the symptom. Mixing a
+#' detection data block with a segmentation model is not a stray field, it is two
+#' intentions in one specification.
+#'
+#' @noRd
+agreed_task <- function(data, models) {
+  from_data <- task_of(data)
+  from_models <- vapply(models, task_of, character(1))
+  all_tasks <- unique(c(from_data, from_models))
+
+  if (length(all_tasks) == 1L) return(all_tasks)
+
+  named <- vapply(seq_along(models), function(i) {
+    name <- models[[i]][["name"]]
+    sprintf("%s is %s", if (is.null(name)) paste0("models[[", i, "]]") else name,
+            from_models[[i]])
+  }, character(1))
+  stop("a specification describes one task, and this one mixes them: the data is ",
+       from_data, " while ", paste(named, collapse = ", "), ".\n",
+       "  Masks and boxes are not the same pipeline, so there is nothing to reconcile - ",
+       "use `segmentation_data()` with `u_net()` and friends, or `detection_data()` with ",
+       "`yolo3()`.", call. = FALSE)
 }

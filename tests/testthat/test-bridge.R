@@ -18,9 +18,19 @@ test_that("status reports the pinned engine before anything has started", {
   expect_s3_class(status, "platypus_status")
   # The pinned version is what matters; the extras depend on whether
   # platypus_use_torch() has been called, which is none of this test's business.
-  # PLATYPUS_ENGINE_PATH replaces the requirement with a source tree during development.
+  # PLATYPUS_ENGINE_PATH replaces the pinned name with a source tree during development -
+  # but with the same extras, which is the point. Asserted as parts, for the reason in the
+  # comment below: this used to check `dir.exists()` on the whole string, and that broke
+  # the moment the extras arrived. What matters is that the development route asks for
+  # what the installed route asks for, because a route that differs hides exactly the
+  # class of problem it exists to surface.
   if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
-    expect_true(dir.exists(status$requirement))
+    tree <- sub("\\[.*$", "", status$requirement)
+    expect_true(dir.exists(tree))
+    expect_true(file.exists(file.path(tree, "pyproject.toml")))
+    for (extra in c("hub", "encoders")) {
+      expect_match(status$requirement, extra, fixed = TRUE)
+    }
   } else {
     # The extras that are always asked for, and the pinned version. Asserted as parts
     # rather than as one pattern over the whole string: the previous version of this

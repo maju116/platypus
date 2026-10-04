@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_VERSION <- "0.3.0a11"
+PYPLATYPUS_VERSION <- "0.3.0a12"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -31,7 +31,14 @@ PYPLATYPUS_VERSION <- "0.3.0a11"
     # them meet during development, and is never used by anyone installing the package.
     local_engine <- Sys.getenv("PLATYPUS_ENGINE_PATH", unset = "")
     if (nzchar(local_engine)) {
-      return(normalizePath(local_engine, mustWork = TRUE))
+      # With the same extras as the published route, below. Without them the development
+      # route is not the installed route: it was a bare path until writing the blood-cell
+      # vignette, and that vignette could not be precomputed at all because
+      # `weights = "bccd-yolo3"` found no huggingface_hub. A development escape hatch that
+      # differs from the real path hides exactly the class of problem it should surface,
+      # which is the same reason CI builds the vignettes rather than skipping them.
+      return(sprintf("%s[%s]", normalizePath(local_engine, mustWork = TRUE),
+                     paste(c(extra, c("hub", "encoders")), collapse = ",")))
     }
 
     # `hub` and `encoders` are always asked for, although both are optional in the Python

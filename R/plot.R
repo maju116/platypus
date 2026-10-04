@@ -264,3 +264,183 @@ take_slice <- function(x, slice, channels) {
   dim(out) <- dims[-axis]
   out
 }
+
+#' Draw boxes on images
+#'
+#' The detection counterpart of [plot_masks()], and the function the 2020 package had under
+#' this name. Boxes arrive from [predict()] in each image's own pixels, so they land on the
+#' picture without anything being undone first.
+#'
+#' Predictions and truth can be drawn together, and when they are, the point is the
+#' comparison: truth in one colour, predictions in another, both on the same image. A
+#' detector that found the right number of objects in the wrong places and one that found
+#' the wrong number in the right places score similarly and look nothing alike.
+#'
+#' @param images An image stack from [read_images()], or a single image.
+#' @param boxes Boxes to draw: one data frame as [predict()] returns per image, or a list
+#'   of them - one per image in `images`. Columns `xmin`, `ymin`, `xmax`, `ymax`, and
+#'   optionally `name` and `score`.
+#' @param truth Boxes to draw as ground truth, the same shape as `boxes`.
+#' @param which Which images to draw. Defaults to the first four, like [plot_masks()].
+#' @param min_score Drop predicted boxes below this confidence before drawing. The default
+#'   follows a detector's own `score_threshold` of 0.01, which is kept low so average
+#'   precision can be computed over the whole ranking - and which puts far more boxes on a
+#'   picture than anyone wants to look at. `0.5` is the usual choice for a figure.
+#' @param labels Row labels. Defaults to the names of `boxes`, which [predict()] sets to
+#'   the sample keys.
+#' @param colours Named vector giving the colour for `prediction` and for `truth`.
+#' @param size Line width of a box.
+#' @param text_size Size of the class label, or `NULL` to draw no labels.
+#' @return A ggplot object.
+#' @seealso [predict.platypus_fit()], [plot_masks()]
+#' @export
+#' @examples
+#' \dontrun{
+#' found <- predict(fit, split = "test")
+#' plot_boxes(read_images(files, size = NULL), found, min_score = 0.5)
+#' }
+plot_boxes <- function(images, boxes, truth = NULL, which = NULL, min_score = 0.5,
+                       labels = NULL, colours = c(prediction = "#d95f02",
+                                                  truth = "#1b9e77"),
+                       size = 0.6, text_size = 3) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("plot_boxes() needs the ggplot2 package.", call. = FALSE)
+  }
+
+  images <- as_image_stack(images)
+  boxes <- as_box_list(boxes, "boxes")
+  truth <- if (is.null(truth)) NULL else as_box_list(truth, "truth")
+
+  if (length(boxes) != n_images(images)) {
+    stop("`boxes` has ", length(boxes), " entr", if (length(boxes) == 1L) "y" else "ies",
+         " and `images` has ", n_images(images), " image",
+         if (n_images(images) == 1L) "" else "s",
+         ". They must line up one to one - predict() returns one entry per image, ",
+         "including the images where nothing was found, so that they do.", call. = FALSE)
+  }
+  if (!is.null(truth) && length(truth) != length(boxes)) {
+    stop("`truth` has ", length(truth), " entries and `boxes` has ", length(boxes), ".",
+         call. = FALSE)
+  }
+
+  if (is.null(which)) which <- seq_len(min(4L, n_images(images)))
+  which <- as.integer(which)
+  row_labels <- labels %||% names(boxes)[which] %||% paste("image", which)
+
+  # One montage, images stacked vertically, so a box's coordinates only need the row's
+  # offset added. Drawn as one raster for the same reason plot_masks() does: ggplot draws
+  # one annotation_raster quickly and fifty slowly.
+  tiles <- lapply(which, function(i) as_rgb(images[i, , , , drop = FALSE][1, , , ,
+                                                                          drop = TRUE]))
+  montage <- bind_panels(lapply(tiles, list))
+  height <- dim(montage)[1]
+  width <- dim(montage)[2]
+  tile_h <- height / length(which)
+
+  drawn <- do.call(rbind, lapply(seq_along(which), function(row) {
+    i <- which[row]
+    # y is measured from the bottom in ggplot and from the top in an image, so a box's
+    # y flips. Getting this wrong draws every box mirrored about the middle of its tile,
+    # which looks plausible on a symmetric picture and wrong on everything else.
+    offset <- height - row * tile_h
+    pieces <- list()
+    if (!is.null(truth)) {
+      pieces[[length(pieces) + 1L]] <- box_rows(truth[[i]], "truth", offset, tile_h, NULL)
+    }
+    pieces[[length(pieces) + 1L]] <- box_rows(boxes[[i]], "prediction", offset, tile_h,
+                                              min_score)
+    do.call(rbind, pieces)
+  }))
+
+  plot <- ggplot2::ggplot() +
+    ggplot2::annotation_raster(
+      grDevices::as.raster(montage / 255),
+      xmin = 0, xmax = width, ymin = 0, ymax = height, interpolate = FALSE
+    )
+
+  if (!is.null(drawn) && nrow(drawn)) {
+    plot <- plot + ggplot2::geom_rect(
+      data = drawn,
+      ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
+                   ymin = .data$ymin, ymax = .data$ymax, colour = .data$kind),
+      fill = NA, linewidth = size
+    )
+    if (!is.null(text_size) && "label" %in% names(drawn)) {
+      shown <- drawn[nzchar(drawn$label), , drop = FALSE]
+      if (nrow(shown)) {
+        plot <- plot + ggplot2::geom_text(
+          data = shown,
+          ggplot2::aes(x = .data$xmin, y = .data$ymax, label = .data$label,
+                       colour = .data$kind),
+          hjust = 0, vjust = -0.3, size = text_size, show.legend = FALSE
+        )
+      }
+    }
+  }
+
+  plot +
+    ggplot2::scale_colour_manual(values = colours, name = NULL) +
+    ggplot2::scale_x_continuous(limits = c(0, width), expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(
+      limits = c(0, height), expand = c(0, 0),
+      breaks = height - (seq_along(which) - 0.5) * tile_h, labels = row_labels
+    ) +
+    ggplot2::coord_fixed() +
+    ggplot2::labs(x = NULL, y = NULL) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank()
+    )
+}
+
+#' A list of box frames, whatever shape was handed in
+#'
+#' One frame for one image is the common case and typing `list(found)` for it would be
+#' noise, so a bare data frame is accepted and wrapped.
+#'
+#' @noRd
+as_box_list <- function(boxes, what) {
+  if (is.data.frame(boxes)) return(list(boxes))
+  if (!is.list(boxes)) {
+    stop("`", what, "` is a data frame of boxes, or a list of them - one per image. See ",
+         "`?plot_boxes`.", call. = FALSE)
+  }
+  wrong <- which(!vapply(boxes, is.data.frame, logical(1)))
+  if (length(wrong)) {
+    stop("`", what, "`[[", wrong[[1]], "]] is not a data frame of boxes.", call. = FALSE)
+  }
+  boxes
+}
+
+#' One image's boxes, moved into the montage's coordinates
+#'
+#' @noRd
+box_rows <- function(frame, kind, offset, tile_h, min_score) {
+  needed <- c("xmin", "ymin", "xmax", "ymax")
+  missing_columns <- setdiff(needed, names(frame))
+  if (length(missing_columns)) {
+    stop("boxes need the columns ", paste(needed, collapse = ", "), "; missing ",
+         paste(missing_columns, collapse = ", "), ".", call. = FALSE)
+  }
+  if (!is.null(min_score) && "score" %in% names(frame)) {
+    frame <- frame[frame$score >= min_score, , drop = FALSE]
+  }
+  if (!nrow(frame)) return(NULL)
+
+  label <- if ("name" %in% names(frame)) as.character(frame$name) else rep("", nrow(frame))
+  if (!is.null(min_score) && "score" %in% names(frame) && nzchar(label[[1]])) {
+    label <- sprintf("%s %.2f", label, frame$score)
+  }
+
+  data.frame(
+    xmin = frame$xmin,
+    xmax = frame$xmax,
+    # Flipped, and shifted into this image's row of the montage.
+    ymin = offset + tile_h - frame$ymax,
+    ymax = offset + tile_h - frame$ymin,
+    kind = kind,
+    label = label,
+    stringsAsFactors = FALSE
+  )
+}
