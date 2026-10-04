@@ -254,6 +254,19 @@ and in the wrong places.
 **No `loss` and no `metrics` on the model.** YOLOv3's objective is part of its architecture
 and mean average precision is not one option among several.
 
+**`plot_anchors()` shows the fit rather than scoring it.** Every annotated box as a point -
+width against height, both fractions of the model's input - coloured by class, with the
+anchors on top. It answers what a mean overlap cannot: a coverage of 0.67 is either "every
+class covered adequately" or "two covered well and the third not at all", and those want
+different fixes. Draw it for a split the anchors were *not* fitted on and a gap between the
+halves of your data becomes visible, which no training curve shows.
+
+**A run can leave a record.** Give `output_dir` and `platypus_fit()` writes the
+specification, the history, and anything the run worked out that the specification does not
+already say - a detector's fitted anchors, which it cannot be reloaded without. Unset, which
+is the default, writes nothing: files appearing in your working directory because a default
+exists is not a thing this package does.
+
 **No overall precision or recall** in `evaluate()`. Averaging them over classes needs a
 weighting and every weighting is a different claim: over BCCD's 4,155 red cells, 372 white and
 361 platelets, a single precision is a statement about red cells. `evaluate_classes()` gives

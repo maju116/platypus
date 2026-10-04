@@ -26,6 +26,7 @@ Imports:
     utils
 Suggests:
     callr,
+    jsonlite,
     knitr,
     png,
     RNifti,

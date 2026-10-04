@@ -444,3 +444,87 @@ box_rows <- function(frame, kind, offset, tile_h, min_score) {
     stringsAsFactors = FALSE
   )
 }
+
+#' Draw the anchors against the boxes they were fitted to
+#'
+#' The picture the 2020 package drew, and the one no summary statistic replaces. Every
+#' annotated box is a point - its width against its height, both as fractions of the
+#' model's input - coloured by class, with the anchors on top.
+#'
+#' What it answers that a mean overlap does not: **whether a class has any anchor near it
+#' at all**. A mean of 0.67 can be one class covered well and another not covered at all,
+#' and those two situations want different fixes. On blood cells the three classes occupy
+#' three distinct regions, which is why anchors fitted to all of them together still reach
+#' each one - and why COCO's, fitted to cars and people, reach none of them.
+#'
+#' Worth drawing for a split the anchors were **not** fitted on. Anchors that sit among the
+#' training boxes and away from the validation ones say the two halves hold different
+#' objects, and no training curve shows that.
+#'
+#' @param object A fit from [platypus_fit()] on a detection specification.
+#' @param model Which model, when the specification trained several.
+#' @param split Which split's boxes to draw.
+#' @param log Draw both axes on a log scale. Detection datasets often span an order of
+#'   magnitude - BCCD's platelets are a quarter the side of its red cells - and on linear
+#'   axes the small class collapses into the corner.
+#' @param size Point size for the boxes.
+#' @return A ggplot object.
+#' @seealso [detection_anchors()] for the numbers, [yolo3()] for choosing them.
+#' @export
+#' @examples
+#' \dontrun{
+#' fit <- platypus_fit(spec)
+#' plot_anchors(fit)                      # the split they were fitted to
+#' plot_anchors(fit, split = "validation")  # and one they were not
+#' }
+plot_anchors <- function(object, model = NULL, split = "train", log = FALSE,
+                         size = 1.1) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("plot_anchors() needs the ggplot2 package.", call. = FALSE)
+  }
+  if (!inherits(object, "platypus_fit") || !identical(object$task, "detection")) {
+    stop("`plot_anchors()` needs a fit from a detection specification; anchors are a ",
+         "detector's, and a U-Net has none.", call. = FALSE)
+  }
+  model <- model %||% object$models[[1]]
+  result <- shim()$anchor_shapes(object$engine, model, split = split)
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  boxes <- as.data.frame(result$boxes, stringsAsFactors = FALSE)
+  if (!nrow(boxes)) {
+    stop("the '", split, "' split has no boxes to draw.", call. = FALSE)
+  }
+  anchors <- matrix(unlist(result$anchors), ncol = 2, byrow = TRUE)
+  anchors <- data.frame(width = anchors[, 1], height = anchors[, 2])
+
+  plot <- ggplot2::ggplot() +
+    ggplot2::geom_point(
+      data = boxes,
+      ggplot2::aes(x = .data$width, y = .data$height, colour = .data$name),
+      alpha = 0.55, size = size
+    ) +
+    # Diamonds, hollow, drawn last so they sit on top of the cloud rather than under it.
+    ggplot2::geom_point(
+      data = anchors,
+      ggplot2::aes(x = .data$width, y = .data$height),
+      shape = 23, size = 2.6, stroke = 0.9, colour = "black", fill = NA
+    ) +
+    ggplot2::labs(
+      x = "box width", y = "box height", colour = NULL,
+      subtitle = sprintf(
+        "%d boxes in '%s', %d anchors %s, as fractions of a %d x %d input",
+        nrow(boxes), split, nrow(anchors),
+        if (isTRUE(result$anchors_were_fitted)) "fitted to the training boxes"
+        else "given in the specification",
+        result$input_shape[[1]], result$input_shape[[2]]
+      )
+    ) +
+    ggplot2::theme_minimal(base_size = 11)
+
+  if (isTRUE(log)) {
+    plot <- plot +
+      ggplot2::scale_x_log10() +
+      ggplot2::scale_y_log10()
+  }
+  plot
+}

@@ -311,6 +311,28 @@ def run_anchors(engine: Any, model_name: str) -> dict:
     }
 
 
+def anchor_shapes(engine: Any, model_name: str, split: str = "train") -> dict:
+    """The cloud of box shapes in a split, with the anchors in use beside it.
+
+    Both in one set of coordinates, from one call, because the alternative - widths from
+    one place and anchors from another - is how a picture comes to show boxes in different
+    places from where the anchors were fitted to them.
+    """
+    import pyplatypus
+
+    if not hasattr(engine, "box_shapes"):
+        return _failure_message(
+            "This engine predates the anchor plot. Update platypus, or point "
+            "PLATYPUS_ENGINE_PATH at a newer source tree."
+        )
+    try:
+        return {"ok": True, **engine.box_shapes(model_name, split)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
 def target_survey(engine: Any, model_name: str) -> dict:
     """What the target could and could not hold, measured before training."""
     try:
