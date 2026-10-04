@@ -239,11 +239,21 @@ found <- predict(fit, split = "test")     # one data frame per image, in its own
 plot_boxes(read_images(files, size = NULL), found, min_score = 0.5)
 ```
 
+<img src="man/figures/README-boxes.png" alt="" width="100%" />
+
+One frame of BCCD's held-out split, drawn by `bccd-yolo3` — weights published with this
+package, so the picture above costs a download rather than an afternoon. Both rare classes
+are there: the white cell at 1.00 and the platelet at 0.77. Of the 17 red cells annotated in
+this frame, 11 clear a score of 0.5 — the honest shape of the result rather than a
+flattering crop. `min_score` is yours to move, and `evaluate_classes()` is where that
+trade-off stops being a judgement about one picture: the per-class rows are what say which
+class a threshold is costing you.
+
 `classes` is in class order and is written down rather than read from the files, because
 position **is** the class index the model learns: sorted, BCCD's three come out `Platelets,
 RBC, WBC`, which is reproducible and anatomically meaningless.
 
-Four things differ from the segmentation path and each is a decision rather than an omission:
+Five things differ from the segmentation path and each is a decision rather than an omission:
 
 **Anchors are fitted to your boxes** unless you name them. Measured on BCCD's 2,805
 training boxes, COCO's nine borrowed for blood cells cover them at a mean overlap of 0.65

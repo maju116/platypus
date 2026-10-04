@@ -67,7 +67,7 @@ published <- platypus_spec(
   models = list(yolo3("cells", input_shape = c(416, 416),
                       weights = "bccd-yolo3", fit = FALSE))
 )
-#> Warning: Some Python package requirements declared via `py_require()` are not installed in the selected Python environment: (/home/maju116/.cache/uv/archive-v0/BNLyDFUf3oMkn4GvDsaV3/bin/python)
+#> Warning: Some Python package requirements declared via `py_require()` are not installed in the selected Python environment: (/home/maju116/.cache/uv/archive-v0/wjRRjivfnRhbB-9U8b51r/bin/python)
 #> 
 borrowed <- platypus_fit(published, verbose = FALSE)
 found <- predict(borrowed, split = "test")
@@ -191,12 +191,56 @@ anchors$per_anchor[, c("grid", "slot", "width_pixels", "height_pixels", "boxes",
 ```
 
 Fitted anchors cover these boxes at a mean overlap of 0.88.
-COCO's own nine, borrowed, manage 0.67 on the same boxes - which is the difference between
+COCO's own nine, borrowed, manage 0.65 on the same boxes - which is the difference between
 a correction and a rewrite, and it costs nothing to avoid.
 
-Worth asking of the split they were *not* fitted on. Anchors covering the training boxes
+**A mean hides which class it is made of.** A coverage of 0.65 is either "every class
+covered adequately" or "two covered well and the third not at all", and those want
+different fixes. The picture tells them apart:
+
+
+``` r
+plot_anchors(fit, log = TRUE)
+```
+
+![plot of chunk bccd-anchor-plot](figures/bccd-bccd-anchor-plot-1.png)
+
+Each point is one annotated box - its width against its height, both as fractions of the
+416 x 416 input - and the diamonds are the anchors. Log axes, because the fitted anchors
+alone run from 24 to
+147 pixels a side, and on linear ones the
+smallest class collapses into the corner.
+
+Three clouds, because the three cell types are three sizes, and a diamond near each one.
+The diamonds are not spread evenly: most sit in the crowded middle where the red cells
+are, which is k-means doing exactly what it was asked - put the anchors where the boxes
+are, not where the classes are.
+
+**And one point sits far below everything else, at about two thirds of a pixel a side.**
+That is not a drawing error and not an outlier in the statistical sense - it is a bad row.
+BCCD carries one annotation of zero extent in the training split and another in the
+validation split, and a zero-width box read under Pascal VOC's inclusive convention comes
+out one pixel across. k-means drops it, because an overlap with a box that has no area is
+undefined, which is why the anchors above were fitted to 2,804
+boxes while the picture draws 2,805. The plot keeps it deliberately: a dataset's bad rows
+are worth seeing once, and this is the only place in the whole run where that one is
+visible at all.
+
+It is also the clearest way to see why COCO's nine manage only 0.65 here. Those span 10 to
+373 pixels a side, because COCO holds objects of every size; these three cell types span
+about 6-fold.
+Most of that range is spent on boxes this dataset does not contain.
+
+Worth drawing for the split they were *not* fitted on. Anchors covering the training boxes
 well and the validation boxes badly would say the two halves hold different objects, and no
-training curve shows that.
+training curve shows that:
+
+
+``` r
+plot_anchors(fit, split = "validation", log = TRUE)
+```
+
+![plot of chunk bccd-anchor-plot-valid](figures/bccd-bccd-anchor-plot-valid-1.png)
 
 ## What the loss is doing
 
@@ -205,9 +249,9 @@ training curve shows that.
 tail(fit$history[, c("epoch", "train_loss", "train_coordinates", "train_objectness",
                      "val_loss")], 3)
 #>     epoch train_loss train_coordinates train_objectness val_loss
-#> 148   148   5.922439          5.918095     0.0006183749 9.540369
-#> 149   149   5.925976          5.921576     0.0006070663 9.555027
-#> 150   150   5.946601          5.942328     0.0006440302 9.607643
+#> 148   148   5.922305          5.918050     0.0006400742 9.771855
+#> 149   149   5.925872          5.921553     0.0006455596 9.768552
+#> 150   150   5.946499          5.942215     0.0006420772 9.850832
 ```
 
 
@@ -226,14 +270,14 @@ and is still refining the boxes.
 ``` r
 evaluate(fit, split = "test")
 #>   model architecture parameters epochs_run    map_50 map_50_95 mean_matched_iou
-#> 1 cells        yolo3   61534504        150 0.8581562 0.4956015        0.8063581
+#> 1 cells        yolo3   61534504        150 0.8661176  0.513187        0.8064532
 #>   n_truth n_predicted classes_without_truth
-#> 1     945        2590                     0
+#> 1     945        2817                     0
 ```
 
 
 
-**This run's `map_50` of 0.8582 sits
+**This run's `map_50` of 0.8661 sits
 inside the range of the five in the
 table further down (0.853 to 0.887), and that
 is the point of the table rather than a problem with it.** A seed pins which random numbers
@@ -246,9 +290,9 @@ came to be written: the first version of it quoted a number, and the next knit d
 it.
 
 Which is the argument for reading `mean_matched_iou` first, and it holds here: the overlap
-came out at 0.8064 against the five-run mean of
+came out at 0.8065 against the five-run mean of
 0.8040, a difference of
-0.0023.
+0.0024.
 
 There is no overall precision and no overall recall in that table, and the absence is
 deliberate. Averaging them over classes needs a weighting, and every choice of weighting is a
@@ -261,13 +305,13 @@ Per class is the form in which they mean something:
 ``` r
 evaluate_classes(fit, split = "test")
 #>       class average_precision mean_matched_iou n_truth n_predicted precision
-#> 1       RBC         0.7947533        0.8104752     805         907 0.7056229
-#> 2       WBC         0.9620422        0.8474472      71          77 0.9220779
-#> 3 Platelets         0.8176731        0.7181673      69         106 0.5943396
+#> 1       RBC         0.7971192        0.8089451     805         904 0.7168142
+#> 2       WBC         0.9634323        0.8523577      71          77 0.9220779
+#> 3 Platelets         0.8378013        0.7311496      69         111 0.5855856
 #>      recall
-#> 1 0.7950311
+#> 1 0.8049689
 #> 2 1.0000000
-#> 3 0.9130435
+#> 3 0.9420290
 ```
 
 
@@ -277,7 +321,7 @@ and it is large. Platelets come back at a precision of
 0.59 at this confidence, meaning
 41% of the platelets reported are not
 there, and their boxes fit worst of the three at an overlap of
-0.72.
+0.73.
 
 ### mAP@0.5, mAP@[.50:.95], and which to believe
 
@@ -340,7 +384,7 @@ picture is worth more than either average.
 
 **It is not a cell count.** A precision of 0.59 on platelets
 means a count taken from these boxes is too high by about
-68%. Counting needs either a better
+71%. Counting needs either a better
 model for the small class or a threshold chosen for counting rather than for a figure, and
 either way it needs measuring against truth on your own data.
 

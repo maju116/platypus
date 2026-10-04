@@ -165,12 +165,50 @@ anchors$per_anchor[, c("grid", "slot", "width_pixels", "height_pixels", "boxes",
 ```
 
 Fitted anchors cover these boxes at a mean overlap of `r round(anchors$mean_iou, 2)`.
-COCO's own nine, borrowed, manage 0.67 on the same boxes - which is the difference between
+COCO's own nine, borrowed, manage 0.65 on the same boxes - which is the difference between
 a correction and a rewrite, and it costs nothing to avoid.
 
-Worth asking of the split they were *not* fitted on. Anchors covering the training boxes
+**A mean hides which class it is made of.** A coverage of 0.65 is either "every class
+covered adequately" or "two covered well and the third not at all", and those want
+different fixes. The picture tells them apart:
+
+```{r bccd-anchor-plot, fig.height = 4.4}
+plot_anchors(fit, log = TRUE)
+```
+
+Each point is one annotated box - its width against its height, both as fractions of the
+416 x 416 input - and the diamonds are the anchors. Log axes, because the fitted anchors
+alone run from `r round(min(anchors$per_anchor$width_pixels))` to
+`r round(max(anchors$per_anchor$width_pixels))` pixels a side, and on linear ones the
+smallest class collapses into the corner.
+
+Three clouds, because the three cell types are three sizes, and a diamond near each one.
+The diamonds are not spread evenly: most sit in the crowded middle where the red cells
+are, which is k-means doing exactly what it was asked - put the anchors where the boxes
+are, not where the classes are.
+
+**And one point sits far below everything else, at about two thirds of a pixel a side.**
+That is not a drawing error and not an outlier in the statistical sense - it is a bad row.
+BCCD carries one annotation of zero extent in the training split and another in the
+validation split, and a zero-width box read under Pascal VOC's inclusive convention comes
+out one pixel across. k-means drops it, because an overlap with a box that has no area is
+undefined, which is why the anchors above were fitted to `r format(anchors$boxes_used, big.mark = ",")`
+boxes while the picture draws 2,805. The plot keeps it deliberately: a dataset's bad rows
+are worth seeing once, and this is the only place in the whole run where that one is
+visible at all.
+
+It is also the clearest way to see why COCO's nine manage only 0.65 here. Those span 10 to
+373 pixels a side, because COCO holds objects of every size; these three cell types span
+about `r round(max(anchors$per_anchor$width_pixels) / min(anchors$per_anchor$width_pixels))`-fold.
+Most of that range is spent on boxes this dataset does not contain.
+
+Worth drawing for the split they were *not* fitted on. Anchors covering the training boxes
 well and the validation boxes badly would say the two halves hold different objects, and no
-training curve shows that.
+training curve shows that:
+
+```{r bccd-anchor-plot-valid, fig.height = 4.4}
+plot_anchors(fit, split = "validation", log = TRUE)
+```
 
 ## What the loss is doing
 
