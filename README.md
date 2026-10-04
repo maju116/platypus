@@ -245,19 +245,19 @@ RBC, WBC`, which is reproducible and anatomically meaningless.
 
 Four things differ from the segmentation path and each is a decision rather than an omission:
 
-**Anchors are fitted to your boxes** unless you name them. COCO's nine borrowed for blood
-cells cover their boxes at a mean overlap of 0.67 against 0.92 for fitted ones, which is the
-difference between a correction and a rewrite. They come back from `detection_anchors()`, and
-they travel with exported weights — **a detector cannot be reloaded without them**, because
-read with other anchors the same weights decode every box scaled by a fixed factor, plausibly
-and in the wrong places.
+**Anchors are fitted to your boxes** unless you name them. Measured on BCCD's 2,805
+training boxes, COCO's nine borrowed for blood cells cover them at a mean overlap of 0.65
+against 0.88 for fitted ones, which is the difference between a correction and a rewrite.
+They come back from `detection_anchors()`, and they travel with exported weights —
+**a detector cannot be reloaded without them**, because read with other anchors the same
+weights decode every box scaled by a fixed factor, plausibly and in the wrong places.
 
 **No `loss` and no `metrics` on the model.** YOLOv3's objective is part of its architecture
 and mean average precision is not one option among several.
 
 **`plot_anchors()` shows the fit rather than scoring it.** Every annotated box as a point -
 width against height, both fractions of the model's input - coloured by class, with the
-anchors on top. It answers what a mean overlap cannot: a coverage of 0.67 is either "every
+anchors on top. It answers what a mean overlap cannot: a coverage of 0.65 is either "every
 class covered adequately" or "two covered well and the third not at all", and those want
 different fixes. Draw it for a split the anchors were *not* fitted on and a gap between the
 halves of your data becomes visible, which no training curve shows.

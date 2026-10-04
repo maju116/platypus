@@ -127,7 +127,7 @@ detection_data <- function(train, validation, classes, test = NULL,
 #'
 #' **Anchors.** Unset, they are fitted to your training boxes with k-means under an IoU
 #' distance, which is what you want: COCO's nine anchors borrowed for blood cells cover
-#' their boxes at a mean overlap of 0.67 against 0.92 for anchors fitted to them. Fitted
+#' their boxes at a mean overlap of 0.65 against 0.88 for anchors fitted to them. Fitted
 #' anchors are recorded with the run and in the sidecar when weights are exported, because
 #' **a detector cannot be reloaded without them** - the same weights read with other
 #' anchors decode every box scaled by a fixed factor, with plausible boxes, plausible

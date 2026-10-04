@@ -13,9 +13,11 @@ plot_anchors(object, model = NULL, split = "train", log = FALSE, size = 1.1)
 
 \item{split}{Which split's boxes to draw.}
 
-\item{log}{Draw both axes on a log scale. Detection datasets often span an order of
-magnitude - BCCD's platelets are a quarter the side of its red cells - and on linear
-axes the small class collapses into the corner.}
+\item{log}{Draw both axes on a log scale. Detection datasets span a wide range of sizes
+\itemize{
+\item a BCCD platelet is about two fifths the side of a red cell and a fifth of a white
+one - and on linear axes the smallest class collapses into the corner.
+}}
 
 \item{size}{Point size for the boxes.}
 }
@@ -29,10 +31,14 @@ model's input - coloured by class, with the anchors on top.
 }
 \details{
 What it answers that a mean overlap does not: \strong{whether a class has any anchor near it
-at all}. A mean of 0.67 can be one class covered well and another not covered at all,
+at all}. A mean of 0.65 can be one class covered well and another not covered at all,
 and those two situations want different fixes. On blood cells the three classes occupy
-three distinct regions, which is why anchors fitted to all of them together still reach
-each one - and why COCO's, fitted to cars and people, reach none of them.
+three distinct regions - median sides of 133, 69 and 26 pixels at a 416 input - and
+anchors fitted to all three together cover them at 0.88, 0.85 and 0.83, so fitting to
+the mixture does not abandon the smallest class. COCO's nine cover the same three at
+0.64, 0.70 and 0.70: \emph{evenly} worse rather than blind to one, which is the useful thing
+to know. They are not aimed elsewhere - they span 10 to 373 pixels a side because COCO
+holds objects of every size, and most of that range describes nothing here.
 
 Worth drawing for a split the anchors were \strong{not} fitted on. Anchors that sit among the
 training boxes and away from the validation ones say the two halves hold different
