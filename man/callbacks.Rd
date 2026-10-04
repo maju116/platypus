@@ -5,6 +5,7 @@
 \alias{callback_early_stopping}
 \alias{callback_model_checkpoint}
 \alias{callback_reduce_lr_on_plateau}
+\alias{callback_cosine_annealing}
 \alias{callback_csv_logger}
 \alias{callback_terminate_on_nan}
 \title{Callbacks}
@@ -25,6 +26,8 @@ callback_reduce_lr_on_plateau(
   min_lr = 0
 )
 
+callback_cosine_annealing(min_lr = 0, epochs = NULL)
+
 callback_csv_logger(path)
 
 callback_terminate_on_nan()
@@ -43,7 +46,11 @@ metric name, such as \code{"val_dice"}.}
 
 \item{save_best_only}{Only write when the watched quantity improves.}
 
-\item{factor, min_lr}{For the learning rate schedule.}
+\item{factor, min_lr}{For the learning rate schedule. \code{min_lr} is the floor for both
+\code{callback_reduce_lr_on_plateau()} and \code{callback_cosine_annealing()}.}
+
+\item{epochs}{For \code{callback_cosine_annealing()}, how many epochs to spread the decay
+over. Unset means the model's \code{epochs}.}
 }
 \value{
 A callback specification.
@@ -57,6 +64,22 @@ when the specification is built rather than waited on forever.
 Whether the watched quantity should rise or fall is worked out from its name: anything
 ending in \code{loss} is minimised, everything else maximised.
 }
+\section{Cosine annealing}{
+
+
+\code{callback_cosine_annealing()} decays the learning rate from its initial value to \code{min_lr}
+along a cosine. It watches nothing: it is a function of how far through the run you are
+rather than of how the run is going, which is the difference from
+\code{callback_reduce_lr_on_plateau()} - and a run may legitimately want both.
+
+Each parameter group decays from its \strong{own} initial rate, so an \code{encoder_learning_rate}
+set on a model is not flattened at the first epoch. That would have been invisible: the
+history records one \code{learning_rate}, the first group's.
+
+\code{epochs} unset means the model's own \code{epochs}, which is what you want - a cosine that
+ends where the run ends.
+}
+
 \examples{
 callback_early_stopping(monitor = "val_dice", patience = 10)
 }

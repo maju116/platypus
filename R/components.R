@@ -196,6 +196,20 @@ optimizer_nadam <- function(learning_rate = 1e-3, beta_1 = 0.9, beta_2 = 0.999,
 #' Whether the watched quantity should rise or fall is worked out from its name: anything
 #' ending in `loss` is minimised, everything else maximised.
 #'
+#' @section Cosine annealing:
+#'
+#' `callback_cosine_annealing()` decays the learning rate from its initial value to `min_lr`
+#' along a cosine. It watches nothing: it is a function of how far through the run you are
+#' rather than of how the run is going, which is the difference from
+#' `callback_reduce_lr_on_plateau()` - and a run may legitimately want both.
+#'
+#' Each parameter group decays from its **own** initial rate, so an `encoder_learning_rate`
+#' set on a model is not flattened at the first epoch. That would have been invisible: the
+#' history records one `learning_rate`, the first group's.
+#'
+#' `epochs` unset means the model's own `epochs`, which is what you want - a cosine that
+#' ends where the run ends.
+#'
 #' @param monitor What to watch: `"val_loss"`, `"train_loss"`, or `"val_"` followed by a
 #'   metric name, such as `"val_dice"`.
 #' @param patience Epochs to wait before acting.
@@ -203,7 +217,10 @@ optimizer_nadam <- function(learning_rate = 1e-3, beta_1 = 0.9, beta_2 = 0.999,
 #' @param restore_best Put the best weights back when training stops.
 #' @param path Where to write.
 #' @param save_best_only Only write when the watched quantity improves.
-#' @param factor,min_lr For the learning rate schedule.
+#' @param factor,min_lr For the learning rate schedule. `min_lr` is the floor for both
+#'   `callback_reduce_lr_on_plateau()` and `callback_cosine_annealing()`.
+#' @param epochs For `callback_cosine_annealing()`, how many epochs to spread the decay
+#'   over. Unset means the model's `epochs`.
 #' @return A callback specification.
 #' @name callbacks
 #' @examples
@@ -232,6 +249,13 @@ callback_reduce_lr_on_plateau <- function(monitor = "val_loss", factor = 0.1,
                                           patience = 5, min_lr = 0) {
   list(name = "reduce_lr_on_plateau", monitor = monitor, factor = factor,
        patience = int1(patience), min_lr = min_lr)
+}
+
+#' @rdname callbacks
+#' @export
+callback_cosine_annealing <- function(min_lr = 0, epochs = NULL) {
+  compact(list(name = "cosine_annealing", min_lr = min_lr,
+               epochs = if (is.null(epochs)) NULL else int1(epochs)))
 }
 
 #' @rdname callbacks

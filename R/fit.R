@@ -73,6 +73,7 @@ platypus_fit <- function(spec, device = NULL, num_workers = "auto", strict_data 
     list(
       engine = built$engine,
       spec = spec,
+      task = spec_task(spec),
       models = unlist(result$models),
       history = rows_to_frame(result$history),
       stop_reasons = result$stop_reasons,
@@ -80,6 +81,17 @@ platypus_fit <- function(spec, device = NULL, num_workers = "auto", strict_data 
     ),
     class = "platypus_fit"
   )
+}
+
+#' Which task a built specification describes
+#'
+#' Read from the Python object rather than remembered from the R one, because a
+#' specification can also arrive from a YAML file where no R constructor was involved.
+#'
+#' @noRd
+spec_task <- function(spec) {
+  task <- tryCatch(shim()$spec_as_dict(spec$py)$task, error = function(e) NULL)
+  if (is.null(task) || !nzchar(task)) "segmentation" else as.character(task)
 }
 
 #' @export
@@ -117,7 +129,11 @@ evaluate <- function(object, ...) UseMethod("evaluate")
 #' @rdname evaluate
 #' @export
 evaluate.platypus_fit <- function(object, split = "validation", ...) {
-  result <- shim()$evaluation_table(object$engine, split = split)
+  result <- if (identical(object$task, "detection")) {
+    shim()$detection_table(object$engine, split = split)
+  } else {
+    shim()$evaluation_table(object$engine, split = split)
+  }
   if (!isTRUE(result$ok)) abort_engine(result)
   rows_to_frame(result$table)
 }
@@ -163,6 +179,12 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 predict.platypus_fit <- function(object, model = NULL, split = "test",
                                  type = c("class", "probability"),
                                  space = c("model", "source"), ...) {
+  # Asked before `match.arg` assigns to them: in R, `missing()` on a formal argument stops
+  # being true once the argument has been assigned to, so reading it after the two lines
+  # below reports "the caller passed this" for every caller. The first version did exactly
+  # that and refused the plain `predict(fit)` that every user makes first.
+  asked_type <- !missing(type)
+  asked_space <- !missing(space)
   type <- match.arg(type)
   space <- match.arg(space)
   model <- model %||% object$models[[1]]
@@ -170,10 +192,113 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
     stop("no model called '", model, "'; this fit has: ",
          paste(object$models, collapse = ", "), call. = FALSE)
   }
+  if (identical(object$task, "detection")) {
+    if (asked_type || asked_space) {
+      stop("`type` and `space` are about masks. A detector returns boxes, always in each ",
+           "image's own pixels - there is no other space they could be in that anyone ",
+           "would want.", call. = FALSE)
+    }
+    found <- shim()$detections(object$engine, model, split = split)
+    if (!isTRUE(found$ok)) abort_engine(found)
+    return(as_box_frames(found$detections))
+  }
+
   result <- shim()$predictions(object$engine, model, split = split,
                               as_class = identical(type, "class"), space = space)
   if (!isTRUE(result$ok)) abort_engine(result)
   result$masks
+}
+
+#' One data frame of boxes per image, named by the sample key
+#'
+#' A data frame rather than a matrix, because a box carries a score and a class name as
+#' well as four numbers, and because that is the shape `plot_boxes()` and `write.csv()`
+#' both want. An image with nothing found gets a frame with no rows rather than being
+#' dropped: a split of fifty images returns fifty entries, so nothing downstream has to
+#' line names up against a shorter list.
+#'
+#' @noRd
+as_box_frames <- function(found) {
+  frames <- lapply(found, function(entry) {
+    boxes <- entry$boxes
+    if (is.null(boxes) || !length(boxes)) {
+      return(data.frame(xmin = numeric(0), ymin = numeric(0), xmax = numeric(0),
+                        ymax = numeric(0), score = numeric(0), label = integer(0),
+                        name = character(0), stringsAsFactors = FALSE))
+    }
+    boxes <- matrix(as.numeric(boxes), ncol = 4)
+    data.frame(
+      xmin = boxes[, 1], ymin = boxes[, 2], xmax = boxes[, 3], ymax = boxes[, 4],
+      score = as.numeric(entry$scores),
+      label = as.integer(entry$labels),
+      name = as.character(entry$names),
+      stringsAsFactors = FALSE
+    )
+  })
+  names(frames) <- vapply(found, function(entry) as.character(entry$key), character(1))
+  frames
+}
+
+#' Average precision per class
+#'
+#' The row that matters on unbalanced data, which is most detection data: BCCD has 4,155
+#' red cells against 372 white and 361 platelets, so a single number is a number about red
+#' cells. [evaluate()] deliberately carries no overall precision or recall for the same
+#' reason - averaging them over classes needs a weighting, and every choice of weighting is
+#' a different claim.
+#'
+#' @param object A fit from [platypus_fit()] on a detection specification.
+#' @param model Which model, when the specification trained several.
+#' @param split Which split to score.
+#' @param ... Unused.
+#' @return A data frame, one row per class: average precision at IoU 0.5, the mean overlap
+#'   of the boxes that matched, the number of true boxes, and precision and recall at the
+#'   model's `operating_point`.
+#' @export
+evaluate_classes <- function(object, ...) UseMethod("evaluate_classes")
+
+#' @rdname evaluate_classes
+#' @export
+evaluate_classes.platypus_fit <- function(object, model = NULL,
+                                          split = "validation", ...) {
+  if (!identical(object$task, "detection")) {
+    stop("`evaluate_classes()` reports average precision per class, which is a detection ",
+         "measure. For segmentation, `evaluate_cases()` reports per case and ",
+         "`summarise_cases()` summarises it.", call. = FALSE)
+  }
+  model <- model %||% object$models[[1]]
+  result <- shim()$detection_classes(object$engine, model, split = split)
+  if (!isTRUE(result$ok)) abort_engine(result)
+  rows_to_frame(result$rows)
+}
+
+#' The anchors a detector used, and whether they were fitted
+#'
+#' A detector cannot be reloaded without its anchors, and when they were fitted rather than
+#' named in the specification this is the only record. [save_weights()] writes them into the
+#' sidecar for the same reason.
+#'
+#' @param object A fit from [platypus_fit()] on a detection specification.
+#' @param model Which model, when the specification trained several.
+#' @return A list: `anchors` as three groups of pairs, `fitted` saying whether they were
+#'   fitted to your data, and when they were, the mean overlap they achieve and a data
+#'   frame with one row per anchor.
+#' @export
+detection_anchors <- function(object, model = NULL) {
+  if (!inherits(object, "platypus_fit") || !identical(object$task, "detection")) {
+    stop("`detection_anchors()` needs a fit from a detection specification.",
+         call. = FALSE)
+  }
+  model <- model %||% object$models[[1]]
+  result <- shim()$run_anchors(object$engine, model)
+  if (!isTRUE(result$ok)) abort_engine(result)
+  list(
+    anchors = result$anchors,
+    fitted = isTRUE(result$fitted),
+    mean_iou = result$mean_iou,
+    boxes_used = result$boxes_used,
+    per_anchor = rows_to_frame(result$rows)
+  )
 }
 
 #' The epoch-by-epoch record
