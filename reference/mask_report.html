@@ -90,7 +90,7 @@ that refusal looks wrong.</p>
 <p><code>missing_classes</code> is the one to act on. A class that appears in no mask cannot be
 learned: its channel of the target is zero everywhere, so there is no gradient towards
 it and the model is never shown the thing it is being asked to find. Either the colours
-do not describe these masks, or <code>n_class</code> counts a class the data does not contain.</p>
+do not describe these masks, or they name a class the data does not contain.</p>
 <p><code>unmatched</code> is the fraction of mask pixels matching no entry, which fall back to the
 background class. <strong>Read it knowing that it scales with the size of the thing being
 segmented</strong>, so it is loud for a large structure and almost silent for a small lesion.

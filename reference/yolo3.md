@@ -10,21 +10,21 @@ One detector, as an entry in
 yolo3(
   name,
   input_shape = c(416, 416),
-  channels = 3,
+  channels = NULL,
   anchors = NULL,
-  anchors_per_grid = 3,
-  ignore_threshold = 0.5,
-  score_threshold = 0.01,
-  nms_threshold = 0.45,
-  operating_point = 0.5,
-  min_visibility = 0.25,
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  anchors_per_grid = NULL,
+  ignore_threshold = NULL,
+  score_threshold = NULL,
+  nms_threshold = NULL,
+  operating_point = NULL,
+  min_visibility = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = NULL
 )
 ```
 
@@ -157,71 +157,6 @@ yolo3("cells", input_shape = c(416, 416))
 #> $input_shape
 #> [1] 416 416
 #> 
-#> $channels
-#> [1] 3
-#> 
-#> $anchors
-#> NULL
-#> 
-#> $anchors_per_grid
-#> [1] 3
-#> 
-#> $ignore_threshold
-#> [1] 0.5
-#> 
-#> $score_threshold
-#> [1] 0.01
-#> 
-#> $nms_threshold
-#> [1] 0.45
-#> 
-#> $operating_point
-#> [1] 0.5
-#> 
-#> $min_visibility
-#> [1] 0.25
-#> 
-#> $optimizer
-#> $optimizer$name
-#> [1] "adam"
-#> 
-#> $optimizer$learning_rate
-#> [1] 0.001
-#> 
-#> $optimizer$beta_1
-#> [1] 0.9
-#> 
-#> $optimizer$beta_2
-#> [1] 0.999
-#> 
-#> $optimizer$eps
-#> [1] 1e-08
-#> 
-#> $optimizer$weight_decay
-#> [1] 0
-#> 
-#> $optimizer$amsgrad
-#> [1] FALSE
-#> 
-#> 
-#> $callbacks
-#> list()
-#> 
-#> $augmentation
-#> NULL
-#> 
-#> $epochs
-#> [1] 10
-#> 
-#> $batch_size
-#> [1] 8
-#> 
-#> $weights
-#> NULL
-#> 
-#> $fit
-#> [1] TRUE
-#> 
 #> attr(,"class")
 #> [1] "platypus_detection_model" "list"                    
 #> attr(,"task")
@@ -235,65 +170,6 @@ yolo3("cells", input_shape = c(416, 416), weights = "bccd-yolo3", fit = FALSE)
 #> 
 #> $input_shape
 #> [1] 416 416
-#> 
-#> $channels
-#> [1] 3
-#> 
-#> $anchors
-#> NULL
-#> 
-#> $anchors_per_grid
-#> [1] 3
-#> 
-#> $ignore_threshold
-#> [1] 0.5
-#> 
-#> $score_threshold
-#> [1] 0.01
-#> 
-#> $nms_threshold
-#> [1] 0.45
-#> 
-#> $operating_point
-#> [1] 0.5
-#> 
-#> $min_visibility
-#> [1] 0.25
-#> 
-#> $optimizer
-#> $optimizer$name
-#> [1] "adam"
-#> 
-#> $optimizer$learning_rate
-#> [1] 0.001
-#> 
-#> $optimizer$beta_1
-#> [1] 0.9
-#> 
-#> $optimizer$beta_2
-#> [1] 0.999
-#> 
-#> $optimizer$eps
-#> [1] 1e-08
-#> 
-#> $optimizer$weight_decay
-#> [1] 0
-#> 
-#> $optimizer$amsgrad
-#> [1] FALSE
-#> 
-#> 
-#> $callbacks
-#> list()
-#> 
-#> $augmentation
-#> NULL
-#> 
-#> $epochs
-#> [1] 10
-#> 
-#> $batch_size
-#> [1] 8
 #> 
 #> $weights
 #> [1] "bccd-yolo3"

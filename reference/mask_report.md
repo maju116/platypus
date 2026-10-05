@@ -48,7 +48,7 @@ which is what to reach for when that refusal looks wrong.
 cannot be learned: its channel of the target is zero everywhere, so
 there is no gradient towards it and the model is never shown the thing
 it is being asked to find. Either the colours do not describe these
-masks, or `n_class` counts a class the data does not contain.
+masks, or they name a class the data does not contain.
 
 `unmatched` is the fraction of mask pixels matching no entry, which fall
 back to the background class. **Read it knowing that it scales with the

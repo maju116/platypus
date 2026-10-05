@@ -47,21 +47,21 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">yolo3</span><span class="op">(</span></span>
 <span>  <span class="va">name</span>,</span>
 <span>  input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">416</span>, <span class="fl">416</span><span class="op">)</span>,</span>
-<span>  channels <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  channels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  anchors <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  anchors_per_grid <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  ignore_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  score_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  nms_threshold <span class="op">=</span> <span class="fl">0.45</span>,</span>
-<span>  operating_point <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  min_visibility <span class="op">=</span> <span class="fl">0.25</span>,</span>
-<span>  optimizer <span class="op">=</span> <span class="fu"><a href="optimizers.html">optimizer_adam</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  callbacks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  anchors_per_grid <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ignore_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  score_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nms_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  operating_point <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_visibility <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  optimizer <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  callbacks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  augmentation <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  epochs <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  batch_size <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  epochs <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fit <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  fit <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -182,71 +182,6 @@ the anchors recorded beside the file, which would leave the ones here describing
 <span class="r-out co"><span class="r-pr">#&gt;</span> $input_shape</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 416 416</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $channels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $anchors</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $anchors_per_grid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $ignore_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $score_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $nms_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.45</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $operating_point</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $min_visibility</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "adam"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$learning_rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.001</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$beta_1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$beta_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.999</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$eps</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$weight_decay</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$amsgrad</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $callbacks</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> list()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $augmentation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $epochs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $batch_size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 8</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $weights</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $fit</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "platypus_detection_model" "list"                    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"task")</span>
@@ -260,65 +195,6 @@ the anchors recorded beside the file, which would leave the ones here describing
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $input_shape</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 416 416</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $channels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $anchors</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $anchors_per_grid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $ignore_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $score_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $nms_threshold</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.45</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $operating_point</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $min_visibility</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "adam"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$learning_rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.001</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$beta_1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$beta_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.999</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$eps</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$weight_decay</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $optimizer$amsgrad</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $callbacks</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> list()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $augmentation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $epochs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $batch_size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "bccd-yolo3"</span>

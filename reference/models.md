@@ -12,29 +12,29 @@ the nested skip pathways.
 u_net(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -44,29 +44,29 @@ u_net(
 u_net_plus_plus(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -76,29 +76,29 @@ u_net_plus_plus(
 res_u_net(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -108,29 +108,29 @@ res_u_net(
 linknet(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -150,19 +150,28 @@ linknet(
 
 - channels:
 
-  Input channels. 3 for colour, 1 for greyscale.
+  Input channels. 3 for colour, 1 for greyscale. Derived from
+  `channels_from` when
+  [`segmentation_data()`](https://maju116.github.io/platypus/reference/segmentation_data.md)
+  names one file per channel.
 
 - n_class:
 
-  Number of classes, including background. Must match the colormap.
+  **Removed.** The number of classes comes from the data - `colormap` or
+  `labels` in
+  [`segmentation_data()`](https://maju116.github.io/platypus/reference/segmentation_data.md) -
+  and a model that also declared it could only ever disagree with its
+  own data. Passing it is an error that says so.
 
 - blocks:
 
-  How many times the resolution is halved.
+  How many times the resolution is halved. Taken from the weights file
+  when `weights` is given and this is not.
 
 - filters:
 
-  Filters in the first block; doubled at each level.
+  Filters in the first block; doubled at each level. Taken from the
+  weights file when `weights` is given and this is not.
 
 - block_width:
 
@@ -300,6 +309,29 @@ separate switch. Every spatial dimension must divide by `2^blocks`, or
 the decoder cannot line up with the encoder, and that is checked when
 the specification is built rather than part-way through training.
 
+## Where the defaults live
+
+Every argument below except `name` and `input_shape` is `NULL` unless
+you set it, and a `NULL` is left out of the request entirely - so the
+engine's own default applies. The defaults are therefore written down
+once, in `pyplatypus`, rather than here as well:
+
+
+    channels 3        blocks 4          filters 16      block_width 2
+    dropout 0         batch_normalization TRUE          separable_conv FALSE
+    spatial_dropout TRUE                upsample FALSE  deep_supervision FALSE
+    activation "relu"                   initialiser "he_normal"
+    loss cce          metrics iou       optimizer adam  callbacks none
+    epochs 10         batch_size 8      fit TRUE
+
+The second reason matters more than tidiness. A value sent is
+indistinguishable from a value chosen, so defaults travelling from here
+would silence the engine's own knowledge: `weights` naming a published
+file records its architecture, `blocks` and `filters`, and those are
+adopted **only** where the specification stayed silent. Sending
+`blocks = 4` because that is what R happened to say would override a
+file that knows better.
+
 ## Examples
 
 ``` r
@@ -313,121 +345,11 @@ u_net("unet", input_shape = c(256, 256), blocks = 4, filters = 16)
 #> $input_shape
 #> [1] 256 256
 #> 
-#> $channels
-#> [1] 3
-#> 
-#> $n_class
-#> [1] 2
-#> 
 #> $blocks
 #> [1] 4
 #> 
 #> $filters
 #> [1] 16
-#> 
-#> $block_width
-#> [1] 2
-#> 
-#> $dropout
-#> [1] 0
-#> 
-#> $batch_normalization
-#> [1] TRUE
-#> 
-#> $separable_conv
-#> [1] FALSE
-#> 
-#> $spatial_dropout
-#> [1] TRUE
-#> 
-#> $upsample
-#> [1] FALSE
-#> 
-#> $deep_supervision
-#> [1] FALSE
-#> 
-#> $activation
-#> [1] "relu"
-#> 
-#> $initialiser
-#> [1] "he_normal"
-#> 
-#> $loss
-#> $loss$name
-#> [1] "cce"
-#> 
-#> $loss$label_smoothing
-#> [1] 0
-#> 
-#> 
-#> $metrics
-#> $metrics[[1]]
-#> $metrics[[1]]$name
-#> [1] "iou"
-#> 
-#> $metrics[[1]]$smooth
-#> [1] 1
-#> 
-#> $metrics[[1]]$include_background
-#> [1] TRUE
-#> 
-#> 
-#> 
-#> $optimizer
-#> $optimizer$name
-#> [1] "adam"
-#> 
-#> $optimizer$learning_rate
-#> [1] 0.001
-#> 
-#> $optimizer$beta_1
-#> [1] 0.9
-#> 
-#> $optimizer$beta_2
-#> [1] 0.999
-#> 
-#> $optimizer$eps
-#> [1] 1e-08
-#> 
-#> $optimizer$weight_decay
-#> [1] 0
-#> 
-#> $optimizer$amsgrad
-#> [1] FALSE
-#> 
-#> 
-#> $callbacks
-#> list()
-#> 
-#> $augmentation
-#> NULL
-#> 
-#> $epochs
-#> [1] 10
-#> 
-#> $batch_size
-#> [1] 8
-#> 
-#> $splits
-#> NULL
-#> 
-#> $weights
-#> NULL
-#> 
-#> $fit
-#> [1] TRUE
-#> 
-#> $encoder
-#> NULL
-#> 
-#> $pretrained
-#> NULL
-#> 
-#> $freeze_encoder
-#> NULL
-#> 
-#> $encoder_learning_rate
-#> NULL
 #> 
 
 # A large image, tiled rather than shrunk
@@ -441,120 +363,7 @@ u_net("hd", input_shape = c(256, 256), splits = c(4, 6))
 #> $input_shape
 #> [1] 256 256
 #> 
-#> $channels
-#> [1] 3
-#> 
-#> $n_class
-#> [1] 2
-#> 
-#> $blocks
-#> [1] 4
-#> 
-#> $filters
-#> [1] 16
-#> 
-#> $block_width
-#> [1] 2
-#> 
-#> $dropout
-#> [1] 0
-#> 
-#> $batch_normalization
-#> [1] TRUE
-#> 
-#> $separable_conv
-#> [1] FALSE
-#> 
-#> $spatial_dropout
-#> [1] TRUE
-#> 
-#> $upsample
-#> [1] FALSE
-#> 
-#> $deep_supervision
-#> [1] FALSE
-#> 
-#> $activation
-#> [1] "relu"
-#> 
-#> $initialiser
-#> [1] "he_normal"
-#> 
-#> $loss
-#> $loss$name
-#> [1] "cce"
-#> 
-#> $loss$label_smoothing
-#> [1] 0
-#> 
-#> 
-#> $metrics
-#> $metrics[[1]]
-#> $metrics[[1]]$name
-#> [1] "iou"
-#> 
-#> $metrics[[1]]$smooth
-#> [1] 1
-#> 
-#> $metrics[[1]]$include_background
-#> [1] TRUE
-#> 
-#> 
-#> 
-#> $optimizer
-#> $optimizer$name
-#> [1] "adam"
-#> 
-#> $optimizer$learning_rate
-#> [1] 0.001
-#> 
-#> $optimizer$beta_1
-#> [1] 0.9
-#> 
-#> $optimizer$beta_2
-#> [1] 0.999
-#> 
-#> $optimizer$eps
-#> [1] 1e-08
-#> 
-#> $optimizer$weight_decay
-#> [1] 0
-#> 
-#> $optimizer$amsgrad
-#> [1] FALSE
-#> 
-#> 
-#> $callbacks
-#> list()
-#> 
-#> $augmentation
-#> NULL
-#> 
-#> $epochs
-#> [1] 10
-#> 
-#> $batch_size
-#> [1] 8
-#> 
 #> $splits
 #> [1] 4 6
-#> 
-#> $weights
-#> NULL
-#> 
-#> $fit
-#> [1] TRUE
-#> 
-#> $encoder
-#> NULL
-#> 
-#> $pretrained
-#> NULL
-#> 
-#> $freeze_encoder
-#> NULL
-#> 
-#> $encoder_learning_rate
-#> NULL
 #> 
 ```
