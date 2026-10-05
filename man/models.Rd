@@ -11,29 +11,29 @@
 u_net(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -43,29 +43,29 @@ u_net(
 u_net_plus_plus(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -75,29 +75,29 @@ u_net_plus_plus(
 res_u_net(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -107,29 +107,29 @@ res_u_net(
 linknet(
   name,
   input_shape,
-  channels = 3,
-  n_class = 2,
-  blocks = 4,
-  filters = 16,
-  block_width = 2,
-  dropout = 0,
-  batch_normalization = TRUE,
-  separable_conv = FALSE,
-  spatial_dropout = TRUE,
-  upsample = FALSE,
-  deep_supervision = FALSE,
-  activation = "relu",
-  initialiser = "he_normal",
-  loss = loss_cce(),
-  metrics = list(metric_iou()),
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  channels = NULL,
+  n_class = NULL,
+  blocks = NULL,
+  filters = NULL,
+  block_width = NULL,
+  dropout = NULL,
+  batch_normalization = NULL,
+  separable_conv = NULL,
+  spatial_dropout = NULL,
+  upsample = NULL,
+  deep_supervision = NULL,
+  activation = NULL,
+  initialiser = NULL,
+  loss = NULL,
+  metrics = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   splits = NULL,
   weights = NULL,
-  fit = TRUE,
+  fit = NULL,
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
@@ -141,13 +141,18 @@ linknet(
 
 \item{input_shape}{Tile size: \code{c(height, width)}, or \code{c(depth, height, width)}.}
 
-\item{channels}{Input channels. 3 for colour, 1 for greyscale.}
+\item{channels}{Input channels. 3 for colour, 1 for greyscale. Derived from
+\code{channels_from} when \code{\link[=segmentation_data]{segmentation_data()}} names one file per channel.}
 
-\item{n_class}{Number of classes, including background. Must match the colormap.}
+\item{n_class}{\strong{Removed.} The number of classes comes from the data - \code{colormap} or
+\code{labels} in \code{\link[=segmentation_data]{segmentation_data()}} - and a model that also declared it could only ever
+disagree with its own data. Passing it is an error that says so.}
 
-\item{blocks}{How many times the resolution is halved.}
+\item{blocks}{How many times the resolution is halved. Taken from the weights file when
+\code{weights} is given and this is not.}
 
-\item{filters}{Filters in the first block; doubled at each level.}
+\item{filters}{Filters in the first block; doubled at each level. Taken from the weights
+file when \code{weights} is given and this is not.}
 
 \item{block_width}{Convolutions per block.}
 
@@ -232,6 +237,29 @@ dimension must divide by \code{2^blocks}, or the decoder cannot line up with the
 and that is checked when the specification is built rather than part-way through
 training.
 }
+\section{Where the defaults live}{
+
+
+Every argument below except \code{name} and \code{input_shape} is \code{NULL} unless you set it, and a
+\code{NULL} is left out of the request entirely - so the engine's own default applies. The
+defaults are therefore written down once, in \code{pyplatypus}, rather than here as well:
+
+\preformatted{
+channels 3        blocks 4          filters 16      block_width 2
+dropout 0         batch_normalization TRUE          separable_conv FALSE
+spatial_dropout TRUE                upsample FALSE  deep_supervision FALSE
+activation "relu"                   initialiser "he_normal"
+loss cce          metrics iou       optimizer adam  callbacks none
+epochs 10         batch_size 8      fit TRUE
+}
+
+The second reason matters more than tidiness. A value sent is indistinguishable from a
+value chosen, so defaults travelling from here would silence the engine's own knowledge:
+\code{weights} naming a published file records its architecture, \code{blocks} and \code{filters}, and
+those are adopted \strong{only} where the specification stayed silent. Sending \code{blocks = 4}
+because that is what R happened to say would override a file that knows better.
+}
+
 \examples{
 u_net("unet", input_shape = c(256, 256), blocks = 4, filters = 16)
 

@@ -602,7 +602,7 @@ save_weights <- function(object, path, model = NULL, ...) {
 #' `missing_classes` is the one to act on. A class that appears in no mask cannot be
 #' learned: its channel of the target is zero everywhere, so there is no gradient towards
 #' it and the model is never shown the thing it is being asked to find. Either the colours
-#' do not describe these masks, or `n_class` counts a class the data does not contain.
+#' do not describe these masks, or they name a class the data does not contain.
 #'
 #' `unmatched` is the fraction of mask pixels matching no entry, which fall back to the
 #' background class. **Read it knowing that it scales with the size of the thing being

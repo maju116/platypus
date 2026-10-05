@@ -20,12 +20,38 @@
 #' and that is checked when the specification is built rather than part-way through
 #' training.
 #'
+#' @section Where the defaults live:
+#'
+#' Every argument below except `name` and `input_shape` is `NULL` unless you set it, and a
+#' `NULL` is left out of the request entirely - so the engine's own default applies. The
+#' defaults are therefore written down once, in `pyplatypus`, rather than here as well:
+#'
+#' \preformatted{
+#' channels 3        blocks 4          filters 16      block_width 2
+#' dropout 0         batch_normalization TRUE          separable_conv FALSE
+#' spatial_dropout TRUE                upsample FALSE  deep_supervision FALSE
+#' activation "relu"                   initialiser "he_normal"
+#' loss cce          metrics iou       optimizer adam  callbacks none
+#' epochs 10         batch_size 8      fit TRUE
+#' }
+#'
+#' The second reason matters more than tidiness. A value sent is indistinguishable from a
+#' value chosen, so defaults travelling from here would silence the engine's own knowledge:
+#' `weights` naming a published file records its architecture, `blocks` and `filters`, and
+#' those are adopted **only** where the specification stayed silent. Sending `blocks = 4`
+#' because that is what R happened to say would override a file that knows better.
+#'
 #' @param name Unique within a specification; names the outputs and the table rows.
 #' @param input_shape Tile size: `c(height, width)`, or `c(depth, height, width)`.
-#' @param channels Input channels. 3 for colour, 1 for greyscale.
-#' @param n_class Number of classes, including background. Must match the colormap.
-#' @param blocks How many times the resolution is halved.
-#' @param filters Filters in the first block; doubled at each level.
+#' @param channels Input channels. 3 for colour, 1 for greyscale. Derived from
+#'   `channels_from` when [segmentation_data()] names one file per channel.
+#' @param n_class **Removed.** The number of classes comes from the data - `colormap` or
+#'   `labels` in [segmentation_data()] - and a model that also declared it could only ever
+#'   disagree with its own data. Passing it is an error that says so.
+#' @param blocks How many times the resolution is halved. Taken from the weights file when
+#'   `weights` is given and this is not.
+#' @param filters Filters in the first block; doubled at each level. Taken from the weights
+#'   file when `weights` is given and this is not.
 #' @param block_width Convolutions per block.
 #' @param dropout Dropout rate, 0 to switch it off.
 #' @param batch_normalization Normalise between convolutions.
@@ -91,12 +117,24 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
                                epochs, batch_size, splits, weights, fit,
                                encoder, pretrained, freeze_encoder,
                                encoder_learning_rate) {
-  list(
+  if (!is.null(n_class)) {
+    stop("`n_class` is not a model setting: the number of classes comes from the data, ",
+         "from `colormap` or `labels` in segmentation_data(). It was removed because a ",
+         "model that also declared it could only ever disagree with its own data.",
+         call. = FALSE)
+  }
+  # Everything optional arrives as NULL and `compact()` drops it before the request is
+  # built, so the engine's own default applies. Two reasons, and the second is the one
+  # that bites: a value repeated here is a second place for one fact to live and the two
+  # can drift silently - and a default *sent* is indistinguishable from a choice, so an
+  # engine that could fill `blocks` and `filters` from a weights file would never get the
+  # chance. That is what `output_dir` taught, with a record written into every working
+  # directory because R sent a default nobody asked for.
+  compact(list(
     name = name,
     architecture = architecture,
     input_shape = as.integer(input_shape),
     channels = int1(channels),
-    n_class = int1(n_class),
     blocks = int1(blocks),
     filters = int1(filters),
     block_width = int1(block_width),
@@ -118,27 +156,25 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
     splits = if (is.null(splits)) NULL else as.integer(splits),
     weights = weights,
     fit = fit,
-    # All four stay NULL unless asked for, and `compact()` drops a NULL before the
-    # request is built. An engine that has never heard of these keeps working for
-    # everyone who is not asking, and only the person who asks meets the requirement.
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = if (is.null(freeze_encoder)) NULL else int1(freeze_encoder),
     encoder_learning_rate = encoder_learning_rate
-  )
+  ))
 }
+
 
 #' @rdname models
 #' @export
-u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
-                   filters = 16, block_width = 2, dropout = 0,
-                   batch_normalization = TRUE, separable_conv = FALSE,
-                   spatial_dropout = TRUE, upsample = FALSE,
-                   deep_supervision = FALSE, activation = "relu",
-                   initialiser = "he_normal", loss = loss_cce(),
-                   metrics = list(metric_iou()), optimizer = optimizer_adam(),
-                   callbacks = list(), augmentation = NULL, epochs = 10,
-                   batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
+                   blocks = NULL, filters = NULL, block_width = NULL,
+                   dropout = NULL, batch_normalization = NULL,
+                   separable_conv = NULL, spatial_dropout = NULL,
+                   upsample = NULL, deep_supervision = NULL,
+                   activation = NULL, initialiser = NULL, loss = NULL,
+                   metrics = NULL, optimizer = NULL, callbacks = NULL,
+                   augmentation = NULL, epochs = NULL, batch_size = NULL,
+                   splits = NULL, weights = NULL, fit = NULL,
                    encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
                    encoder_learning_rate = NULL) {
   segmentation_model(
@@ -177,15 +213,15 @@ u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
 
 #' @rdname models
 #' @export
-u_net_plus_plus <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
-                             filters = 16, block_width = 2, dropout = 0,
-                             batch_normalization = TRUE, separable_conv = FALSE,
-                             spatial_dropout = TRUE, upsample = FALSE,
-                             deep_supervision = FALSE, activation = "relu",
-                             initialiser = "he_normal", loss = loss_cce(),
-                             metrics = list(metric_iou()), optimizer = optimizer_adam(),
-                             callbacks = list(), augmentation = NULL, epochs = 10,
-                             batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+u_net_plus_plus <- function(name, input_shape, channels = NULL, n_class = NULL,
+                   blocks = NULL, filters = NULL, block_width = NULL,
+                   dropout = NULL, batch_normalization = NULL,
+                   separable_conv = NULL, spatial_dropout = NULL,
+                   upsample = NULL, deep_supervision = NULL,
+                   activation = NULL, initialiser = NULL, loss = NULL,
+                   metrics = NULL, optimizer = NULL, callbacks = NULL,
+                   augmentation = NULL, epochs = NULL, batch_size = NULL,
+                   splits = NULL, weights = NULL, fit = NULL,
                    encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
                    encoder_learning_rate = NULL) {
   segmentation_model(
@@ -224,15 +260,15 @@ u_net_plus_plus <- function(name, input_shape, channels = 3, n_class = 2, blocks
 
 #' @rdname models
 #' @export
-res_u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
-                       filters = 16, block_width = 2, dropout = 0,
-                       batch_normalization = TRUE, separable_conv = FALSE,
-                       spatial_dropout = TRUE, upsample = FALSE,
-                       deep_supervision = FALSE, activation = "relu",
-                       initialiser = "he_normal", loss = loss_cce(),
-                       metrics = list(metric_iou()), optimizer = optimizer_adam(),
-                       callbacks = list(), augmentation = NULL, epochs = 10,
-                       batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+res_u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
+                   blocks = NULL, filters = NULL, block_width = NULL,
+                   dropout = NULL, batch_normalization = NULL,
+                   separable_conv = NULL, spatial_dropout = NULL,
+                   upsample = NULL, deep_supervision = NULL,
+                   activation = NULL, initialiser = NULL, loss = NULL,
+                   metrics = NULL, optimizer = NULL, callbacks = NULL,
+                   augmentation = NULL, epochs = NULL, batch_size = NULL,
+                   splits = NULL, weights = NULL, fit = NULL,
                    encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
                    encoder_learning_rate = NULL) {
   segmentation_model(
@@ -271,15 +307,15 @@ res_u_net <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
 
 #' @rdname models
 #' @export
-linknet <- function(name, input_shape, channels = 3, n_class = 2, blocks = 4,
-                     filters = 16, block_width = 2, dropout = 0,
-                     batch_normalization = TRUE, separable_conv = FALSE,
-                     spatial_dropout = TRUE, upsample = FALSE,
-                     deep_supervision = FALSE, activation = "relu",
-                     initialiser = "he_normal", loss = loss_cce(),
-                     metrics = list(metric_iou()), optimizer = optimizer_adam(),
-                     callbacks = list(), augmentation = NULL, epochs = 10,
-                     batch_size = 8, splits = NULL, weights = NULL, fit = TRUE,
+linknet <- function(name, input_shape, channels = NULL, n_class = NULL,
+                   blocks = NULL, filters = NULL, block_width = NULL,
+                   dropout = NULL, batch_normalization = NULL,
+                   separable_conv = NULL, spatial_dropout = NULL,
+                   upsample = NULL, deep_supervision = NULL,
+                   activation = NULL, initialiser = NULL, loss = NULL,
+                   metrics = NULL, optimizer = NULL, callbacks = NULL,
+                   augmentation = NULL, epochs = NULL, batch_size = NULL,
+                   splits = NULL, weights = NULL, fit = NULL,
                    encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
                    encoder_learning_rate = NULL) {
   segmentation_model(

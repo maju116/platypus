@@ -43,7 +43,7 @@ test_that("arguments and YAML produce the same specification", {
   from_code <- platypus_spec(
     data = segmentation_data(tempdir(), tempdir(), colormap = binary_colormap),
     models = list(u_net(
-      "unet", input_shape = c(256, 256), channels = 3, n_class = 2,
+      "unet", input_shape = c(256, 256), channels = 3,
       blocks = 4, filters = 16,
       loss = loss_cce_dice(cce_weight = 0.5),
       metrics = list(metric_dice(include_background = FALSE)),

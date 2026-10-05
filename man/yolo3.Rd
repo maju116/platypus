@@ -7,21 +7,21 @@
 yolo3(
   name,
   input_shape = c(416, 416),
-  channels = 3,
+  channels = NULL,
   anchors = NULL,
-  anchors_per_grid = 3,
-  ignore_threshold = 0.5,
-  score_threshold = 0.01,
-  nms_threshold = 0.45,
-  operating_point = 0.5,
-  min_visibility = 0.25,
-  optimizer = optimizer_adam(),
-  callbacks = list(),
+  anchors_per_grid = NULL,
+  ignore_threshold = NULL,
+  score_threshold = NULL,
+  nms_threshold = NULL,
+  operating_point = NULL,
+  min_visibility = NULL,
+  optimizer = NULL,
+  callbacks = NULL,
   augmentation = NULL,
-  epochs = 10,
-  batch_size = 8,
+  epochs = NULL,
+  batch_size = NULL,
   weights = NULL,
-  fit = TRUE
+  fit = NULL
 )
 }
 \arguments{

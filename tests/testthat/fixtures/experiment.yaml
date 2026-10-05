@@ -18,7 +18,6 @@ models:
     architecture: u_net
     input_shape: [256, 256]
     channels: 3
-    n_class: 2
     blocks: 4
     filters: 16
     loss:

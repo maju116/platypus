@@ -183,11 +183,12 @@ detection_data <- function(train, validation, classes, test = NULL,
 #' @examples
 #' yolo3("cells", input_shape = c(416, 416))
 #' yolo3("cells", input_shape = c(416, 416), weights = "bccd-yolo3", fit = FALSE)
-yolo3 <- function(name, input_shape = c(416, 416), channels = 3, anchors = NULL,
-                  anchors_per_grid = 3, ignore_threshold = 0.5, score_threshold = 0.01,
-                  nms_threshold = 0.45, operating_point = 0.5, min_visibility = 0.25,
-                  optimizer = optimizer_adam(), callbacks = list(), augmentation = NULL,
-                  epochs = 10, batch_size = 8, weights = NULL, fit = TRUE) {
+yolo3 <- function(name, input_shape = c(416, 416), channels = NULL, anchors = NULL,
+                  anchors_per_grid = NULL, ignore_threshold = NULL,
+                  score_threshold = NULL, nms_threshold = NULL, operating_point = NULL,
+                  min_visibility = NULL, optimizer = NULL, callbacks = NULL,
+                  augmentation = NULL, epochs = NULL, batch_size = NULL,
+                  weights = NULL, fit = NULL) {
   if (length(input_shape) != 2L) {
     stop("detection is 2D: `input_shape` is c(height, width). Boxes in a volume need a ",
          "3D detector, which this is not.", call. = FALSE)
@@ -204,8 +205,12 @@ yolo3 <- function(name, input_shape = c(416, 416), channels = 3, anchors = NULL,
          call. = FALSE)
   }
 
+  # Everything optional stays NULL and `compact()` drops it, so the engine's own default
+  # applies and each of these is written down in one place. It also keeps
+  # `anchors_per_grid` adoptable: a published detector records its own, and a default sent
+  # from here would look like a choice and silence the file.
   structure(
-    list(
+    compact(list(
       name = name,
       architecture = "yolo3",
       input_shape = as.integer(input_shape),
@@ -224,7 +229,7 @@ yolo3 <- function(name, input_shape = c(416, 416), channels = 3, anchors = NULL,
       batch_size = int1(batch_size),
       weights = weights,
       fit = fit
-    ),
+    )),
     class = c("platypus_detection_model", "list"),
     task = "object_detection"
   )
