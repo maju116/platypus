@@ -161,5 +161,5 @@ detection_data("train/", "valid/", classes = c("RBC", "WBC", "Platelets"))
 #> attr(,"class")
 #> [1] "platypus_detection_data" "list"                   
 #> attr(,"task")
-#> [1] "detection"
+#> [1] "object_detection"
 ```

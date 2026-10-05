@@ -225,7 +225,7 @@ yolo3("cells", input_shape = c(416, 416))
 #> attr(,"class")
 #> [1] "platypus_detection_model" "list"                    
 #> attr(,"task")
-#> [1] "detection"
+#> [1] "object_detection"
 yolo3("cells", input_shape = c(416, 416), weights = "bccd-yolo3", fit = FALSE)
 #> $name
 #> [1] "cells"
@@ -304,5 +304,5 @@ yolo3("cells", input_shape = c(416, 416), weights = "bccd-yolo3", fit = FALSE)
 #> attr(,"class")
 #> [1] "platypus_detection_model" "list"                    
 #> attr(,"task")
-#> [1] "detection"
+#> [1] "object_detection"
 ```

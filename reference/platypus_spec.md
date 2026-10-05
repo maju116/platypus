@@ -10,6 +10,7 @@ treats them identically.
 platypus_spec(
   data,
   models = NULL,
+  task = NULL,
   seed = NULL,
   output_dir = NULL,
   check_paths = TRUE
@@ -28,6 +29,18 @@ platypus_spec(
 
   A list of model specifications, see
   [models](https://maju116.github.io/platypus/reference/models.md).
+
+- task:
+
+  Which task this specification describes, one of
+  `"semantic_segmentation"` or `"object_detection"`. Normally left
+  unset: the data and model constructors already decide it, and
+  [`segmentation_data()`](https://maju116.github.io/platypus/reference/segmentation_data.md)
+  with
+  [`u_net()`](https://maju116.github.io/platypus/reference/models.md)
+  can only mean one thing. Given, it is **checked against them rather
+  than trusted**, so it can only agree or refuse. It becomes
+  load-bearing the day a pair of constructors stops deciding on its own.
 
 - seed:
 

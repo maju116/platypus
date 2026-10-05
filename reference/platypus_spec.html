@@ -50,6 +50,7 @@ Both produce the same object, and everything downstream treats them identically.
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">platypus_spec</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  models <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  task <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  check_paths <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -66,6 +67,14 @@ Both produce the same object, and everything downstream treats them identically.
 
 <dt id="arg-models">models<a class="anchor" aria-label="anchor" href="#arg-models"></a></dt>
 <dd><p>A list of model specifications, see <a href="models.html">models</a>.</p></dd>
+
+
+<dt id="arg-task">task<a class="anchor" aria-label="anchor" href="#arg-task"></a></dt>
+<dd><p>Which task this specification describes, one of <code>"semantic_segmentation"</code>
+or <code>"object_detection"</code>. Normally left unset: the data and model constructors already
+decide it, and <code><a href="segmentation_data.html">segmentation_data()</a></code> with <code><a href="models.html">u_net()</a></code> can only mean one thing. Given, it
+is <strong>checked against them rather than trusted</strong>, so it can only agree or refuse. It
+becomes load-bearing the day a pair of constructors stops deciding on its own.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
