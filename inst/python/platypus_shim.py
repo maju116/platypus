@@ -273,6 +273,21 @@ def detection_classes(engine: Any, model_name: str,
         return _engine_failure(error)
 
 
+def detection_images(engine: Any, model_name: str, split: str = "validation",
+                     score_threshold: Any = None) -> dict:
+    """One row per image: which pictures it fails on, rather than how well on average."""
+    import pyplatypus
+
+    try:
+        return {"ok": True,
+                "rows": engine.evaluate_images(model_name, split,
+                                               score_threshold=score_threshold)}
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+
 def anchor_report(engine: Any, model_name: str, split: str = "train") -> dict:
     """How well the anchors in use cover a split's boxes.
 

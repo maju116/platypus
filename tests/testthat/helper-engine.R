@@ -541,6 +541,27 @@ engine_has_anchor_plot <- function() {
   ))
 }
 
+#' Whether this engine scores per image.
+#'
+#' Asked of the class, for the same reason as the anchor plot above: calling it needs a
+#' trained detector and a split with annotations, and either missing would answer "no
+#' feature" for a reason that has nothing to do with the feature.
+engine_has_evaluate_images <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').DetectionEngine, 'evaluate_images')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_evaluate_images <- function() {
+  skip_if_no_detection()
+  testthat::skip_if_not(engine_has_evaluate_images(),
+                        "the engine in use predates per-image detection scores")
+}
+
 skip_if_no_anchor_plot <- function() {
   skip_if_no_detection()
   testthat::skip_if_not(engine_has_anchor_plot(),

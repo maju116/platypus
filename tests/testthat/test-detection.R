@@ -494,3 +494,73 @@ test_that("a record appears when output_dir was given, and carries the fitted an
     lapply(detection_anchors(fit)$anchors, function(g) lapply(g, unlist))
   )
 })
+
+# --- one row per image --------------------------------------------------------------------
+
+test_that("evaluate_images gives one row per image, and the counts add up", {
+  skip_if_no_evaluate_images()
+  skip_if_not_installed("png")
+
+  root <- withr::local_tempdir()
+  write_detection_split(file.path(root, "train"), "train", 8, seed = 31)
+  write_detection_split(file.path(root, "valid"), "valid", 4, seed = 32)
+
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2))
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+  images <- evaluate_images(fit)
+
+  expect_s3_class(images, "platypus_images")
+  expect_equal(nrow(images), 4L)
+  expect_setequal(
+    names(images),
+    c("key", "n_truth", "n_predicted", "matched", "missed", "spurious",
+      "mean_matched_iou")
+  )
+  # Per row, the three outcomes are a partition of the counts, not three free numbers.
+  expect_equal(images$missed, images$n_truth - images$matched)
+  expect_equal(images$spurious, images$n_predicted - images$matched)
+
+  # And they decompose the per-class table, which is the assertion that stops the two
+  # from drifting apart.
+  per_class <- evaluate_classes(fit)
+  expect_equal(sum(images$n_truth), sum(per_class$n_truth))
+
+  # No average precision per image: on one picture it is a property of a ranking that is
+  # not there to rank.
+  expect_false("average_precision" %in% names(images))
+})
+
+test_that("evaluate_images refuses a segmentation fit and names the alternative", {
+  skip_if_no_engine()
+  skip_if_not_installed("png")
+
+  root <- tiny_dataset(n = 4, size = 32)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32), blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 2))
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+  expect_error(evaluate_images(fit), "evaluate_cases")
+})
+
+test_that("an image where nothing matched arrives as NA rather than zero", {
+  # The claim the help page makes, pinned at the seam where it could quietly stop being
+  # true: the engine returns None, and None has to cross into R as NA. A 0 would merge
+  # "found nothing" with "found badly", which are different failures.
+  rows <- list(
+    list(key = "a", n_truth = 2L, n_predicted = 1L, matched = 1L, missed = 1L,
+         spurious = 0L, mean_matched_iou = 0.83),
+    list(key = "b", n_truth = 2L, n_predicted = 3L, matched = 0L, missed = 2L,
+         spurious = 3L, mean_matched_iou = NULL)
+  )
+  frame <- platypus:::rows_to_frame(rows)
+  expect_true(is.numeric(frame$mean_matched_iou))
+  expect_true(is.na(frame$mean_matched_iou[2]))
+  expect_false(isTRUE(frame$mean_matched_iou[2] == 0))
+})

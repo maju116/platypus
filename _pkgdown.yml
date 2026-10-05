@@ -97,6 +97,7 @@ reference:
   - evaluate
   - evaluate_cases
   - evaluate_classes
+  - evaluate_images
   - detection_anchors
 
 - title: Looking at the results

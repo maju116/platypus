@@ -281,7 +281,11 @@ exists is not a thing this package does.
 **No overall precision or recall** in `evaluate()`. Averaging them over classes needs a
 weighting and every weighting is a different claim: over BCCD's 4,155 red cells, 372 white and
 361 platelets, a single precision is a statement about red cells. `evaluate_classes()` gives
-the per-class rows, which is the form in which they mean something.
+the per-class rows, which is the form in which they mean something, and `evaluate_images()`
+gives one row per picture — not how well on average, but *which* frames it fails on. Order
+those by `missed` for the ones it cannot see and by `mean_matched_iou` for the ones it sees
+and places badly; they are usually different problems. There is deliberately no average
+precision per image: it is the area under a ranking's curve, and one picture is not a ranking.
 
 **A published detector to start from**, so boxes on an image need no GPU:
 
