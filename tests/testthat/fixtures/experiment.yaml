@@ -1,3 +1,5 @@
+task: semantic_segmentation
+
 data:
   train_path: PLACEHOLDER
   validation_path: PLACEHOLDER

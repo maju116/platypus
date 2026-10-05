@@ -486,7 +486,7 @@ plot_anchors <- function(object, model = NULL, split = "train", log = FALSE,
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("plot_anchors() needs the ggplot2 package.", call. = FALSE)
   }
-  if (!inherits(object, "platypus_fit") || !identical(object$task, "detection")) {
+  if (!inherits(object, "platypus_fit") || !identical(object$task, "object_detection")) {
     stop("`plot_anchors()` needs a fit from a detection specification; anchors are a ",
          "detector's, and a U-Net has none.", call. = FALSE)
   }

@@ -392,6 +392,12 @@ engine_has_encoders <- function() {
   isTRUE(tryCatch({
     result <- platypus:::shim()$build_spec(
       list(
+        # `task` has to be here, and its absence is how this probe lied once: without it
+        # the engine refuses the configuration for a reason that has nothing to do with
+        # `encoder`, the probe reads that refusal as "no such field", and every encoder
+        # test skips against an engine that supports them perfectly well. A probe has to
+        # fail for the one reason it is asking about.
+        task = "semantic_segmentation",
         data = list(train_path = ".", validation_path = ".",
                     colormap = list(c(0L, 0L, 0L), c(255L, 255L, 255L))),
         models = list(list(name = "probe", input_shape = c(64L, 64L),

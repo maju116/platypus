@@ -117,7 +117,7 @@ detection_data <- function(train, validation, classes, test = NULL,
       shuffle = shuffle
     ),
     class = c("platypus_detection_data", "list"),
-    task = "detection"
+    task = "object_detection"
   )
 }
 
@@ -226,7 +226,7 @@ yolo3 <- function(name, input_shape = c(416, 416), channels = 3, anchors = NULL,
       fit = fit
     ),
     class = c("platypus_detection_model", "list"),
-    task = "detection"
+    task = "object_detection"
   )
 }
 
@@ -299,5 +299,5 @@ as_anchor_groups <- function(anchors) {
 #' @noRd
 task_of <- function(x) {
   tagged <- attr(x, "task", exact = TRUE)
-  if (!is.null(tagged)) tagged else "segmentation"
+  if (!is.null(tagged)) tagged else "semantic_segmentation"
 }

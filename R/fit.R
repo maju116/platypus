@@ -91,7 +91,7 @@ platypus_fit <- function(spec, device = NULL, num_workers = "auto", strict_data 
 #' @noRd
 spec_task <- function(spec) {
   task <- tryCatch(shim()$spec_as_dict(spec$py)$task, error = function(e) NULL)
-  if (is.null(task) || !nzchar(task)) "segmentation" else as.character(task)
+  if (is.null(task) || !nzchar(task)) "semantic_segmentation" else as.character(task)
 }
 
 #' @export
@@ -129,7 +129,7 @@ evaluate <- function(object, ...) UseMethod("evaluate")
 #' @rdname evaluate
 #' @export
 evaluate.platypus_fit <- function(object, split = "validation", ...) {
-  result <- if (identical(object$task, "detection")) {
+  result <- if (identical(object$task, "object_detection")) {
     shim()$detection_table(object$engine, split = split)
   } else {
     shim()$evaluation_table(object$engine, split = split)
@@ -192,7 +192,7 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
     stop("no model called '", model, "'; this fit has: ",
          paste(object$models, collapse = ", "), call. = FALSE)
   }
-  if (identical(object$task, "detection")) {
+  if (identical(object$task, "object_detection")) {
     if (asked_type || asked_space) {
       stop("`type` and `space` are about masks. A detector returns boxes, always in each ",
            "image's own pixels - there is no other space they could be in that anyone ",
@@ -261,7 +261,7 @@ evaluate_classes <- function(object, ...) UseMethod("evaluate_classes")
 #' @export
 evaluate_classes.platypus_fit <- function(object, model = NULL,
                                           split = "validation", ...) {
-  if (!identical(object$task, "detection")) {
+  if (!identical(object$task, "object_detection")) {
     stop("`evaluate_classes()` reports average precision per class, which is a detection ",
          "measure. For segmentation, `evaluate_cases()` reports per case and ",
          "`summarise_cases()` summarises it.", call. = FALSE)
@@ -318,7 +318,7 @@ evaluate_images <- function(object, ...) UseMethod("evaluate_images")
 #' @export
 evaluate_images.platypus_fit <- function(object, model = NULL, split = "validation",
                                          score_threshold = NULL, ...) {
-  if (!identical(object$task, "detection")) {
+  if (!identical(object$task, "object_detection")) {
     stop("`evaluate_images()` counts boxes per image, which is a detection measure. ",
          "For segmentation, `evaluate_cases()` scores every case separately.",
          call. = FALSE)
@@ -363,7 +363,7 @@ print.platypus_images <- function(x, ...) {
 #'   frame with one row per anchor.
 #' @export
 detection_anchors <- function(object, model = NULL) {
-  if (!inherits(object, "platypus_fit") || !identical(object$task, "detection")) {
+  if (!inherits(object, "platypus_fit") || !identical(object$task, "object_detection")) {
     stop("`detection_anchors()` needs a fit from a detection specification.",
          call. = FALSE)
   }

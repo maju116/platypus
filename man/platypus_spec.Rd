@@ -7,6 +7,7 @@
 platypus_spec(
   data,
   models = NULL,
+  task = NULL,
   seed = NULL,
   output_dir = NULL,
   check_paths = TRUE
@@ -16,6 +17,12 @@ platypus_spec(
 \item{data}{A \code{\link[=segmentation_data]{segmentation_data()}} specification, or the path to a YAML file.}
 
 \item{models}{A list of model specifications, see \link{models}.}
+
+\item{task}{Which task this specification describes, one of \code{"semantic_segmentation"}
+or \code{"object_detection"}. Normally left unset: the data and model constructors already
+decide it, and \code{segmentation_data()} with \code{u_net()} can only mean one thing. Given, it
+is \strong{checked against them rather than trusted}, so it can only agree or refuse. It
+becomes load-bearing the day a pair of constructors stops deciding on its own.}
 
 \item{seed}{Set it for a reproducible run.}
 

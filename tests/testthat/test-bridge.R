@@ -110,6 +110,7 @@ test_that("a bad specification comes back as a readable R error, not a traceback
   # shape now so it cannot regress silently.
   skip_if_no_engine()
   broken <- list(
+    task = "semantic_segmentation",
     data = list(train_path = tempdir(), validation_path = tempdir(),
                 colormap = list(c(0L, 0L, 0L), c(255L, 255L, 255L))),
     models = list(list(name = "u", input_shape = c(64L, 64L),

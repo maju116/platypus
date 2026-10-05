@@ -227,6 +227,11 @@ ct_windows <- function() {
 #'
 #' @param data A [segmentation_data()] specification, or the path to a YAML file.
 #' @param models A list of model specifications, see [models].
+#' @param task Which task this specification describes, one of `"semantic_segmentation"`
+#'   or `"object_detection"`. Normally left unset: the data and model constructors already
+#'   decide it, and `segmentation_data()` with `u_net()` can only mean one thing. Given, it
+#'   is **checked against them rather than trusted**, so it can only agree or refuse. It
+#'   becomes load-bearing the day a pair of constructors stops deciding on its own.
 #' @param seed Set it for a reproducible run.
 #' @param output_dir Where to write a record of the run: the specification, the history,
 #'   and anything the run worked out that the specification does not already say - a
@@ -254,7 +259,7 @@ ct_windows <- function() {
 #' # The same thing, from a file
 #' spec <- platypus_spec("experiment.yaml")
 #' }
-platypus_spec <- function(data, models = NULL, seed = NULL,
+platypus_spec <- function(data, models = NULL, task = NULL, seed = NULL,
                           output_dir = NULL, check_paths = TRUE) {
   from_file <- is.character(data) && length(data) == 1L && is.null(models)
 
@@ -264,11 +269,10 @@ platypus_spec <- function(data, models = NULL, seed = NULL,
     if (is.null(models) || !length(models)) {
       stop("`models` must contain at least one model; see `?models`.", call. = FALSE)
     }
-    task <- agreed_task(data, models)
+    task <- agreed_task(data, models, stated = task)
     config <- compact(list(
-      # `task` is sent always, not only for detection. The engine defaults a missing one
-      # to segmentation, so omitting it would work - and then a reader of the request
-      # could not tell which task was meant, which is the thing `task` exists to say.
+      # Always sent. The engine requires it, and even when it did not, a request that
+      # leaves it out is one whose meaning depends on the version reading it.
       task = task,
       data = data, models = models,
       seed = int1(seed), output_dir = output_dir
@@ -341,10 +345,36 @@ compact <- function(x) {
 #' intentions in one specification.
 #'
 #' @noRd
-agreed_task <- function(data, models) {
+agreed_task <- function(data, models, stated = NULL) {
   from_data <- task_of(data)
   from_models <- vapply(models, task_of, character(1))
   all_tasks <- unique(c(from_data, from_models))
+
+  # `task` is derived rather than typed, because `segmentation_data()` with `u_net()` can
+  # only mean one thing and saying it again could only ever disagree. It can still be
+  # stated - and then it is checked, not trusted. The day instance segmentation arrives
+  # the constructors stop deciding on their own and this argument starts carrying the
+  # answer; until then it is a way of being explicit, not a way of choosing.
+  if (!is.null(stated)) {
+    stated <- as.character(stated)[[1L]]
+    known <- c("semantic_segmentation", "object_detection")
+    if (!stated %in% known) {
+      renamed <- c(segmentation = "semantic_segmentation", detection = "object_detection")
+      if (stated %in% names(renamed)) {
+        stop("`task = \"", stated, "\"` was renamed to \"", renamed[[stated]],
+             "\". Both tasks are spelled out now, because \"segmentation\" stops naming ",
+             "one thing as soon as instance segmentation exists.", call. = FALSE)
+      }
+      stop("`task` must be one of ", paste(dQuote(known, FALSE), collapse = " or "),
+           "; got \"", stated, "\".", call. = FALSE)
+    }
+    if (length(all_tasks) == 1L && !identical(stated, all_tasks)) {
+      stop("`task = \"", stated, "\"` disagrees with what this specification is built ",
+           "from, which is ", all_tasks, ". The data and model constructors decide the ",
+           "task; stating it is a way of being explicit, not a way of changing it.",
+           call. = FALSE)
+    }
+  }
 
   if (length(all_tasks) == 1L) return(all_tasks)
 

@@ -7,7 +7,7 @@
 test_that("detection_data carries the task so nobody has to type it", {
   data <- detection_data("train/", "valid/", classes = c("RBC", "WBC"))
   expect_s3_class(data, "platypus_detection_data")
-  expect_identical(attr(data, "task"), "detection")
+  expect_identical(attr(data, "task"), "object_detection")
   expect_identical(data$classes, c("RBC", "WBC"))
   expect_identical(data$subdirs, c("images", "annotations"))
   expect_identical(data$annotation_format, "pascal_voc")
@@ -16,7 +16,7 @@ test_that("detection_data carries the task so nobody has to type it", {
 test_that("a segmentation data block has no task attribute and defaults to segmentation", {
   data <- segmentation_data("train/", "valid/", colormap = binary_colormap)
   expect_null(attr(data, "task"))
-  expect_identical(platypus:::task_of(data), "segmentation")
+  expect_identical(platypus:::task_of(data), "semantic_segmentation")
 })
 
 test_that("classes must be named, distinct and non-empty", {
@@ -135,20 +135,20 @@ test_that("the refusal names the model that disagrees", {
     ),
     error = function(e) conditionMessage(e)
   )
-  expect_match(caught, "good is detection")
-  expect_match(caught, "bad is segmentation")
+  expect_match(caught, "good is object_detection")
+  expect_match(caught, "bad is semantic_segmentation")
 })
 
 test_that("an agreeing specification reports its one task", {
   expect_identical(
     platypus:::agreed_task(detection_data("a/", "b/", classes = "cell"),
                            list(yolo3("d", input_shape = c(416, 416)))),
-    "detection"
+    "object_detection"
   )
   expect_identical(
     platypus:::agreed_task(segmentation_data("a/", "b/", colormap = binary_colormap),
                            list(u_net("u", input_shape = c(64, 64)))),
-    "segmentation"
+    "semantic_segmentation"
   )
 })
 
@@ -235,7 +235,7 @@ test_that("a detector trains, scores and returns boxes in each image's own pixel
     seed = 1
   )
   fit <- platypus_fit(spec, device = "cpu")
-  expect_identical(fit$task, "detection")
+  expect_identical(fit$task, "object_detection")
 
   # The four parts of the loss, for train and validation. A YOLOv3 total means nothing
   # alone - it has a floor above zero that depends on the data.
@@ -318,7 +318,7 @@ test_that("predict refuses mask arguments on a detector, and only then", {
 
 test_that("evaluate_classes refuses a segmentation fit, and says what to use", {
   skip_if_no_engine()
-  fake <- structure(list(task = "segmentation", models = "u"), class = "platypus_fit")
+  fake <- structure(list(task = "semantic_segmentation", models = "u"), class = "platypus_fit")
   expect_error(evaluate_classes(fake), "evaluate_cases")
 })
 
@@ -433,7 +433,7 @@ test_that("the cloud and the anchors are in the same coordinates", {
 
 test_that("plot_anchors refuses a segmentation fit", {
   skip_if_not_installed("ggplot2")
-  fake <- structure(list(task = "segmentation", models = "u"), class = "platypus_fit")
+  fake <- structure(list(task = "semantic_segmentation", models = "u"), class = "platypus_fit")
   expect_error(plot_anchors(fake), "a U-Net has none")
 })
 
@@ -563,4 +563,39 @@ test_that("an image where nothing matched arrives as NA rather than zero", {
   expect_true(is.numeric(frame$mean_matched_iou))
   expect_true(is.na(frame$mean_matched_iou[2]))
   expect_false(isTRUE(frame$mean_matched_iou[2] == 0))
+})
+
+# --- stating the task ---------------------------------------------------------------------
+
+test_that("task is derived when unset and checked when given", {
+  data <- segmentation_data("train", "valid", colormap = binary_colormap)
+  models <- list(u_net("u", input_shape = c(32, 32)))
+
+  # Derived: the constructors already decided, so nothing has to be typed.
+  expect_identical(platypus:::agreed_task(data, models), "semantic_segmentation")
+
+  # Agreeing is allowed - being explicit is the point of permitting it at all.
+  expect_identical(
+    platypus:::agreed_task(data, models, stated = "semantic_segmentation"),
+    "semantic_segmentation"
+  )
+
+  # Disagreeing is refused. Stating the task is a way of being explicit, never a way of
+  # overriding what `segmentation_data()` and `u_net()` plainly are.
+  expect_error(
+    platypus:::agreed_task(data, models, stated = "object_detection"),
+    "disagrees with what this specification is built from"
+  )
+})
+
+test_that("the task names that were renamed are named back", {
+  data <- segmentation_data("train", "valid", colormap = binary_colormap)
+  models <- list(u_net("u", input_shape = c(32, 32)))
+
+  expect_error(platypus:::agreed_task(data, models, stated = "segmentation"),
+               "renamed to \"semantic_segmentation\"")
+  expect_error(platypus:::agreed_task(data, models, stated = "detection"),
+               "renamed to \"object_detection\"")
+  expect_error(platypus:::agreed_task(data, models, stated = "classification"),
+               "must be one of")
 })
