@@ -350,7 +350,14 @@ different claim: over BCCD’s 4,155 red cells, 372 white and 361
 platelets, a single precision is a statement about red cells.
 [`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
 gives the per-class rows, which is the form in which they mean
-something.
+something, and
+[`evaluate_images()`](https://maju116.github.io/platypus/reference/evaluate_images.md)
+gives one row per picture — not how well on average, but *which* frames
+it fails on. Order those by `missed` for the ones it cannot see and by
+`mean_matched_iou` for the ones it sees and places badly; they are
+usually different problems. There is deliberately no average precision
+per image: it is the area under a ranking’s curve, and one picture is
+not a ranking.
 
 **A published detector to start from**, so boxes on an image need no
 GPU:
@@ -643,6 +650,8 @@ actually there before spending an afternoon training on it.
   : Score every case separately
 - [`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
   : Average precision per class
+- [`evaluate_images()`](https://maju116.github.io/platypus/reference/evaluate_images.md)
+  : Score every image separately
 - [`detection_anchors()`](https://maju116.github.io/platypus/reference/detection_anchors.md)
   : The anchors a detector used, and whether they were fitted
 

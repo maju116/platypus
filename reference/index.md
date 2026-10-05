@@ -118,6 +118,8 @@ actually there before spending an afternoon training on it.
   : Score every case separately
 - [`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
   : Average precision per class
+- [`evaluate_images()`](https://maju116.github.io/platypus/reference/evaluate_images.md)
+  : Score every image separately
 - [`detection_anchors()`](https://maju116.github.io/platypus/reference/detection_anchors.md)
   : The anchors a detector used, and whether they were fitted
 
