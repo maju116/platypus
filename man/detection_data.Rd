@@ -6,9 +6,10 @@
 \usage{
 detection_data(
   train,
-  validation,
+  validation = NULL,
   classes,
   test = NULL,
+  split = NULL,
   mode = c("nested_dirs", "config_file"),
   annotation_format = c("pascal_voc", "labelme"),
   coordinates = NULL,
@@ -37,6 +38,15 @@ ask for.}
 then scoreable; without them it can be predicted and \code{\link[=evaluate]{evaluate()}} refuses it by name,
 because scoring against empty truth would report zero and a zero in a table reads as a
 result.}
+
+\item{split}{Divide \code{train} instead of naming a \code{validation} set: a list with
+\code{fractions} (two numbers, or three to cut a test set too) and \code{group_by}, which is
+required and may be \code{NULL}. Exactly one of \code{split} and \code{validation}.
+
+This is the only way to divide one folder for detection. \code{\link[=platypus_split]{platypus_split()}} writes a
+\code{masks} column and so cannot be used here; \code{split} divides the samples themselves, so
+column names never come into it. A test set cut this way carries its annotations, so
+unlike a separate \code{test} folder it can be scored and not only predicted on.}
 
 \item{mode}{\code{"nested_dirs"} or \code{"config_file"}.}
 

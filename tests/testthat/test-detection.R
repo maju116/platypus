@@ -599,3 +599,23 @@ test_that("the task names that were renamed are named back", {
   expect_error(platypus:::agreed_task(data, models, stated = "classification"),
                "must be one of")
 })
+
+test_that("detection can divide one folder, which platypus_split cannot do for it", {
+  # `platypus_split()` writes a `masks` column, so it was never usable here - detection had
+  # no way to split one folder at all. This divides the samples rather than writing CSVs,
+  # so the column name never arises.
+  skip_if_no_split_block()
+
+  data <- detection_data("t", classes = c("RBC", "WBC"),
+                         split = list(fractions = c(0.8, 0.2), group_by = NULL))
+  expect_true("group_by" %in% names(data$split))
+  expect_silent(invisible(platypus_spec(
+    data = data, models = list(yolo3("y")), check_paths = FALSE
+  )))
+})
+
+test_that("the refusal for a platypus_split points at what does work", {
+  split <- structure(list(train_path = "a", validation_path = "b", test_path = NULL),
+                     class = "platypus_split")
+  expect_error(detection_data(split, classes = "a"), "Use `split` instead")
+})

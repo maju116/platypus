@@ -24,6 +24,23 @@
 #'   [platypus_split()] may be given as `train` on its own: it carries all three
 #'   paths and selects `config_file` mode, so a split needs no unpacking.
 #' @param test Optional test data. Only images are read from it.
+#' @param split Divide `train` instead of naming a `validation` set: a list with
+#'   `fractions` (two numbers, or three to cut a test set as well) and `group_by`. Exactly
+#'   one of `split` and `validation`.
+#'
+#'   **`group_by` has to be given, even as `NULL`.** It is a regular expression read
+#'   against each sample's name, and everything sharing a group lands in a single split -
+#'   usually a patient, sometimes a study or a scanner. `NULL` divides by file instead, and
+#'   is a perfectly good answer when the images are independent.
+#'
+#'   It is required rather than optional because the mistake it prevents leaves no trace:
+#'   slices of one patient in training and validation at once make validation measure
+#'   memory rather than generalisation, and the score comes out several points too high
+#'   with nothing in the output to say so.
+#'
+#'   Nothing is written. [platypus_split()] is still the way when the three CSV files are
+#'   the point - to keep, to hand to a colleague, to cite - and its result can be passed
+#'   straight to `train`.
 #' @param colormap A list of RGB triples, one per class, background first. For masks stored
 #'   as pictures. Give this or `labels`, not both.
 #' @param labels The voxel value of each class, in class order, for masks stored as label
@@ -76,8 +93,8 @@
 #' @export
 #' @examples
 #' segmentation_data("train/", "valid/", colormap = binary_colormap)
-segmentation_data <- function(train, validation, colormap = NULL, labels = NULL,
-                              test = NULL,
+segmentation_data <- function(train, validation = NULL, colormap = NULL, labels = NULL,
+                              test = NULL, split = NULL,
                               mode = c("nested_dirs", "config_file"),
                               window = NULL, dicom_window = NULL, target_spacing = NULL,
                               channels_from = NULL,
@@ -90,16 +107,25 @@ segmentation_data <- function(train, validation, colormap = NULL, labels = NULL,
   # to config_file mode would be three chances to get it wrong, in the one place where a
   # mistake means training and validating on the same patient.
   if (inherits(train, "platypus_split")) {
-    if (!missing(validation)) {
+    if (!is.null(validation)) {
       stop("`train` is already a platypus_split, which carries the validation set; ",
            "leave `validation` unset.", call. = FALSE)
     }
-    split <- train
-    train <- split$train_path
-    validation <- split$validation_path
-    if (is.null(test)) test <- split$test_path
+    if (!is.null(split)) {
+      stop("`train` is already a platypus_split, so it carries the division; `split` ",
+           "would divide it a second time. Give one or the other.", call. = FALSE)
+    }
+    # Named `done` rather than `split`, which is now an argument of this function: a
+    # platypus_split is a division already performed, and `split` is a request to perform
+    # one. Reusing the name made a correct call look like both at once.
+    done <- train
+    train <- done$train_path
+    validation <- done$validation_path
+    if (is.null(test)) test <- done$test_path
     if (!explicit_mode) mode <- "config_file"
   }
+
+  check_split(validation, split, test)
 
   # Caught here rather than in the engine, because the message is the same and this way it
   # costs nothing: no interpreter starts to tell someone they gave both or neither.
@@ -129,6 +155,11 @@ segmentation_data <- function(train, validation, colormap = NULL, labels = NULL,
     train_path = train,
     validation_path = validation,
     test_path = test,
+    # Not `compact()` here, deliberately. `group_by = NULL` is the whole point of the
+    # field - "divide by file, and I know it" - and compacting would drop it, leaving the
+    # engine to refuse a key the caller did write. The one case where an absent value and
+    # a NULL value are different things, so the list is assembled by hand.
+    split = split_block(split),
     mode = mode,
     colormap = if (is.null(colormap)) NULL else lapply(colormap, as.integer),
     labels = if (is.null(labels)) NULL else as.integer(labels),
@@ -329,6 +360,12 @@ as.list.platypus_spec <- function(x, ...) shim()$spec_as_dict(x$py)
 #' @noRd
 compact <- function(x) {
   if (!is.list(x)) return(x)
+  # Sent exactly as built. Everywhere else a NULL means "not asked for" and dropping it
+  # lets the engine's default apply - but `split$group_by = NULL` is a stated answer,
+  # "divide by file, and I know it", and the engine requires the key precisely so that
+  # nobody can leave that question unanswered. Compacting it away would turn a choice the
+  # caller made into a refusal they could not explain.
+  if (inherits(x, "platypus_verbatim")) return(x)
   x <- lapply(x, compact)
   x[!vapply(x, function(v) is.null(v) || (is.list(v) && !length(v)), logical(1))]
 }
@@ -388,4 +425,59 @@ agreed_task <- function(data, models, stated = NULL) {
        "  Masks and boxes are not the same pipeline, so there is nothing to reconcile - ",
        "use `segmentation_data()` with `u_net()` and friends, or `detection_data()` with ",
        "`yolo3()`.", call. = FALSE)
+}
+
+
+#' Exactly one way of getting a validation set, checked the same for both tasks
+#'
+#' Shared because the rule is the same and a rule in two places is a rule that drifts. The
+#' messages are caught in R rather than left to the engine for the reason the colormap
+#' check is: no interpreter needs to start in order to say this.
+#'
+#' @param validation,split,test As given to the data constructor.
+#' @return `TRUE`, invisibly, or an error.
+#' @keywords internal
+#' @noRd
+check_split <- function(validation, split, test) {
+  if (is.null(validation) == is.null(split)) {
+    stop("a run needs something to validate against: give `validation`, or `split` to ",
+         "divide `train` itself.\n  `split` takes `fractions` (two or three) and ",
+         "`group_by`, which keeps a patient out of both halves - dividing by file does ",
+         "not, and the score then comes out several points too high with nothing to say so.",
+         call. = FALSE)
+  }
+  if (!is.null(split)) {
+    if (!is.list(split) || is.null(split$fractions)) {
+      stop("`split` is a list with `fractions` and `group_by`, for example ",
+           "list(fractions = c(0.8, 0.2), group_by = NULL).", call. = FALSE)
+    }
+    if (!"group_by" %in% names(split)) {
+      stop("`split` must say `group_by`, even as NULL. A group is usually a patient and ",
+           "everything sharing one lands in a single split; NULL divides by file instead.",
+           "\n  Required rather than optional because the mistake it prevents is invisible: ",
+           "slices of one patient on both sides make validation measure memory rather than ",
+           "generalisation.", call. = FALSE)
+    }
+    if (!is.null(test)) {
+      stop("`test` and `split` both say where the test set comes from; give a third number ",
+           "to `split$fractions` instead, or drop `test`.", call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
+#' The split block, as the engine wants it
+#'
+#' Built by hand rather than with `compact()`: `group_by = NULL` is a stated answer and
+#' compacting would drop it, leaving the engine to refuse a key the caller did write. The
+#' one place in this package where an absent value and a NULL value differ.
+#' @noRd
+split_block <- function(split) {
+  if (is.null(split)) return(NULL)
+  structure(
+    c(list(fractions = as.numeric(split$fractions)),
+      list(group_by = split$group_by),
+      if (is.null(split$seed)) list() else list(seed = int1(split$seed))),
+    class = c("platypus_verbatim", "list")
+  )
 }

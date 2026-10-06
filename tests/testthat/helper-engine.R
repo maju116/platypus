@@ -562,6 +562,44 @@ engine_has_evaluate_images <- function() {
   ))
 }
 
+#' Whether this engine records which splits carry masks.
+#'
+#' Asked of the class, like the probes beside it: calling would need a trained model and a
+#' test split, and either missing would answer "no feature" for a reason that has nothing
+#' to do with the feature.
+engine_has_labelled_splits <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').Engine, '_needs_masks')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+#' Whether this engine accepts a `split` block in the data.
+engine_has_split_block <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "'split' in __import__('pyplatypus').spec.data.DataSpec.model_fields"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_split_block <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_split_block(),
+                        "the engine in use predates the split block")
+}
+
+skip_if_no_labelled_splits <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_labelled_splits(),
+                        "the engine in use predates labelled split tracking")
+}
+
 skip_if_no_evaluate_images <- function() {
   skip_if_no_detection()
   testthat::skip_if_not(engine_has_evaluate_images(),

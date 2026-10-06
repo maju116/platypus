@@ -97,3 +97,48 @@ test_that("a 3D specification is accepted", {
   ))
   expect_length(built$models[[1]]$input_shape, 3L)
 })
+
+# --- dividing one folder instead of naming three ------------------------------------------
+
+test_that("split and validation are exactly one of each", {
+  expect_error(segmentation_data("t", colormap = binary_colormap),
+               "something to validate against")
+  expect_error(
+    segmentation_data("t", "v", colormap = binary_colormap,
+                      split = list(fractions = c(0.8, 0.2), group_by = NULL)),
+    "something to validate against"
+  )
+})
+
+test_that("split must answer group_by, even with NULL", {
+  # The field the whole block exists to put in front of someone: slices of one patient on
+  # both sides make validation measure memory, and nothing in the output says so.
+  expect_error(
+    segmentation_data("t", colormap = binary_colormap,
+                      split = list(fractions = c(0.8, 0.2))),
+    "must say `group_by`"
+  )
+})
+
+test_that("a NULL group_by survives the crossing into the engine", {
+  # The bug neither suite could have caught alone. `compact()` drops a NULL because
+  # everywhere else it means "not asked for"; here it is a stated answer, and the engine
+  # requires the key so that nobody leaves the question open. Both rules are right and
+  # they met here.
+  skip_if_no_split_block()
+  data <- segmentation_data("t", colormap = binary_colormap,
+                            split = list(fractions = c(0.8, 0.2), group_by = NULL))
+  expect_true("group_by" %in% names(data$split))
+  expect_null(data$split$group_by)
+  expect_silent(invisible(platypus_spec(
+    data = data, models = list(u_net("u", input_shape = c(32, 32))), check_paths = FALSE
+  )))
+})
+
+test_that("test and split do not both claim the test set", {
+  expect_error(
+    segmentation_data("t", colormap = binary_colormap, test = "x",
+                      split = list(fractions = c(0.6, 0.2, 0.2), group_by = NULL)),
+    "both say where the test set comes from"
+  )
+})

@@ -98,3 +98,28 @@ test_that("training a model that cannot learn still returns a usable fit", {
   expect_s3_class(fit, "platypus_fit")
   expect_true(is.finite(training_history(fit)$train_loss[[1]]))
 })
+
+test_that("scoring a test split with no masks is refused by name", {
+  skip_if_no_labelled_splits()
+  skip_if_not_installed("png")
+
+  root <- tiny_dataset(n = 4, size = 32)
+  bare <- withr::local_tempdir()
+  for (i in 1:2) {
+    dir.create(file.path(bare, paste0("t", i), "images"), recursive = TRUE)
+    png::writePNG(array(0.5, c(32, 32, 3)), file.path(bare, paste0("t", i), "images", "a.png"))
+  }
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, test = bare, colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32), epochs = 1))
+  )
+  fit <- platypus_fit(spec, device = "cpu", check_masks = FALSE)
+
+  # It used to fail with MaskError from the mask layer - true, and about the wrong thing.
+  expect_error(evaluate(fit, split = "test"), "no masks")
+  # And it says what does work rather than leaving the reader with nothing.
+  expect_error(evaluate(fit, split = "test"), "predict")
+  # Predicting on it is fine, which is what an unlabelled test set is for.
+  expect_silent(invisible(predict(fit, split = "test")))
+})

@@ -30,6 +30,14 @@
 #'   then scoreable; without them it can be predicted and [evaluate()] refuses it by name,
 #'   because scoring against empty truth would report zero and a zero in a table reads as a
 #'   result.
+#' @param split Divide `train` instead of naming a `validation` set: a list with
+#'   `fractions` (two numbers, or three to cut a test set too) and `group_by`, which is
+#'   required and may be `NULL`. Exactly one of `split` and `validation`.
+#'
+#'   This is the only way to divide one folder for detection. [platypus_split()] writes a
+#'   `masks` column and so cannot be used here; `split` divides the samples themselves, so
+#'   column names never come into it. A test set cut this way carries its annotations, so
+#'   unlike a separate `test` folder it can be scored and not only predicted on.
 #' @param mode `"nested_dirs"` or `"config_file"`.
 #' @param annotation_format `"pascal_voc"` for the XML most detection datasets ship, or
 #'   `"labelme"` for its JSON.
@@ -57,7 +65,8 @@
 #' @export
 #' @examples
 #' detection_data("train/", "valid/", classes = c("RBC", "WBC", "Platelets"))
-detection_data <- function(train, validation, classes, test = NULL,
+detection_data <- function(train, validation = NULL, classes, test = NULL,
+                           split = NULL,
                            mode = c("nested_dirs", "config_file"),
                            annotation_format = c("pascal_voc", "labelme"),
                            coordinates = NULL, strict_labels = TRUE, window = NULL,
@@ -68,9 +77,11 @@ detection_data <- function(train, validation, classes, test = NULL,
 
   if (inherits(train, "platypus_split")) {
     stop("a `platypus_split()` carries mask paths, not annotation paths, so it cannot be ",
-         "used for detection. Point `train`, `validation` and `test` at the three CSV ",
-         "files yourself.", call. = FALSE)
+         "used for detection. Use `split` instead - it divides the samples themselves ",
+         "rather than three CSV files, so the column names never come into it.",
+         call. = FALSE)
   }
+  check_split(validation, split, test)
   if (missing(classes) || !length(classes)) {
     stop("`classes` must name the classes, in class order - position is the class index ",
          "the model learns. See `?detection_data`.", call. = FALSE)
@@ -101,6 +112,7 @@ detection_data <- function(train, validation, classes, test = NULL,
       train_path = train,
       validation_path = validation,
       test_path = test,
+      split = split_block(split),
       mode = mode,
       classes = classes,
       annotation_format = annotation_format,
