@@ -58,10 +58,11 @@ to the file itself so a configuration travels with its data.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">segmentation_data</span><span class="op">(</span></span>
 <span>  <span class="va">train</span>,</span>
-<span>  <span class="va">validation</span>,</span>
+<span>  validation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colormap <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  test <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  split <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nested_dirs"</span>, <span class="st">"config_file"</span><span class="op">)</span>,</span>
 <span>  window <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dicom_window <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -97,6 +98,23 @@ tumour. This is how NIfTI and every other volume format label anything. Give thi
 
 <dt id="arg-test">test<a class="anchor" aria-label="anchor" href="#arg-test"></a></dt>
 <dd><p>Optional test data. Only images are read from it.</p></dd>
+
+
+<dt id="arg-split">split<a class="anchor" aria-label="anchor" href="#arg-split"></a></dt>
+<dd><p>Divide <code>train</code> instead of naming a <code>validation</code> set: a list with
+<code>fractions</code> (two numbers, or three to cut a test set as well) and <code>group_by</code>. Exactly
+one of <code>split</code> and <code>validation</code>.</p>
+<p><strong><code>group_by</code> has to be given, even as <code>NULL</code>.</strong> It is a regular expression read
+against each sample's name, and everything sharing a group lands in a single split -
+usually a patient, sometimes a study or a scanner. <code>NULL</code> divides by file instead, and
+is a perfectly good answer when the images are independent.</p>
+<p>It is required rather than optional because the mistake it prevents leaves no trace:
+slices of one patient in training and validation at once make validation measure
+memory rather than generalisation, and the score comes out several points too high
+with nothing in the output to say so.</p>
+<p>Nothing is written. <code><a href="platypus_split.html">platypus_split()</a></code> is still the way when the three CSV files are
+the point - to keep, to hand to a colleague, to cite - and its result can be passed
+straight to <code>train</code>.</p></dd>
 
 
 <dt id="arg-mode">mode<a class="anchor" aria-label="anchor" href="#arg-mode"></a></dt>
@@ -184,6 +202,9 @@ five hundred directories is a warning nobody reads.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "valid/"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $test_path</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $split</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $mode</span>

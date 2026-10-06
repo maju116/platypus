@@ -16,9 +16,10 @@ BCCD in a dozen lines.
 ``` r
 detection_data(
   train,
-  validation,
+  validation = NULL,
   classes,
   test = NULL,
+  split = NULL,
   mode = c("nested_dirs", "config_file"),
   annotation_format = c("pascal_voc", "labelme"),
   coordinates = NULL,
@@ -57,6 +58,20 @@ detection_data(
   [`evaluate()`](https://maju116.github.io/platypus/reference/evaluate.md)
   refuses it by name, because scoring against empty truth would report
   zero and a zero in a table reads as a result.
+
+- split:
+
+  Divide `train` instead of naming a `validation` set: a list with
+  `fractions` (two numbers, or three to cut a test set too) and
+  `group_by`, which is required and may be `NULL`. Exactly one of
+  `split` and `validation`.
+
+  This is the only way to divide one folder for detection.
+  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+  writes a `masks` column and so cannot be used here; `split` divides
+  the samples themselves, so column names never come into it. A test set
+  cut this way carries its annotations, so unlike a separate `test`
+  folder it can be scored and not only predicted on.
 
 - mode:
 
@@ -129,6 +144,9 @@ detection_data("train/", "valid/", classes = c("RBC", "WBC", "Platelets"))
 #> [1] "valid/"
 #> 
 #> $test_path
+#> NULL
+#> 
+#> $split
 #> NULL
 #> 
 #> $mode

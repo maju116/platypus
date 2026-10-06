@@ -12,10 +12,11 @@ the file itself so a configuration travels with its data.
 ``` r
 segmentation_data(
   train,
-  validation,
+  validation = NULL,
   colormap = NULL,
   labels = NULL,
   test = NULL,
+  split = NULL,
   mode = c("nested_dirs", "config_file"),
   window = NULL,
   dicom_window = NULL,
@@ -51,6 +52,30 @@ segmentation_data(
 - test:
 
   Optional test data. Only images are read from it.
+
+- split:
+
+  Divide `train` instead of naming a `validation` set: a list with
+  `fractions` (two numbers, or three to cut a test set as well) and
+  `group_by`. Exactly one of `split` and `validation`.
+
+  **`group_by` has to be given, even as `NULL`.** It is a regular
+  expression read against each sample's name, and everything sharing a
+  group lands in a single split - usually a patient, sometimes a study
+  or a scanner. `NULL` divides by file instead, and is a perfectly good
+  answer when the images are independent.
+
+  It is required rather than optional because the mistake it prevents
+  leaves no trace: slices of one patient in training and validation at
+  once make validation measure memory rather than generalisation, and
+  the score comes out several points too high with nothing in the output
+  to say so.
+
+  Nothing is written.
+  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+  is still the way when the three CSV files are the point - to keep, to
+  hand to a colleague, to cite - and its result can be passed straight
+  to `train`.
 
 - mode:
 
@@ -156,6 +181,9 @@ segmentation_data("train/", "valid/", colormap = binary_colormap)
 #> [1] "valid/"
 #> 
 #> $test_path
+#> NULL
+#> 
+#> $split
 #> NULL
 #> 
 #> $mode
