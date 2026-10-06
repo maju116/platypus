@@ -62,7 +62,7 @@ test_that("the bridge always asks for both extras, on either route", {
   if (grepl("^/", requirement)) {
     expect_true(dir.exists(sub("\\[.*$", "", requirement)))
   } else {
-    expect_match(requirement, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
+    expect_match(requirement, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
   }
 })
 

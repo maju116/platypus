@@ -43,7 +43,7 @@ test_that("status reports the pinned engine before anything has started", {
     }
     expect_match(
       status$requirement,
-      paste0("==", platypus:::PYPLATYPUS_VERSION, "$"),
+      paste0("==", platypus:::pyplatypus_version, "$"),
       fixed = FALSE
     )
   }
@@ -91,7 +91,7 @@ test_that("the engine starts and is the version this package pins", {
   # honoured instead of restating it. A source tree named by PLATYPUS_ENGINE_PATH is
   # allowed to be ahead of the pin - that is what the escape hatch is for.
   if (!nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
-    expect_identical(status$engine_version, platypus:::PYPLATYPUS_VERSION)
+    expect_identical(status$engine_version, platypus:::pyplatypus_version)
   }
 })
 
@@ -187,7 +187,7 @@ test_that("the always-on extras are asked for whatever else is", {
     plain <- platypus:::.platypus_requirement()
     expect_match(plain, "^pyplatypus\\[")
     for (extra in always) expect_match(plain, extra, fixed = TRUE)
-    expect_match(plain, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
+    expect_match(plain, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
 
     platypus:::.platypus_requirement(set = "pascal")
     pascal <- platypus:::.platypus_requirement()
@@ -195,6 +195,6 @@ test_that("the always-on extras are asked for whatever else is", {
     # thing they see at the front of the message platypus_status() prints.
     expect_match(pascal, "^pyplatypus\\[pascal,")
     for (extra in always) expect_match(pascal, extra, fixed = TRUE)
-    expect_match(pascal, paste0("==", platypus:::PYPLATYPUS_VERSION), fixed = TRUE)
+    expect_match(pascal, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
   })
 })

@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-PYPLATYPUS_VERSION <- "0.5.0a3"
+pyplatypus_version <- "0.5.0a3"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -62,7 +62,7 @@ PYPLATYPUS_VERSION <- "0.5.0a3"
     # again.
     always <- c("hub", "encoders")
     extras <- paste(c(extra, always), collapse = ",")
-    sprintf("pyplatypus[%s]==%s", extras, PYPLATYPUS_VERSION)
+    sprintf("pyplatypus[%s]==%s", extras, pyplatypus_version)
   }
 })
 
