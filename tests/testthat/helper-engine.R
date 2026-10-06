@@ -586,6 +586,41 @@ engine_has_labelled_splits <- function() {
 }
 
 #' Whether this engine accepts a `split` block in the data.
+#' A trained detector small enough to ask questions of
+#'
+#' Two epochs on the processor: the questions below are about shapes and alignment, not
+#' about quality, and training five of these would cost a minute for nothing.
+tiny_detection_fit <- function(envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  write_detection_split(file.path(root, "train"), "train", 6, seed = 1)
+  write_detection_split(file.path(root, "valid"), "valid", 3, seed = 2)
+
+  spec <- platypus_spec(
+    data = detection_data(file.path(root, "train"), file.path(root, "valid"),
+                          classes = c("square", "bar")),
+    models = list(yolo3("d", input_shape = c(128, 128), anchors_per_grid = 2,
+                        epochs = 1, batch_size = 2)),
+    seed = 1
+  )
+  platypus_fit(spec, device = "cpu")
+}
+
+engine_has_crops <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').detection_engine.DetectionEngine, 'crops')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_crops <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_crops(),
+                        "the engine in use predates crops()")
+}
+
 engine_has_box_loss <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch(

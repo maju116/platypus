@@ -288,6 +288,52 @@ def detection_images(engine: Any, model_name: str, split: str = "validation",
         return _engine_failure(error)
 
 
+def detection_crops(engine: Any, model_name: str, split: str = "test",
+                    score_threshold: Any = None, context: float = 0.0,
+                    size: Any = None, fit: str = "letterbox") -> dict:
+    """Every detection cut out of the image it was found in, one record per image.
+
+    The arrays cross the bridge as they are: reticulate turns each into an R array with the
+    axes it already has, height x width x channels, which is the orientation every plotting
+    helper in the R package already expects. Nothing is stacked, because the crops of one
+    image differ in size unless `size` was given and the number of them differs per image
+    regardless - and a stack that needed a silent resize to exist is the thing the
+    segmentation side refuses for the same reason.
+
+    `dropped` comes through per record. A model may place a box off the frame and `predict`
+    reports what it said, so some boxes clip to nothing; the engine drops those and counts
+    them, and hiding the count would leave the arrays silently shorter than the detections.
+    """
+    import pyplatypus
+
+    try:
+        records = engine.crops(
+            model_name, split, score_threshold=score_threshold, context=context,
+            size=None if size is None else (int(size[0]), int(size[1])), fit=fit,
+        )
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    return {
+        "ok": True,
+        "records": [
+            {
+                "key": record["key"],
+                "crops": list(record["crops"]),
+                "boxes": record["boxes"],
+                "scores": record["scores"],
+                # +1 so the classes are 1-based on arrival, as everywhere else here.
+                "labels": (record["labels"] + 1).tolist(),
+                "names": list(record["names"]),
+                "dropped": int(record["dropped"]),
+            }
+            for record in records
+        ],
+    }
+
+
 def anchor_report(engine: Any, model_name: str, split: str = "train") -> dict:
     """How well the anchors in use cover a split's boxes.
 

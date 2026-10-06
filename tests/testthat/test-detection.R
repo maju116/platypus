@@ -656,3 +656,71 @@ test_that("the engine accepts both names and refuses a third", {
     expect_identical(as.list(spec)$models[[1]]$box_loss, mode)
   }
 })
+
+# --- detection_crops ---------------------------------------------------------------------
+
+test_that("detection_crops refuses anything but a detection fit, and says what to use", {
+  expect_error(detection_crops(list()), "must come from `platypus_fit\\(\\)`")
+})
+
+test_that("a stretch has to be asked for by name", {
+  skip_if_no_crops()
+  # Checked before the bridge: `fit` is one word and a typo in it should fail at the call,
+  # not inside Python with a traceback about a keyword argument.
+  fake <- structure(list(task = "object_detection", models = "d", engine = NULL),
+                    class = "platypus_fit")
+  expect_error(detection_crops(fake, fit = "squash"), '"letterbox" or "stretch"')
+  expect_error(detection_crops(fake, size = c(1, 2, 3)), "c\\(height, width\\)")
+})
+
+test_that("every detection comes back as an array cut from its own image", {
+  skip_if_no_crops()
+  fit <- tiny_detection_fit()
+  found <- detection_crops(fit, split = "validation", score_threshold = 0)
+
+  expect_gt(length(found), 0)
+  expect_true(all(vapply(found, function(r) is.character(r$key), logical(1))))
+  expect_equal(length(unique(vapply(found, `[[`, character(1), "key"))), length(found))
+
+  cut <- unlist(lapply(found, `[[`, "crops"), recursive = FALSE)
+  expect_gt(length(cut), 0)
+  # Asserted over the whole set rather than one `expect_` per crop: at this threshold there
+  # are hundreds, and a loop would report the same single claim hundreds of times and bury
+  # the counts that mean something.
+  shapes <- vapply(cut, function(c) length(dim(c)) == 3L && all(dim(c)[1:2] > 0),
+                   logical(1))
+  expect_true(all(shapes))                # height x width x channels, as R wants it
+})
+
+test_that("the columns of one record stay aligned, and dropped is reported", {
+  skip_if_no_crops()
+  fit <- tiny_detection_fit()
+  records <- detection_crops(fit, split = "validation", score_threshold = 0)
+  aligned <- vapply(records, function(r) {
+    n <- length(r$crops)
+    nrow(r$boxes) == n && length(r$scores) == n &&
+      length(r$labels) == n && length(r$names) == n && is.numeric(r$dropped)
+  }, logical(1))
+  expect_true(all(aligned))
+})
+
+test_that("labels arrive 1-based, as everywhere else on this side", {
+  skip_if_no_crops()
+  fit <- tiny_detection_fit()
+  labels <- unlist(lapply(detection_crops(fit, split = "validation", score_threshold = 0),
+                          `[[`, "labels"))
+  expect_gt(length(labels), 0)
+  expect_gte(min(labels), 1)
+})
+
+test_that("size brings every crop to one shape, which is what a classifier needs", {
+  skip_if_no_crops()
+  fit <- tiny_detection_fit()
+  found <- detection_crops(fit, split = "validation", score_threshold = 0,
+                           size = c(24, 24))
+  cut <- unlist(lapply(found, `[[`, "crops"), recursive = FALSE)
+  expect_gt(length(cut), 0)
+  expect_true(all(vapply(cut, function(c) identical(dim(c)[1:2], c(24L, 24L)),
+                         logical(1))))
+  expect_equal(length(unique(lapply(cut, dim))), 1L)   # one shape, so one batch
+})
