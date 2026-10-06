@@ -18,6 +18,7 @@ yolo3(
   nms_threshold = NULL,
   operating_point = NULL,
   min_visibility = NULL,
+  box_loss = NULL,
   optimizer = NULL,
   callbacks = NULL,
   augmentation = NULL,
@@ -97,6 +98,44 @@ yolo3(
   a heavily truncated object only fails to teach it about that object.
   Irrelevant unless a transform can lose part of the frame, which flips
   and rotations never do.
+
+- box_loss:
+
+  How the box coordinates are scored: `"offsets"`, YOLOv3's own, or
+  `"giou"`. Unset uses the engine's default, which is `"offsets"` - what
+  the published `bccd-yolo3` weights were trained with.
+
+  **`"giou"` is not the better objective, and that is measured.** Blood
+  cells, three seeds each, 150 epochs, on the dataset's own test split:
+
+  |            |                |                 |                    |
+  |------------|----------------|-----------------|--------------------|
+  | `box_loss` | mAP@0.5        | mAP@\[.50:.95\] | matched IoU        |
+  | `giou`     | 0.8666 ±0.0147 | 0.5078 ±0.0083  | 0.7929 ±0.0069     |
+  | `offsets`  | 0.8583 ±0.0167 | 0.5172 ±0.0195  | **0.8038 ±0.0001** |
+
+  Average precision separates them in neither direction - both gaps are
+  smaller than the seed spread. The overlap of the boxes it matched does
+  separate them, and `"giou"` is worse by 0.011, which is 2.7 standard
+  errors of the difference. It is also sixty times less repeatable on
+  exactly that quantity.
+
+  The reason is visible in
+  [`detection_anchors()`](https://maju116.github.io/platypus/reference/detection_anchors.md):
+  GIoU exists because plain IoU is a flat zero for boxes that do not
+  touch, so it has no gradient where a detector is most wrong - and
+  anchors fitted to blood cells already cover them at a mean IoU of
+  0.877, so a prediction never starts disjoint and the advantage never
+  arrives. On data whose fitted anchors cover poorly it should be a
+  different story, which is untested and so not claimed.
+
+  **Choose it to read the loss, not to raise the score.** The offsets
+  term cannot reach zero - cross-entropy against a soft target bottoms
+  out at that target's entropy - so a converged run and a stalled one
+  print the same number, near 5.9. Under `"giou"` the coordinate term in
+  [`training_history()`](https://maju116.github.io/platypus/reference/training_history.md)
+  reads about 0.05 on training against 0.47 on validation: a
+  localisation gap you can see, because zero means the boxes are right.
 
 - optimizer, callbacks, augmentation, epochs, batch_size:
 
