@@ -314,6 +314,70 @@ callback_reduce_lr_on_plateau <- function(monitor = "val_loss", factor = 0.1,
        patience = int1(patience), min_lr = min_lr)
 }
 
+#' Average the weights over the last part of the run
+#'
+#' Stochastic weight averaging. Past `start`, every epoch's weights are folded into a running
+#' average and at the end that average becomes the model - the claim being that a point in
+#' the middle of a flat region generalises better than whichever corner the last epoch
+#' stopped in.
+#'
+#' @details
+#' **What it is worth is not what a table of scores shows.** Three seeds, 60 epochs, lesions
+#' with ambiguous edges:
+#'
+#' | run | Dice | volume bias | volume \|error\| |
+#' |---|---|---|---|
+#' | plain | 0.9639 ±0.0100 | +1.71% ±12.18% | 12.60% ±4.19% |
+#' | `callback_swa()` | 0.9667 ±0.0087 | +2.08% ±2.15% | 12.38% ±4.31% |
+#'
+#' Dice does not move and neither does the per-case error - both are inside the seed noise.
+#' What moves is **reproducibility**: the plain runs' volume bias was +4.5%, +12.2% and
+#' -11.6% across three seeds, and with averaging -0.1%, +4.2% and +2.1%. A spread 5.7 times
+#' tighter, improving on all three seeds when paired, by 7.34% at 4.9 standard errors.
+#'
+#' So read it as *"the same model twice"* rather than *"a better model"* - which is what
+#' averaging is for, and the reason it belongs beside [mask_volume()] in any argument about
+#' whether a measured volume can be compared across runs.
+#'
+#' **Batch-normalisation statistics are recomputed afterwards**, by a pass over the training
+#' data. They have to be: an averaged weight tensor inherits the statistics of whichever
+#' epoch was last rather than averaging them, so without the pass the model is evaluated
+#' under the wrong normalisation and scores far worse than it should with nothing to say why.
+#' Models here have batch normalisation on by default, so this is nearly every run.
+#'
+#' @param start The fraction of the run after which averaging begins - 0.75 folds the last
+#'   quarter. Unset uses the engine's default of 0.75. A fraction rather than an epoch so it
+#'   survives a change to `epochs`, and the final epoch is always folded, so 1 averages one
+#'   set of weights rather than none.
+#' @param learning_rate Hold the rate at this value once averaging begins. Unset leaves
+#'   whatever the run was doing.
+#'
+#'   Worth setting, and the reason is the whole mechanism: averaging is only worth something
+#'   while the weights are still moving, and a rate that has decayed towards zero produces a
+#'   set of nearly identical snapshots whose average is the last one. For the same reason a
+#'   run cannot ask for this and [callback_cosine_annealing()] at once - the two undo each
+#'   other and the specification refuses the pair.
+#' @return A callback specification, to be passed to a model constructor.
+#' @seealso [callbacks] for the others, [mask_volume()] for reading a volume in millilitres.
+#' @export
+#' @examples
+#' callback_swa()
+#' callback_swa(start = 0.5, learning_rate = 1e-3)
+callback_swa <- function(start = NULL, learning_rate = NULL) {
+  if (!is.null(start) && (!is.numeric(start) || length(start) != 1L || is.na(start) ||
+                            start <= 0 || start > 1)) {
+    stop("`start` is one number above 0 and at most 1 - the fraction of the run after ",
+         "which averaging begins.", call. = FALSE)
+  }
+  if (!is.null(learning_rate) && (!is.numeric(learning_rate) ||
+                                    length(learning_rate) != 1L ||
+                                    is.na(learning_rate) || learning_rate <= 0)) {
+    stop("`learning_rate` is one positive number, the rate held while averaging.",
+         call. = FALSE)
+  }
+  compact(list(name = "swa", start = start, learning_rate = learning_rate))
+}
+
 #' @rdname callbacks
 #' @export
 callback_cosine_annealing <- function(min_lr = 0, epochs = NULL) {

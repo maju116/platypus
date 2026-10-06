@@ -67,6 +67,7 @@ reference:
   - metrics
   - optimizers
   - callbacks
+  - callback_swa
   - augment
   - available_augmentations
   - encoders

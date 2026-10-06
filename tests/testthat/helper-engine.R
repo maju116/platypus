@@ -605,6 +605,21 @@ tiny_detection_fit <- function(envir = parent.frame()) {
   platypus_fit(spec, device = "cpu")
 }
 
+engine_has_swa <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').spec.components, 'Swa')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_swa <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_swa(), "the engine in use predates swa")
+}
+
 engine_has_optional_validation <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch(

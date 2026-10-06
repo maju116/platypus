@@ -199,3 +199,64 @@ test_that("unset, the engine's measured default arrives rather than one of ours"
   expect_equal(built$alpha, 0.9)          # the measured value, from the engine
   expect_identical(built$region$name, "dice")
 })
+
+# --- callback_swa ------------------------------------------------------------------------
+
+test_that("callback_swa sends nothing it was not given", {
+  # `start = 0.75` is a measured value - the arm at 0.5 was worse on every column - so it
+  # lives in the engine and R must not restate it.
+  cb <- callback_swa()
+  expect_identical(cb$name, "swa")
+  expect_null(cb$start)
+  expect_null(cb$learning_rate)
+})
+
+test_that("a start outside (0, 1] is refused, and so is a non-positive rate", {
+  for (bad in list(0, -0.1, 1.5, "half", c(0.5, 0.6))) {
+    expect_error(callback_swa(start = bad), "above 0 and at most 1")
+  }
+  for (bad in list(0, -1, "fast")) {
+    expect_error(callback_swa(learning_rate = bad), "one positive number")
+  }
+})
+
+test_that("the engine takes it, and refuses it beside a cosine", {
+  skip_if_no_swa()
+  data <- segmentation_data("a", "b", colormap = binary_colormap)
+  spec <- platypus_spec(
+    data = data,
+    models = list(u_net("u", input_shape = c(32, 32),
+                        callbacks = list(callback_swa(start = 0.6,
+                                                      learning_rate = 1e-3)))),
+    check_paths = FALSE
+  )
+  built <- as.list(spec)$models[[1]]$callbacks[[1]]
+  expect_identical(built$name, "swa")
+  expect_equal(built$start, 0.6)
+
+  # Both configured, neither complaining, and the average would be the last epoch: the one
+  # combination worth refusing rather than documenting.
+  expect_error(
+    platypus_spec(
+      data = data,
+      models = list(u_net("u", input_shape = c(32, 32),
+                          callbacks = list(callback_swa(),
+                                           callback_cosine_annealing()))),
+      check_paths = FALSE
+    ),
+    "undo each other"
+  )
+})
+
+test_that("unset, the engine's measured default arrives", {
+  skip_if_no_swa()
+  spec <- platypus_spec(
+    data = segmentation_data("a", "b", colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32),
+                        callbacks = list(callback_swa()))),
+    check_paths = FALSE
+  )
+  built <- as.list(spec)$models[[1]]$callbacks[[1]]
+  expect_equal(built$start, 0.75)
+  expect_null(built$learning_rate)
+})
