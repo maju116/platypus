@@ -586,6 +586,22 @@ engine_has_labelled_splits <- function() {
 }
 
 #' Whether this engine accepts a `split` block in the data.
+engine_has_box_loss <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "'box_loss' in __import__('pyplatypus').spec.detection.DetectionModel.model_fields"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_box_loss <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_box_loss(),
+                        "the engine in use predates box_loss")
+}
+
 engine_has_split_block <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch(

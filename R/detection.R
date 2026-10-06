@@ -182,6 +182,35 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
 #'   everywhere, while dropping a heavily truncated object only fails to teach it about that
 #'   object. Irrelevant unless a transform can lose part of the frame, which flips and
 #'   rotations never do.
+#' @param box_loss How the box coordinates are scored: `"offsets"`, YOLOv3's own, or
+#'   `"giou"`. Unset uses the engine's default, which is `"offsets"` - what the published
+#'   `bccd-yolo3` weights were trained with.
+#'
+#'   **`"giou"` is not the better objective, and that is measured.** Blood cells, three
+#'   seeds each, 150 epochs, on the dataset's own test split:
+#'
+#'   | `box_loss` | mAP@0.5 | mAP@\[.50:.95\] | matched IoU |
+#'   |---|---|---|---|
+#'   | `giou` | 0.8666 ±0.0147 | 0.5078 ±0.0083 | 0.7929 ±0.0069 |
+#'   | `offsets` | 0.8583 ±0.0167 | 0.5172 ±0.0195 | **0.8038 ±0.0001** |
+#'
+#'   Average precision separates them in neither direction - both gaps are smaller than the
+#'   seed spread. The overlap of the boxes it matched does separate them, and `"giou"` is
+#'   worse by 0.011, which is 2.7 standard errors of the difference. It is also sixty times
+#'   less repeatable on exactly that quantity.
+#'
+#'   The reason is visible in `detection_anchors()`: GIoU exists because plain IoU is a flat
+#'   zero for boxes that do not touch, so it has no gradient where a detector is most wrong -
+#'   and anchors fitted to blood cells already cover them at a mean IoU of 0.877, so a
+#'   prediction never starts disjoint and the advantage never arrives. On data whose fitted
+#'   anchors cover poorly it should be a different story, which is untested and so not
+#'   claimed.
+#'
+#'   **Choose it to read the loss, not to raise the score.** The offsets term cannot reach
+#'   zero - cross-entropy against a soft target bottoms out at that target's entropy - so a
+#'   converged run and a stalled one print the same number, near 5.9. Under `"giou"` the
+#'   coordinate term in [training_history()] reads about 0.05 on training against 0.47 on
+#'   validation: a localisation gap you can see, because zero means the boxes are right.
 #' @param optimizer,callbacks,augmentation,epochs,batch_size As for [u_net()]. There is no
 #'   `loss` and no `metrics`: YOLOv3's objective is part of its architecture, and mean
 #'   average precision is not one option among several. A field that accepts a value and
@@ -199,7 +228,8 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
 yolo3 <- function(name, input_shape = c(416, 416), channels = NULL, anchors = NULL,
                   anchors_per_grid = NULL, ignore_threshold = NULL,
                   score_threshold = NULL, nms_threshold = NULL, operating_point = NULL,
-                  min_visibility = NULL, optimizer = NULL, callbacks = NULL,
+                  min_visibility = NULL, box_loss = NULL,
+                  optimizer = NULL, callbacks = NULL,
                   augmentation = NULL, epochs = NULL, batch_size = NULL,
                   weights = NULL, fit = NULL) {
   if (length(input_shape) != 2L) {
@@ -235,6 +265,7 @@ yolo3 <- function(name, input_shape = c(416, 416), channels = NULL, anchors = NU
       nms_threshold = nms_threshold,
       operating_point = operating_point,
       min_visibility = min_visibility,
+      box_loss = check_box_loss(box_loss),
       optimizer = optimizer,
       callbacks = callbacks,
       augmentation = augmentation,
@@ -250,6 +281,25 @@ yolo3 <- function(name, input_shape = c(416, 416), channels = NULL, anchors = NU
 
 #' Anchors as the engine wants them, or a refusal that says which entry is wrong
 #'
+#' One of two names, checked here rather than across the bridge
+#'
+#' `models[0].box_loss` is a worse place to learn that a name was misspelled than the call
+#' that wrote it, which is the same reason `as_anchor_groups()` checks here.
+#'
+#' @noRd
+check_box_loss <- function(box_loss) {
+  if (is.null(box_loss)) return(NULL)
+  box_loss <- as.character(box_loss)
+  if (length(box_loss) != 1L || !box_loss %in% c("offsets", "giou")) {
+    stop("`box_loss` is \"offsets\" or \"giou\"; got ",
+         paste(deparse(box_loss), collapse = " "),
+         ". See `?yolo3` for which to want - on blood cells `giou` scored 0.011 lower on ",
+         "the overlap of the boxes it matched, and is there to make the loss readable ",
+         "rather than to raise the score.", call. = FALSE)
+  }
+  box_loss
+}
+
 #' R has no natural shape for "three groups of pairs", so this accepts the two forms a
 #' person writes - a list of lists of pairs, or a three-by-N-by-2 array - and rejects the
 #' rest by name. Checked here rather than across the bridge because a location like

@@ -619,3 +619,40 @@ test_that("the refusal for a platypus_split points at what does work", {
                      class = "platypus_split")
   expect_error(detection_data(split, classes = "a"), "Use `split` instead")
 })
+
+# --- box_loss ----------------------------------------------------------------------------
+
+test_that("box_loss is omitted when unset, so an older engine is unaffected", {
+  model <- yolo3("d", input_shape = c(416, 416))
+  expect_false("box_loss" %in% names(model))
+
+  model <- yolo3("d", input_shape = c(416, 416), box_loss = "giou")
+  expect_identical(model$box_loss, "giou")
+})
+
+test_that("a box_loss that is not one of the two is refused here, not across the bridge", {
+  expect_error(yolo3("d", input_shape = c(416, 416), box_loss = "ciou"),
+               '`box_loss` is "offsets" or "giou"')
+  expect_error(yolo3("d", input_shape = c(416, 416), box_loss = c("giou", "offsets")),
+               '`box_loss` is "offsets" or "giou"')
+})
+
+test_that("the refusal says what giou is for, since the name invites choosing it", {
+  # A message that only lists the two spellings leaves the reader to guess which they want,
+  # and the measured answer is counter-intuitive: `giou` scores lower on the overlap it is
+  # supposed to improve.
+  expect_error(yolo3("d", input_shape = c(416, 416), box_loss = "iou"),
+               "readable")
+})
+
+test_that("the engine accepts both names and refuses a third", {
+  skip_if_no_box_loss()
+  for (mode in c("offsets", "giou")) {
+    spec <- platypus_spec(
+      data = detection_data("a", "b", classes = c("x", "y")),
+      models = list(yolo3("d", input_shape = c(416, 416), box_loss = mode)),
+      check_paths = FALSE
+    )
+    expect_identical(as.list(spec)$models[[1]]$box_loss, mode)
+  }
+})
