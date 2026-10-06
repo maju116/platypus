@@ -21,3 +21,14 @@ A detector cannot be reloaded without its anchors, and when they were fitted rat
 named in the specification this is the only record. \code{\link[=save_weights]{save_weights()}} writes them into the
 sidecar for the same reason.
 }
+\examples{
+\dontrun{
+anchors <- detection_anchors(fit)
+anchors$mean_iou        # ~0.88 fitted on BCCD, against 0.65 for COCO's nine
+anchors$per_anchor      # one row per anchor
+
+# `fitted` says whether these were fitted to the data or taken from the
+# specification. A detector cannot be reloaded without them, so they travel
+# with the weights.
+}
+}

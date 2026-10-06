@@ -62,3 +62,13 @@ examined}, not \emph{nothing there}. Give the model an \code{input_shape} that c
 that distinction matters.
 }
 
+\examples{
+\dontrun{
+masks <- predict(fit, "unet")                     # an array, on the model's grid
+masks <- predict(fit, "unet", space = "source")   # a list, on each scan's own grid
+
+# `space = "source"` returns a list and not an array, which is the API being
+# honest: scans differ in size, a stacked array needs one shape, and resizing
+# them to match is how a mask ends up describing anatomy it was not computed from.
+}
+}

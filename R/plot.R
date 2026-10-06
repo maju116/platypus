@@ -145,6 +145,11 @@ plot_masks <- function(images, prediction = NULL, truth = NULL,
 #' @return A `ggplot`.
 #' @importFrom rlang .data
 #' @export
+#' @examples
+#' \dontrun{
+#' plot(fit)                              # every metric that was recorded
+#' plot(fit, metrics = "dice")
+#' }
 plot.platypus_fit <- function(x, metrics = NULL, ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("plotting a fit needs the ggplot2 package.", call. = FALSE)

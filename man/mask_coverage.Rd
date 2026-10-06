@@ -18,3 +18,11 @@ A data frame with one row per class.
 A quick sanity check before training: a foreground of half a percent is a problem the
 loss has to be chosen for, and it is better to know before the run than after.
 }
+\examples{
+mask <- matrix(1L, 8, 8); mask[2:4, 2:4] <- 2L
+mask_coverage(mask, labels = c("background", "nucleus"))
+
+# A class with 0 pixels is the thing to look for: its target channel is zero
+# everywhere, so there is no gradient towards it and the model is never shown
+# what it is being asked to find.
+}

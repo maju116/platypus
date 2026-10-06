@@ -30,3 +30,13 @@ A Dice of 0.85 says nothing about which of the three is costing you, and for mos
 clinical questions they are not interchangeable - a missed lesion and a false alarm
 are different kinds of wrong.
 }
+\examples{
+image <- array(runif(8 * 8 * 3, 0.2, 0.6), dim = c(8, 8, 3))
+truth <- matrix(1L, 8, 8); truth[2:4, 2:4] <- 2L
+predicted <- matrix(1L, 8, 8); predicted[3:5, 2:4] <- 2L
+shown <- overlay_agreement(image, prediction = predicted, truth = truth)
+dim(shown)
+
+# Three colours, not one: a missed lesion and a false alarm cost different things,
+# and a single overlap score hides which one you have.
+}

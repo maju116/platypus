@@ -349,6 +349,14 @@ print.platypus_spec <- function(x, ...) {
 #' @param ... Unused.
 #' @return A nested list.
 #' @export
+#' @examples
+#' \dontrun{
+#' str(as.list(spec))
+#'
+#' # The same thing a YAML file would hold, which is the point: a configuration file
+#' # and this code describe the same run. `yaml::write_yaml(as.list(spec), "run.yaml")`
+#' # produces a file the Python engine reads directly.
+#' }
 as.list.platypus_spec <- function(x, ...) shim()$spec_as_dict(x$py)
 
 #' Drop empty entries so the engine's own defaults apply

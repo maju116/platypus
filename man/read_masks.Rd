@@ -29,3 +29,17 @@ Masks come two ways, and this reads both. \code{colormap} is for masks stored as
 colour per class. \code{labels} is for masks stored as label maps - a vector of the voxel values,
 in class order - which is how volume formats store them.
 }
+\examples{
+\dontrun{
+# Masks stored as pictures: the colormap says which colour is which class.
+truth <- read_masks(list.files("masks/", full.names = TRUE),
+                    colormap = list(c(0, 0, 0), c(255, 255, 255)))
+
+# Masks stored as label maps, which is how volumes do it. Exactly one of the two.
+truth <- read_masks("case_01/seg.nii.gz", labels = c(0, 1))
+
+# `tolerance` is for masks that have been through a lossy resize, where a colour
+# that should be (255, 0, 0) arrives as (254, 1, 0) and matches nothing.
+truth <- read_masks(paths, colormap = voc_colormap, tolerance = 2)
+}
+}

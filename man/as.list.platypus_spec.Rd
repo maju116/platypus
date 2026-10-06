@@ -17,3 +17,12 @@ A nested list.
 \description{
 Useful for looking at what the engine made of your arguments, and for writing it out.
 }
+\examples{
+\dontrun{
+str(as.list(spec))
+
+# The same thing a YAML file would hold, which is the point: a configuration file
+# and this code describe the same run. `yaml::write_yaml(as.list(spec), "run.yaml")`
+# produces a file the Python engine reads directly.
+}
+}

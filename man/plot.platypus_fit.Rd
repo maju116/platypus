@@ -21,3 +21,9 @@ One panel per quantity, one line per model. Useful for the thing a final number 
 tell you: whether it had stopped improving, or was still going when it ran out of
 epochs.
 }
+\examples{
+\dontrun{
+plot(fit)                              # every metric that was recorded
+plot(fit, metrics = "dice")
+}
+}

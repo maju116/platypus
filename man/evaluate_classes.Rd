@@ -30,3 +30,12 @@ cells. \code{\link[=evaluate]{evaluate()}} deliberately carries no overall preci
 reason - averaging them over classes needs a weighting, and every choice of weighting is
 a different claim.
 }
+\examples{
+\dontrun{
+evaluate_classes(fit, "bccd")
+
+# The row that matters on unbalanced data, which is most data: BCCD has 4155 red
+# cells against 372 white and 361 platelets, so a single number is a number about
+# red cells.
+}
+}

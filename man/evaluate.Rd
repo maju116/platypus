@@ -28,3 +28,12 @@ why \code{loss_function} is there beside it. A Focal-Tversky of 0.05 is not bett
 CCE-Dice of 0.14; it is not even the same question. Metrics stay comparable, because
 they measure the mask rather than the objective.
 }
+\examples{
+\dontrun{
+evaluate(fit)                      # one row per model, on the validation split
+evaluate(fit, split = "test")
+
+# A split with no masks is refused by name rather than scored against nothing;
+# `predict()` still works on it.
+}
+}

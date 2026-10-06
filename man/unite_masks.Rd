@@ -16,3 +16,11 @@ One \verb{height x width} matrix.
 The Data Science Bowl stores one file per nucleus; datasets like it are common. Later
 masks win where they overlap, so an explicit class beats the background it sits on.
 }
+\examples{
+# Data Science Bowl stores one file per nucleus, so a sample's mask arrives as several
+# matrices that have to become one. Later masks win where they overlap.
+one <- matrix(1L, 8, 8); one[2:4, 2:4] <- 2L
+two <- matrix(1L, 8, 8); two[6:7, 5:7] <- 2L
+united <- unite_masks(list(one, two))
+table(united)
+}

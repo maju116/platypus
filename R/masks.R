@@ -80,6 +80,19 @@ mask_classes <- function(mask, colormap, tolerance = 0) {
 #'   will not satisfy an exact comparison, and a label that fails to match becomes background.
 #' @return An array of class indices, counted from 1.
 #' @export
+#' @examples
+#' \dontrun{
+#' # Masks stored as pictures: the colormap says which colour is which class.
+#' truth <- read_masks(list.files("masks/", full.names = TRUE),
+#'                     colormap = list(c(0, 0, 0), c(255, 255, 255)))
+#'
+#' # Masks stored as label maps, which is how volumes do it. Exactly one of the two.
+#' truth <- read_masks("case_01/seg.nii.gz", labels = c(0, 1))
+#'
+#' # `tolerance` is for masks that have been through a lossy resize, where a colour
+#' # that should be (255, 0, 0) arrives as (254, 1, 0) and matches nothing.
+#' truth <- read_masks(paths, colormap = voc_colormap, tolerance = 2)
+#' }
 read_masks <- function(paths, colormap = NULL, labels = NULL, size = NULL, tolerance = 0) {
   if (is.null(colormap) == is.null(labels)) {
     stop("give exactly one of `colormap` (masks stored as pictures) and `labels` ",
@@ -132,6 +145,11 @@ label_classes <- function(values, labels) {
 #' @param alpha How strongly to tint, 0 to 1.
 #' @return A `height x width x 3` array of 0-255 integers.
 #' @export
+#' @examples
+#' image <- array(runif(8 * 8 * 3, 0.2, 0.6), dim = c(8, 8, 3))
+#' mask <- matrix(1L, 8, 8); mask[2:4, 2:4] <- 2L
+#' tinted <- overlay_mask(image, mask, colormap = list(c(0, 0, 0), c(255, 0, 0)))
+#' dim(tinted)
 overlay_mask <- function(image, mask, colormap, alpha = 0.55) {
   image <- as_rgb(image)
   if (!identical(dim(image)[1:2], dim(mask)[1:2])) {
@@ -163,6 +181,15 @@ overlay_mask <- function(image, mask, colormap, alpha = 0.55) {
 #' @param colours Named colours for `hit`, `missed` and `false_alarm`.
 #' @return A `height x width x 3` array of 0-255 integers.
 #' @export
+#' @examples
+#' image <- array(runif(8 * 8 * 3, 0.2, 0.6), dim = c(8, 8, 3))
+#' truth <- matrix(1L, 8, 8); truth[2:4, 2:4] <- 2L
+#' predicted <- matrix(1L, 8, 8); predicted[3:5, 2:4] <- 2L
+#' shown <- overlay_agreement(image, prediction = predicted, truth = truth)
+#' dim(shown)
+#'
+#' # Three colours, not one: a missed lesion and a false alarm cost different things,
+#' # and a single overlap score hides which one you have.
 overlay_agreement <- function(image, prediction, truth, alpha = 0.55,
                               colours = c(hit = "#3CDC5A", missed = "#E63C3C",
                                           false_alarm = "#F0C83C")) {
@@ -195,6 +222,13 @@ overlay_agreement <- function(image, prediction, truth, alpha = 0.55,
 #' @param masks A list of `height x width` matrices of class indices.
 #' @return One `height x width` matrix.
 #' @export
+#' @examples
+#' # Data Science Bowl stores one file per nucleus, so a sample's mask arrives as several
+#' # matrices that have to become one. Later masks win where they overlap.
+#' one <- matrix(1L, 8, 8); one[2:4, 2:4] <- 2L
+#' two <- matrix(1L, 8, 8); two[6:7, 5:7] <- 2L
+#' united <- unite_masks(list(one, two))
+#' table(united)
 unite_masks <- function(masks) {
   if (!length(masks)) stop("`masks` is empty.", call. = FALSE)
   shapes <- unique(lapply(masks, dim))
@@ -215,6 +249,13 @@ unite_masks <- function(masks) {
 #' @param labels Optional names for the classes.
 #' @return A data frame with one row per class.
 #' @export
+#' @examples
+#' mask <- matrix(1L, 8, 8); mask[2:4, 2:4] <- 2L
+#' mask_coverage(mask, labels = c("background", "nucleus"))
+#'
+#' # A class with 0 pixels is the thing to look for: its target channel is zero
+#' # everywhere, so there is no gradient towards it and the model is never shown
+#' # what it is being asked to find.
 mask_coverage <- function(mask, labels = NULL) {
   counts <- tabulate(as.vector(mask))
   classes <- seq_along(counts)

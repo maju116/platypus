@@ -124,6 +124,14 @@ print.platypus_fit <- function(x, ...) {
 #' @param ... Unused.
 #' @return A data frame, one row per model.
 #' @export
+#' @examples
+#' \dontrun{
+#' evaluate(fit)                      # one row per model, on the validation split
+#' evaluate(fit, split = "test")
+#'
+#' # A split with no masks is refused by name rather than scored against nothing;
+#' # `predict()` still works on it.
+#' }
 evaluate <- function(object, ...) UseMethod("evaluate")
 
 #' @rdname evaluate
@@ -176,6 +184,15 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #'
 #'   With `space = "source"`: a list of such arrays, one per scan, each on that scan's grid.
 #' @export
+#' @examples
+#' \dontrun{
+#' masks <- predict(fit, "unet")                     # an array, on the model's grid
+#' masks <- predict(fit, "unet", space = "source")   # a list, on each scan's own grid
+#'
+#' # `space = "source"` returns a list and not an array, which is the API being
+#' # honest: scans differ in size, a stacked array needs one shape, and resizing
+#' # them to match is how a mask ends up describing anatomy it was not computed from.
+#' }
 predict.platypus_fit <- function(object, model = NULL, split = "test",
                                  type = c("class", "probability"),
                                  space = c("model", "source"), ...) {
@@ -255,6 +272,14 @@ as_box_frames <- function(found) {
 #'   of the boxes that matched, the number of true boxes, and precision and recall at the
 #'   model's `operating_point`.
 #' @export
+#' @examples
+#' \dontrun{
+#' evaluate_classes(fit, "bccd")
+#'
+#' # The row that matters on unbalanced data, which is most data: BCCD has 4155 red
+#' # cells against 372 white and 361 platelets, so a single number is a number about
+#' # red cells.
+#' }
 evaluate_classes <- function(object, ...) UseMethod("evaluate_classes")
 
 #' @rdname evaluate_classes
@@ -362,6 +387,16 @@ print.platypus_images <- function(x, ...) {
 #'   fitted to your data, and when they were, the mean overlap they achieve and a data
 #'   frame with one row per anchor.
 #' @export
+#' @examples
+#' \dontrun{
+#' anchors <- detection_anchors(fit)
+#' anchors$mean_iou        # ~0.88 fitted on BCCD, against 0.65 for COCO's nine
+#' anchors$per_anchor      # one row per anchor
+#'
+#' # `fitted` says whether these were fitted to the data or taken from the
+#' # specification. A detector cannot be reloaded without them, so they travel
+#' # with the weights.
+#' }
 detection_anchors <- function(object, model = NULL) {
   if (!inherits(object, "platypus_fit") || !identical(object$task, "object_detection")) {
     stop("`detection_anchors()` needs a fit from a detection specification.",
@@ -384,6 +419,15 @@ detection_anchors <- function(object, model = NULL) {
 #' @param object A [platypus_fit()].
 #' @return A data frame with one row per model per epoch.
 #' @export
+#' @examples
+#' \dontrun{
+#' history <- training_history(fit)
+#' head(history)
+#'
+#' # For a detector the loss is broken into four terms on purpose: a run whose
+#' # coordinate loss falls while its objectness loss does not is finding the right
+#' # places and refusing to commit, and the reverse is confident nonsense.
+#' }
 training_history <- function(object) {
   if (!inherits(object, "platypus_fit")) {
     stop("`object` must come from `platypus_fit()`.", call. = FALSE)
