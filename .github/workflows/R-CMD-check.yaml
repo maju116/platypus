@@ -67,6 +67,36 @@ jobs:
   # The bridge, exercised for real. This is the part most likely to break in a way local
   # work would not reveal: it downloads the engine into a fresh managed environment, the
   # same way a user's first call does.
+  lint:
+    runs-on: ubuntu-latest
+    name: lint
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # The package itself, not just lintr: `object_usage_linter` resolves every name
+      # against the package's namespace, and against a stale install it reports live
+      # helpers as undefined - which is how three real functions were first flagged here.
+      # It is the one linter in the set that finds defects rather than style, so it has to
+      # be looking at the code in front of it.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::lintr, local::.
+          needs: lint
+
+      - name: Lint
+        run: lintr::lint_package()
+        shell: Rscript {0}
+        env:
+          LINTR_ERROR_ON_LINT: true
+
   engine:
     runs-on: ubuntu-latest
     name: engine (bridge to pyplatypus)

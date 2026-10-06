@@ -147,7 +147,7 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
          "would make one measurement into two.", call. = FALSE)
   }
   if (!is.null(target_spacing) &&
-      (length(target_spacing) != 3L || anyNA(target_spacing) || any(target_spacing <= 0))) {
+        (length(target_spacing) != 3L || anyNA(target_spacing) || any(target_spacing <= 0))) {
     stop("`target_spacing` must be three positive numbers, in millimetres.", call. = FALSE)
   }
 
@@ -167,8 +167,9 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
     # sending a default nobody asked for would break every run that has nothing to do
     # with DICOM - and the version pin exists precisely to make such mismatches loud
     # rather than mysterious.
+    # Aligned under the `if` it continues: the chain reads as one decision.
     window = if (is.null(window)) NULL
-             else if (is.character(window)) window
+             else if (is.character(window)) window  # nolint: indentation_linter.
              else as.numeric(window),
     target_spacing = if (is.null(target_spacing)) NULL else as.numeric(target_spacing),
     channels_from = if (is.null(channels_from)) NULL else as.character(channels_from),
@@ -335,7 +336,9 @@ print.platypus_spec <- function(x, ...) {
     shape <- paste(unlist(m$input_shape), collapse = "x")
     tiles <- if (!is.null(m$splits)) {
       paste0(", tiled ", paste(unlist(m$splits), collapse = "x"))
-    } else ""
+    } else {
+      ""
+    }
     cat(sprintf("    %-14s %-16s %s%s, %s, %d epochs\n",
                 m$name, m$architecture, shape, tiles, m$loss$name, m$epochs))
   }

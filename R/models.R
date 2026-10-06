@@ -167,16 +167,16 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
 #' @rdname models
 #' @export
 u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
-                   blocks = NULL, filters = NULL, block_width = NULL,
-                   dropout = NULL, batch_normalization = NULL,
-                   separable_conv = NULL, spatial_dropout = NULL,
-                   upsample = NULL, deep_supervision = NULL,
-                   activation = NULL, initialiser = NULL, loss = NULL,
-                   metrics = NULL, optimizer = NULL, callbacks = NULL,
-                   augmentation = NULL, epochs = NULL, batch_size = NULL,
-                   splits = NULL, weights = NULL, fit = NULL,
-                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                   encoder_learning_rate = NULL) {
+                  blocks = NULL, filters = NULL, block_width = NULL,
+                  dropout = NULL, batch_normalization = NULL,
+                  separable_conv = NULL, spatial_dropout = NULL,
+                  upsample = NULL, deep_supervision = NULL,
+                  activation = NULL, initialiser = NULL, loss = NULL,
+                  metrics = NULL, optimizer = NULL, callbacks = NULL,
+                  augmentation = NULL, epochs = NULL, batch_size = NULL,
+                  splits = NULL, weights = NULL, fit = NULL,
+                  encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                  encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "u_net",
     name = name,
@@ -214,16 +214,16 @@ u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
 #' @rdname models
 #' @export
 u_net_plus_plus <- function(name, input_shape, channels = NULL, n_class = NULL,
-                   blocks = NULL, filters = NULL, block_width = NULL,
-                   dropout = NULL, batch_normalization = NULL,
-                   separable_conv = NULL, spatial_dropout = NULL,
-                   upsample = NULL, deep_supervision = NULL,
-                   activation = NULL, initialiser = NULL, loss = NULL,
-                   metrics = NULL, optimizer = NULL, callbacks = NULL,
-                   augmentation = NULL, epochs = NULL, batch_size = NULL,
-                   splits = NULL, weights = NULL, fit = NULL,
-                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                   encoder_learning_rate = NULL) {
+                            blocks = NULL, filters = NULL, block_width = NULL,
+                            dropout = NULL, batch_normalization = NULL,
+                            separable_conv = NULL, spatial_dropout = NULL,
+                            upsample = NULL, deep_supervision = NULL,
+                            activation = NULL, initialiser = NULL, loss = NULL,
+                            metrics = NULL, optimizer = NULL, callbacks = NULL,
+                            augmentation = NULL, epochs = NULL, batch_size = NULL,
+                            splits = NULL, weights = NULL, fit = NULL,
+                            encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                            encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "u_net_plus_plus",
     name = name,
@@ -261,16 +261,16 @@ u_net_plus_plus <- function(name, input_shape, channels = NULL, n_class = NULL,
 #' @rdname models
 #' @export
 res_u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
-                   blocks = NULL, filters = NULL, block_width = NULL,
-                   dropout = NULL, batch_normalization = NULL,
-                   separable_conv = NULL, spatial_dropout = NULL,
-                   upsample = NULL, deep_supervision = NULL,
-                   activation = NULL, initialiser = NULL, loss = NULL,
-                   metrics = NULL, optimizer = NULL, callbacks = NULL,
-                   augmentation = NULL, epochs = NULL, batch_size = NULL,
-                   splits = NULL, weights = NULL, fit = NULL,
-                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                   encoder_learning_rate = NULL) {
+                      blocks = NULL, filters = NULL, block_width = NULL,
+                      dropout = NULL, batch_normalization = NULL,
+                      separable_conv = NULL, spatial_dropout = NULL,
+                      upsample = NULL, deep_supervision = NULL,
+                      activation = NULL, initialiser = NULL, loss = NULL,
+                      metrics = NULL, optimizer = NULL, callbacks = NULL,
+                      augmentation = NULL, epochs = NULL, batch_size = NULL,
+                      splits = NULL, weights = NULL, fit = NULL,
+                      encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                      encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "res_u_net",
     name = name,
@@ -308,16 +308,16 @@ res_u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
 #' @rdname models
 #' @export
 linknet <- function(name, input_shape, channels = NULL, n_class = NULL,
-                   blocks = NULL, filters = NULL, block_width = NULL,
-                   dropout = NULL, batch_normalization = NULL,
-                   separable_conv = NULL, spatial_dropout = NULL,
-                   upsample = NULL, deep_supervision = NULL,
-                   activation = NULL, initialiser = NULL, loss = NULL,
-                   metrics = NULL, optimizer = NULL, callbacks = NULL,
-                   augmentation = NULL, epochs = NULL, batch_size = NULL,
-                   splits = NULL, weights = NULL, fit = NULL,
-                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                   encoder_learning_rate = NULL) {
+                    blocks = NULL, filters = NULL, block_width = NULL,
+                    dropout = NULL, batch_normalization = NULL,
+                    separable_conv = NULL, spatial_dropout = NULL,
+                    upsample = NULL, deep_supervision = NULL,
+                    activation = NULL, initialiser = NULL, loss = NULL,
+                    metrics = NULL, optimizer = NULL, callbacks = NULL,
+                    augmentation = NULL, epochs = NULL, batch_size = NULL,
+                    splits = NULL, weights = NULL, fit = NULL,
+                    encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
+                    encoder_learning_rate = NULL) {
   segmentation_model(
     architecture = "linknet",
     name = name,

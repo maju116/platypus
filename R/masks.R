@@ -54,8 +54,9 @@ mask_classes <- function(mask, colormap, tolerance = 0) {
   # Later colours win, so an explicit class beats the background it overlaps.
   for (index in seq_along(colormap)) {
     target <- as.numeric(colormap[[index]])
+    # Three parallel comparisons, aligned so that being the same shape is visible.
     hit <- abs(flat[, 1] - target[1]) <= tolerance &
-           abs(flat[, 2] - target[2]) <= tolerance &
+           abs(flat[, 2] - target[2]) <= tolerance &  # nolint: indentation_linter.
            abs(flat[, 3] - target[3]) <= tolerance
     classes[hit] <- index
     matched <- matched | hit

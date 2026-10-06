@@ -1,7 +1,10 @@
 fit_on_patients <- function(..., envir = parent.frame()) {
   # The dataset has to outlive this helper: evaluate_cases() reads the images again after
   # training, so tying the directory to this frame would delete it in between.
-  root <- tiny_patient_dataset(patients = 6, slices = 2, envir = envir)
+  # Defined in helper-engine.R, which testthat sources at run time and lintr cannot see.
+  root <- tiny_patient_dataset(  # nolint: object_usage_linter.
+    patients = 6, slices = 2, envir = envir
+  )
   spec <- platypus_spec(
     data = segmentation_data(root, root, colormap = binary_colormap),
     models = list(u_net("tiny", input_shape = c(32, 32), blocks = 2, filters = 4,

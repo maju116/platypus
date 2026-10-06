@@ -85,8 +85,10 @@ test_that("images in 0-1 and in 0-255 both work", {
 test_that("several masks of one image become one", {
   # One file per nucleus is how the Data Science Bowl stores its labels, and it is not
   # unusual.
-  a <- matrix(1L, 4, 4); a[1:2, ] <- 2L
-  b <- matrix(1L, 4, 4); b[4, ] <- 2L
+  a <- matrix(1L, 4, 4)
+  a[1:2, ] <- 2L
+  b <- matrix(1L, 4, 4)
+  b[4, ] <- 2L
   united <- unite_masks(list(a, b))
   expect_identical(united[1, 1], 2L)
   expect_identical(united[4, 1], 2L)
@@ -122,7 +124,8 @@ test_that("masks are written as files that read back identically", {
   # the property that matters: what comes back out has to be what went in.
   skip_if_no_engine()
   out <- withr::local_tempdir()
-  masks <- array(1L, dim = c(3, 16, 16)); masks[, 4:12, 4:12] <- 2L
+  masks <- array(1L, dim = c(3, 16, 16))
+  masks[, 4:12, 4:12] <- 2L
 
   paths <- save_masks(masks, out, binary_colormap)
   expect_length(paths, 3L)

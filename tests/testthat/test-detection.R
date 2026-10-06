@@ -196,7 +196,7 @@ test_that("plot_boxes refuses a count that cannot line up", {
   skip_if_not_installed("ggplot2")
   images <- array(60, dim = c(3, 64, 64, 3))
   expect_error(plot_boxes(images, list(data.frame(xmin = 1, ymin = 1, xmax = 2,
-                                                 ymax = 2))),
+                                                  ymax = 2))),
                "line up one to one")
 })
 

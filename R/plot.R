@@ -335,8 +335,9 @@ plot_boxes <- function(images, boxes, truth = NULL, which = NULL, min_score = 0.
   # One montage, images stacked vertically, so a box's coordinates only need the row's
   # offset added. Drawn as one raster for the same reason plot_masks() does: ggplot draws
   # one annotation_raster quickly and fifty slowly.
-  tiles <- lapply(which, function(i) as_rgb(images[i, , , , drop = FALSE][1, , , ,
-                                                                          drop = TRUE]))
+  tiles <- lapply(which, function(i) {
+    as_rgb(images[i, , , , drop = FALSE][1, , , , drop = TRUE])
+  })
   montage <- bind_panels(lapply(tiles, list))
   height <- dim(montage)[1]
   width <- dim(montage)[2]

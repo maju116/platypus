@@ -121,8 +121,9 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
       # field keeps working for everyone not asking for it.
       coordinates = coordinates,
       strict_labels = strict_labels,
+      # Aligned under the `if` it continues: the chain reads as one decision.
       window = if (is.null(window)) NULL
-               else if (is.character(window)) window
+               else if (is.character(window)) window  # nolint: indentation_linter.
                else as.numeric(window),
       subdirs = as.character(subdirs),
       column_sep = column_sep,

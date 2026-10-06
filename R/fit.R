@@ -221,7 +221,7 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
   }
 
   result <- shim()$predictions(object$engine, model, split = split,
-                              as_class = identical(type, "class"), space = space)
+                               as_class = identical(type, "class"), space = space)
   if (!isTRUE(result$ok)) abort_engine(result)
   result$masks
 }
@@ -543,7 +543,9 @@ print.platypus_cases <- function(x, ...) {
   label <- attr(x, "label") %||% "case"
   cat("platypus scores by ", label, " (", nrow(x), " rows)\n", sep = "")
   print(as.data.frame(utils::head(x, 10)), row.names = FALSE)
-  if (nrow(x) > 10) cat("  ... ", nrow(x) - 10, " more. summary() gives the distribution.\n", sep = "")
+  if (nrow(x) > 10) {
+    cat("  ... ", nrow(x) - 10, " more. summary() gives the distribution.\n", sep = "")
+  }
   invisible(x)
 }
 

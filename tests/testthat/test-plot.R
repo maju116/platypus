@@ -43,7 +43,8 @@ test_that("a fit with no history says so rather than drawing nothing", {
 test_that("panels appear only for what was supplied", {
   skip_if_not_installed("ggplot2")
   images <- array(runif(2 * 8 * 8 * 3) * 255, dim = c(2, 8, 8, 3))
-  mask <- array(1L, dim = c(2, 8, 8)); mask[, 3:6, 3:6] <- 2L
+  mask <- array(1L, dim = c(2, 8, 8))
+  mask[, 3:6, 3:6] <- 2L
 
   labels <- function(plot) {
     ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x$get_labels()

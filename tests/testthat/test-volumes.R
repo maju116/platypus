@@ -301,7 +301,7 @@ test_that("`channels_from` is checked before Python starts", {
                "at least two")
   expect_error(
     segmentation_data("a", "b", labels = c(0, 1),
-                     channels_from = c("_t1\\.nii", "_t1\\.nii")),
+                      channels_from = c("_t1\\.nii", "_t1\\.nii")),
     "must be distinct"
   )
 })

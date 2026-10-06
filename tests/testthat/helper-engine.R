@@ -182,8 +182,10 @@ for n in range(%d):
     scan = np.where(labels > 0, 40.0, -1000.0).astype(np.float32)
     nib.save(nib.Nifti1Image(scan, affine), str(sample / 'images' / 'ct.nii.gz'))
     nib.save(nib.Nifti1Image(labels, affine), str(sample / 'masks' / 'seg.nii.gz'))
+# The heredoc above ends at column 0 because its contents are Python source and
+# must not be indented, so the arguments that follow cannot align under sprintf(.
 ", shQuote(root), shape[1], shape[2], shape[3],
-   spacing[1], spacing[2], spacing[3], cases))
+   spacing[1], spacing[2], spacing[3], cases))  # nolint: indentation_linter.
   root
 }
 
@@ -229,8 +231,10 @@ for index, position in enumerate(positions):
     dataset.SliceThickness = 2.5
     dataset.InstanceNumber = index + 1
     dataset.save_as(directory / f'{prefix}{(len(positions) - index) * 7 %% 100:02d}.dcm')
+# The heredoc above ends at column 0 because its contents are Python source and
+# must not be indented, so the arguments that follow cannot align under sprintf(.
 ", shQuote(directory), paste(positions, collapse = ", "),
-   if (is.null(uid)) "None" else shQuote(uid), shQuote(prefix)))
+   if (is.null(uid)) "None" else shQuote(uid), shQuote(prefix)))  # nolint: indentation_linter.
   directory
 }
 
@@ -349,7 +353,9 @@ skip_if_no_3d_augmentation <- function() {
 engine_maps_to_source <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    schema <- platypus:::engine()$spec_schema()   # started, so the version is answerable
+    # Called for the side effect, not the value: it starts the engine, which is what
+    # makes the version answerable below. Assigning the result said the opposite.
+    platypus:::engine()$spec_schema()
     version <- platypus_status()$engine_version
     !is.na(version) && utils::compareVersion(gsub("a", ".", version), "0.3.0.6") >= 0
   }, error = function(e) FALSE))
@@ -506,8 +512,10 @@ write_detection_split <- function(root, prefix, count, seed = 1) {
     height <- 128L
     width <- 160L
     image <- array(30 / 255, dim = c(height, width, 3))
-    x0 <- sample(4:50, 1); y0 <- sample(4:50, 1)
-    side <- sample(16:38, 1); bar <- sample(28:56, 1)
+    x0 <- sample(4:50, 1)
+    y0 <- sample(4:50, 1)
+    side <- sample(16:38, 1)
+    bar <- sample(28:56, 1)
     boxes <- list(c(x0, y0, x0 + side, y0 + side), c(96, 20, 96 + bar, 34))
     for (k in seq_along(boxes)) {
       b <- boxes[[k]]
