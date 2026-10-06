@@ -601,6 +601,8 @@ Losses, metrics, optimisers, callbacks, augmentation, encoders.
   [`callback_csv_logger()`](https://maju116.github.io/platypus/reference/callbacks.md)
   [`callback_terminate_on_nan()`](https://maju116.github.io/platypus/reference/callbacks.md)
   : Callbacks
+- [`callback_swa()`](https://maju116.github.io/platypus/reference/callback_swa.md)
+  : Average the weights over the last part of the run
 - [`augment()`](https://maju116.github.io/platypus/reference/augment.md)
   : An augmentation step
 - [`available_augmentations()`](https://maju116.github.io/platypus/reference/available_augmentations.md)
