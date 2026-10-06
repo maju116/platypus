@@ -47,6 +47,8 @@ Losses, metrics, optimisers, callbacks, augmentation, encoders.
   [`loss_combo()`](https://maju116.github.io/platypus/reference/losses.md)
   [`loss_lovasz()`](https://maju116.github.io/platypus/reference/losses.md)
   : Loss functions
+- [`loss_boundary()`](https://maju116.github.io/platypus/reference/loss_boundary.md)
+  : A loss that knows how far a wrong voxel is from the truth
 - [`metric_iou()`](https://maju116.github.io/platypus/reference/metrics.md)
   [`metric_dice()`](https://maju116.github.io/platypus/reference/metrics.md)
   [`metric_tversky()`](https://maju116.github.io/platypus/reference/metrics.md)
