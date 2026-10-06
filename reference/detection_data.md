@@ -143,6 +143,9 @@ detection_data("train/", "valid/", classes = c("RBC", "WBC", "Platelets"))
 #> $validation_path
 #> [1] "valid/"
 #> 
+#> $validation
+#> NULL
+#> 
 #> $test_path
 #> NULL
 #> 

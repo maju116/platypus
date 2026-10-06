@@ -37,6 +37,17 @@ segmentation_data(
   may be given as `train` on its own: it carries all three paths and
   selects `config_file` mode, so a split needs no unpacking.
 
+  **`validation = FALSE` says this run has no validation set**, which is
+  the third and last answer to the question `validation` and `split`
+  both answer - a final fit on every case you have, once the
+  hyperparameters are settled. It goes in this argument rather than a
+  new one because it is the same question, and a second argument could
+  contradict the first.
+
+  Leaving `validation` and `split` *both* unset is still an error, and
+  that is deliberate: "I have no validation set" and "I forgot" look
+  identical, and only one of them is a decision.
+
 - colormap:
 
   A list of RGB triples, one per class, background first. For masks
@@ -57,7 +68,8 @@ segmentation_data(
 
   Divide `train` instead of naming a `validation` set: a list with
   `fractions` (two numbers, or three to cut a test set as well) and
-  `group_by`. Exactly one of `split` and `validation`.
+  `group_by`. Exactly one of `split`, `validation`, and
+  `validation = FALSE`.
 
   **`group_by` has to be given, even as `NULL`.** It is a regular
   expression read against each sample's name, and everything sharing a
@@ -179,6 +191,9 @@ segmentation_data("train/", "valid/", colormap = binary_colormap)
 #> 
 #> $validation_path
 #> [1] "valid/"
+#> 
+#> $validation
+#> NULL
 #> 
 #> $test_path
 #> NULL
