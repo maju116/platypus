@@ -99,6 +99,7 @@ reference:
   - evaluate_classes
   - evaluate_images
   - detection_anchors
+  - detection_crops
 
 - title: Looking at the results
   desc: >
