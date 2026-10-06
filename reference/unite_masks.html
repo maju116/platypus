@@ -63,6 +63,19 @@ masks win where they overlap, so an explicit class beats the background it sits 
     <p>One <code>height x width</code> matrix.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Data Science Bowl stores one file per nucleus, so a sample's mask arrives as several</span></span></span>
+<span class="r-in"><span><span class="co"># matrices that have to become one. Later masks win where they overlap.</span></span></span>
+<span class="r-in"><span><span class="va">one</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>; <span class="va">one</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span></span>
+<span class="r-in"><span><span class="va">two</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>; <span class="va">two</span><span class="op">[</span><span class="fl">6</span><span class="op">:</span><span class="fl">7</span>, <span class="fl">5</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span></span>
+<span class="r-in"><span><span class="va">united</span> <span class="op">&lt;-</span> <span class="fu">unite_masks</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">one</span>, <span class="va">two</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">united</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> united</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1  2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 49 15 </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

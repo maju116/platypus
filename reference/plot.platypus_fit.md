@@ -29,3 +29,12 @@ plot(x, metrics = NULL, ...)
 ## Value
 
 A `ggplot`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+plot(fit)                              # every metric that was recorded
+plot(fit, metrics = "dice")
+} # }
+```

@@ -42,3 +42,15 @@ evaluate_classes(object, model = NULL, split = "validation", ...)
 A data frame, one row per class: average precision at IoU 0.5, the mean
 overlap of the boxes that matched, the number of true boxes, and
 precision and recall at the model's `operating_point`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+evaluate_classes(fit, "bccd")
+
+# The row that matters on unbalanced data, which is most data: BCCD has 4155 red
+# cells against 372 white and 361 platelets, so a single number is a number about
+# red cells.
+} # }
+```

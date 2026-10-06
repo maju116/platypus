@@ -28,3 +28,17 @@ detection_anchors(object, model = NULL)
 A list: `anchors` as three groups of pairs, `fitted` saying whether they
 were fitted to your data, and when they were, the mean overlap they
 achieve and a data frame with one row per anchor.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+anchors <- detection_anchors(fit)
+anchors$mean_iou        # ~0.88 fitted on BCCD, against 0.65 for COCO's nine
+anchors$per_anchor      # one row per anchor
+
+# `fitted` says whether these were fitted to the data or taken from the
+# specification. A detector cannot be reloaded without them, so they travel
+# with the weights.
+} # }
+```

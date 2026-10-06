@@ -23,3 +23,17 @@ mask_coverage(mask, labels = NULL)
 ## Value
 
 A data frame with one row per class.
+
+## Examples
+
+``` r
+mask <- matrix(1L, 8, 8); mask[2:4, 2:4] <- 2L
+mask_coverage(mask, labels = c("background", "nucleus"))
+#>   class      label pixels fraction
+#> 1     1 background     55 0.859375
+#> 2     2    nucleus      9 0.140625
+
+# A class with 0 pixels is the thing to look for: its target channel is zero
+# everywhere, so there is no gradient towards it and the model is never shown
+# what it is being asked to find.
+```

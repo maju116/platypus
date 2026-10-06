@@ -67,6 +67,19 @@ loss has to be chosen for, and it is better to know before the run than after.</
     <p>A data frame with one row per class.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>; <span class="va">mask</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span></span>
+<span class="r-in"><span><span class="fu">mask_coverage</span><span class="op">(</span><span class="va">mask</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"background"</span>, <span class="st">"nucleus"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   class      label pixels fraction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1 background     55 0.859375</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     2    nucleus      9 0.140625</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># A class with 0 pixels is the thing to look for: its target channel is zero</span></span></span>
+<span class="r-in"><span><span class="co"># everywhere, so there is no gradient towards it and the model is never shown</span></span></span>
+<span class="r-in"><span><span class="co"># what it is being asked to find.</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

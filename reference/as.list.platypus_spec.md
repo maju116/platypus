@@ -23,3 +23,15 @@ as.list(x, ...)
 ## Value
 
 A nested list.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+str(as.list(spec))
+
+# The same thing a YAML file would hold, which is the point: a configuration file
+# and this code describe the same run. `yaml::write_yaml(as.list(spec), "run.yaml")`
+# produces a file the Python engine reads directly.
+} # }
+```

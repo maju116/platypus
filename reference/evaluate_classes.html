@@ -89,6 +89,17 @@ of the boxes that matched, the number of true boxes, and precision and recall at
 model's <code>operating_point</code>.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="fu">evaluate_classes</span><span class="op">(</span><span class="va">fit</span>, <span class="st">"bccd"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># The row that matters on unbalanced data, which is most data: BCCD has 4155 red</span></span></span>
+<span class="r-in"><span><span class="co"># cells against 372 white and 361 platelets, so a single number is a number about</span></span></span>
+<span class="r-in"><span><span class="co"># red cells.</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

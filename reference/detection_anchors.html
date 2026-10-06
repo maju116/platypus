@@ -72,6 +72,19 @@ fitted to your data, and when they were, the mean overlap they achieve and a dat
 frame with one row per anchor.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">anchors</span> <span class="op">&lt;-</span> <span class="fu">detection_anchors</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">anchors</span><span class="op">$</span><span class="va">mean_iou</span>        <span class="co"># ~0.88 fitted on BCCD, against 0.65 for COCO's nine</span></span></span>
+<span class="r-in"><span><span class="va">anchors</span><span class="op">$</span><span class="va">per_anchor</span>      <span class="co"># one row per anchor</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># `fitted` says whether these were fitted to the data or taken from the</span></span></span>
+<span class="r-in"><span><span class="co"># specification. A detector cannot be reloaded without them, so they travel</span></span></span>
+<span class="r-in"><span><span class="co"># with the weights.</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

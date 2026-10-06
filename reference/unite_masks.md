@@ -19,3 +19,17 @@ unite_masks(masks)
 ## Value
 
 One `height x width` matrix.
+
+## Examples
+
+``` r
+# Data Science Bowl stores one file per nucleus, so a sample's mask arrives as several
+# matrices that have to become one. Later masks win where they overlap.
+one <- matrix(1L, 8, 8); one[2:4, 2:4] <- 2L
+two <- matrix(1L, 8, 8); two[6:7, 5:7] <- 2L
+united <- unite_masks(list(one, two))
+table(united)
+#> united
+#>  1  2 
+#> 49 15 
+```

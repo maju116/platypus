@@ -39,3 +39,17 @@ overlay_agreement(
 ## Value
 
 A `height x width x 3` array of 0-255 integers.
+
+## Examples
+
+``` r
+image <- array(runif(8 * 8 * 3, 0.2, 0.6), dim = c(8, 8, 3))
+truth <- matrix(1L, 8, 8); truth[2:4, 2:4] <- 2L
+predicted <- matrix(1L, 8, 8); predicted[3:5, 2:4] <- 2L
+shown <- overlay_agreement(image, prediction = predicted, truth = truth)
+dim(shown)
+#> [1] 8 8 3
+
+# Three colours, not one: a missed lesion and a false alarm cost different things,
+# and a single overlap score hides which one you have.
+```
