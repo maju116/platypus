@@ -122,6 +122,8 @@ actually there before spending an afternoon training on it.
   : Score every image separately
 - [`detection_anchors()`](https://maju116.github.io/platypus/reference/detection_anchors.md)
   : The anchors a detector used, and whether they were fitted
+- [`detection_crops()`](https://maju116.github.io/platypus/reference/detection_crops.md)
+  : Cut every detection out of the image it was found in
 
 ## Looking at the results
 
