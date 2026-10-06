@@ -63,6 +63,7 @@ reference:
   desc: Losses, metrics, optimisers, callbacks, augmentation, encoders.
   contents:
   - losses
+  - loss_boundary
   - metrics
   - optimizers
   - callbacks

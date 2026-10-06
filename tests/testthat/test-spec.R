@@ -142,3 +142,60 @@ test_that("test and split do not both claim the test set", {
     "both say where the test set comes from"
   )
 })
+
+# --- loss_boundary -----------------------------------------------------------------------
+
+test_that("loss_boundary sends nothing it was not given", {
+  # The default alpha is a measured number - 0.9, because 0.5 was measured and is unusable -
+  # so it lives in the engine and R must not restate it. Restating would mean an engine that
+  # learns better being silently contradicted from this side.
+  loss <- loss_boundary()
+  expect_identical(loss$name, "boundary")
+  expect_null(loss$region)
+  expect_null(loss$alpha)
+})
+
+test_that("an alpha outside the open interval is refused with the reason", {
+  for (bad in list(0, 1, -0.2, 1.5)) {
+    expect_error(loss_boundary(alpha = bad), "strictly between 0 and 1")
+  }
+  expect_error(loss_boundary(alpha = "half"), "one number")
+  expect_error(loss_boundary(alpha = c(0.5, 0.6)), "one number")
+})
+
+test_that("a boundary loss cannot be its own region term", {
+  expect_error(loss_boundary(region = loss_boundary()), "cannot work")
+})
+
+test_that("any region loss can be combined with it, which is what the issue asked for", {
+  loss <- loss_boundary(region = loss_focal(gamma = 3))
+  expect_identical(loss$region$name, "focal")
+  expect_identical(loss$region$gamma, 3)
+})
+
+test_that("the engine accepts it, nested region and all", {
+  skip_if_no_boundary_loss()
+  spec <- platypus_spec(
+    data = segmentation_data("a", "b", colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32),
+                        loss = loss_boundary(region = loss_focal(gamma = 3),
+                                             alpha = 0.8))),
+    check_paths = FALSE
+  )
+  built <- as.list(spec)$models[[1]]$loss
+  expect_identical(built$name, "boundary")
+  expect_identical(built$region$name, "focal")
+  expect_equal(built$alpha, 0.8)
+})
+
+test_that("unset, the engine's measured default arrives rather than one of ours", {
+  skip_if_no_boundary_loss()
+  spec <- platypus_spec(
+    data = segmentation_data("a", "b", colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32), loss = loss_boundary())),
+    check_paths = FALSE
+  )
+  built <- as.list(spec)$models[[1]]$loss
+  expect_equal(built$alpha, 0.9)          # the measured value, from the engine
+  expect_identical(built$region$name, "dice")
+})

@@ -605,6 +605,22 @@ tiny_detection_fit <- function(envir = parent.frame()) {
   platypus_fit(spec, device = "cpu")
 }
 
+engine_has_boundary_loss <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "hasattr(__import__('pyplatypus').spec.components, 'BoundaryLoss')"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_boundary_loss <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_boundary_loss(),
+                        "the engine in use predates the boundary loss")
+}
+
 engine_has_crops <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch(
