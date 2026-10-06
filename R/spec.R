@@ -23,10 +23,20 @@
 #' @param train,validation Paths to the training and validation data. A
 #'   [platypus_split()] may be given as `train` on its own: it carries all three
 #'   paths and selects `config_file` mode, so a split needs no unpacking.
+#'
+#'   **`validation = FALSE` says this run has no validation set**, which is the third and
+#'   last answer to the question `validation` and `split` both answer - a final fit on
+#'   every case you have, once the hyperparameters are settled. It goes in this argument
+#'   rather than a new one because it is the same question, and a second argument could
+#'   contradict the first.
+#'
+#'   Leaving `validation` and `split` *both* unset is still an error, and that is
+#'   deliberate: "I have no validation set" and "I forgot" look identical, and only one of
+#'   them is a decision.
 #' @param test Optional test data. Only images are read from it.
 #' @param split Divide `train` instead of naming a `validation` set: a list with
 #'   `fractions` (two numbers, or three to cut a test set as well) and `group_by`. Exactly
-#'   one of `split` and `validation`.
+#'   one of `split`, `validation`, and `validation = FALSE`.
 #'
 #'   **`group_by` has to be given, even as `NULL`.** It is a regular expression read
 #'   against each sample's name, and everything sharing a group lands in a single split -
@@ -153,7 +163,11 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
 
   list(
     train_path = train,
-    validation_path = validation,
+    # FALSE is not a path. It travels as the engine's own `validation` flag, and
+    # `validation_path` stays absent - sending both would be the contradiction the engine
+    # refuses, from the one place that knows they are the same question.
+    validation_path = if (isFALSE(validation)) NULL else validation,
+    validation = if (isFALSE(validation)) FALSE else NULL,
     test_path = test,
     # Not `compact()` here, deliberately. `group_by = NULL` is the whole point of the
     # field - "divide by file, and I know it" - and compacting would drop it, leaving the
@@ -450,11 +464,24 @@ agreed_task <- function(data, models, stated = NULL) {
 #' @keywords internal
 #' @noRd
 check_split <- function(validation, split, test) {
+  # `validation = FALSE` is the third answer, and it fits in the same argument because the
+  # question is the same one: where does the validation set come from, and the answer may be
+  # "there is not one". A second argument saying it could contradict the first.
+  if (isFALSE(validation)) {
+    if (!is.null(split)) {
+      stop("`validation = FALSE` says this run has no validation set, and `split` says ",
+           "where it comes from. Give one or the other.", call. = FALSE)
+    }
+    return(invisible(NULL))
+  }
   if (is.null(validation) == is.null(split)) {
     stop("a run needs something to validate against: give `validation`, or `split` to ",
          "divide `train` itself.\n  `split` takes `fractions` (two or three) and ",
          "`group_by`, which keeps a patient out of both halves - dividing by file does ",
          "not, and the score then comes out several points too high with nothing to say so.",
+         "\n  To train on everything and measure nothing - a final fit once the ",
+         "hyperparameters are settled - say `validation = FALSE`. It is a decision and has ",
+         "to be written down rather than arrived at by leaving both unset.",
          call. = FALSE)
   }
   if (!is.null(split)) {

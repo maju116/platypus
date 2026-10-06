@@ -110,7 +110,10 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
   structure(
     list(
       train_path = train,
-      validation_path = validation,
+      # FALSE is not a path: it travels as the engine's `validation` flag with
+      # `validation_path` absent, since both would be the contradiction the engine refuses.
+      validation_path = if (isFALSE(validation)) NULL else validation,
+      validation = if (isFALSE(validation)) FALSE else NULL,
       test_path = test,
       split = split_block(split),
       mode = mode,

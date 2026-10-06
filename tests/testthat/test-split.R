@@ -96,3 +96,72 @@ test_that("a split trains, and the printed summary is readable", {
   expect_s3_class(fit, "platypus_fit")
   expect_output(print(split), "no group is in two sets")
 })
+
+# --- validation = FALSE --------------------------------------------------------------------
+
+test_that("validation = FALSE is the third answer and lives in the same argument", {
+  data <- segmentation_data("a", validation = FALSE, colormap = binary_colormap)
+  expect_false(data$validation)
+  expect_null(data$validation_path)
+})
+
+test_that("it survives compact(), which would otherwise silently restore the requirement", {
+  # FALSE is not NULL, so `compact()` keeps it - but that is worth a test rather than a
+  # reading, because dropping it would leave the engine demanding a validation set from a
+  # caller who had just said there is none.
+  data <- segmentation_data("a", validation = FALSE, colormap = binary_colormap)
+  expect_false(platypus:::compact(data)$validation)
+})
+
+test_that("leaving both unset is still an error, and the message names the third answer", {
+  expect_error(segmentation_data("a", colormap = binary_colormap),
+               "validation = FALSE")
+})
+
+test_that("FALSE and a split together are refused: one question, one answer", {
+  expect_error(
+    segmentation_data("a", validation = FALSE,
+                      split = list(fractions = c(0.8, 0.2), group_by = NULL),
+                      colormap = binary_colormap),
+    "Give one or the other"
+  )
+})
+
+test_that("a detector can say it too", {
+  data <- detection_data("a", validation = FALSE, classes = c("x", "y"))
+  expect_false(data$validation)
+  expect_null(data$validation_path)
+  expect_error(detection_data("a", classes = c("x", "y")), "validation = FALSE")
+})
+
+test_that("the engine accepts a run with no validation and reports no val_ column", {
+  skip_if_no_optional_validation()
+  root <- tiny_dataset(n = 6)
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, validation = FALSE, colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32), blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 2)),
+    seed = 1
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+  history <- training_history(fit)
+  expect_true("train_loss" %in% names(history))
+  expect_length(grep("^val_", names(history)), 0)
+})
+
+test_that("asking for the validation split says validation = FALSE, not 'no masks'", {
+  skip_if_no_optional_validation()
+  root <- tiny_dataset(n = 6)
+
+  spec <- platypus_spec(
+    data = segmentation_data(root, validation = FALSE, colormap = binary_colormap),
+    models = list(u_net("u", input_shape = c(32, 32), blocks = 2, filters = 4,
+                        epochs = 1, batch_size = 2)),
+    seed = 1
+  )
+  fit <- platypus_fit(spec, device = "cpu")
+  # The two are different and the wrong one sends somebody looking for files they never
+  # wrote. `evaluate()` defaults to the validation split, so it is the first thing met.
+  expect_error(evaluate(fit), "validation: false")
+})

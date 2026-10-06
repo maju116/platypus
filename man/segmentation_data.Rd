@@ -24,7 +24,17 @@ segmentation_data(
 \arguments{
 \item{train, validation}{Paths to the training and validation data. A
 \code{\link[=platypus_split]{platypus_split()}} may be given as \code{train} on its own: it carries all three
-paths and selects \code{config_file} mode, so a split needs no unpacking.}
+paths and selects \code{config_file} mode, so a split needs no unpacking.
+
+\strong{\code{validation = FALSE} says this run has no validation set}, which is the third and
+last answer to the question \code{validation} and \code{split} both answer - a final fit on
+every case you have, once the hyperparameters are settled. It goes in this argument
+rather than a new one because it is the same question, and a second argument could
+contradict the first.
+
+Leaving \code{validation} and \code{split} \emph{both} unset is still an error, and that is
+deliberate: "I have no validation set" and "I forgot" look identical, and only one of
+them is a decision.}
 
 \item{colormap}{A list of RGB triples, one per class, background first. For masks stored
 as pictures. Give this or \code{labels}, not both.}
@@ -38,7 +48,7 @@ tumour. This is how NIfTI and every other volume format label anything. Give thi
 
 \item{split}{Divide \code{train} instead of naming a \code{validation} set: a list with
 \code{fractions} (two numbers, or three to cut a test set as well) and \code{group_by}. Exactly
-one of \code{split} and \code{validation}.
+one of \code{split}, \code{validation}, and \code{validation = FALSE}.
 
 \strong{\code{group_by} has to be given, even as \code{NULL}.} It is a regular expression read
 against each sample's name, and everything sharing a group lands in a single split -

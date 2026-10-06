@@ -605,6 +605,22 @@ tiny_detection_fit <- function(envir = parent.frame()) {
   platypus_fit(spec, device = "cpu")
 }
 
+engine_has_optional_validation <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch(
+    reticulate::py_eval(
+      "'validation' in __import__('pyplatypus').spec.data.DataSpec.model_fields"
+    ),
+    error = function(e) FALSE
+  ))
+}
+
+skip_if_no_optional_validation <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(engine_has_optional_validation(),
+                        "the engine in use always requires a validation set")
+}
+
 engine_has_boundary_loss <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch(
