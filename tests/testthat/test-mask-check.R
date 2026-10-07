@@ -10,8 +10,8 @@ test_that("platypus_fit takes check_masks and defaults to on", {
   expect_true(eval(formals(platypus_fit)$check_masks))
 })
 
-test_that("mask_report refuses anything that is not a spec", {
-  expect_error(mask_report(list(a = 1)), "platypus_spec")
+test_that("inspect_masks refuses anything that is not a spec", {
+  expect_error(inspect_masks(list(a = 1)), "platypus_spec")
 })
 
 
@@ -61,14 +61,14 @@ test_that("a correct colormap is not refused", {
   expect_s3_class(platypus_fit(spec), "platypus_fit")
 })
 
-test_that("mask_report says what matched and what did not", {
+test_that("inspect_masks says what matched and what did not", {
   skip_if_no_mask_check()
   root <- tiny_dataset(n = 6, size = 32)
   spec <- platypus_spec(
     data = segmentation_data(root, root, colormap = binary_colormap),
     models = list(u_net("m", input_shape = c(32, 32), blocks = 2, filters = 4, epochs = 1))
   )
-  report <- mask_report(spec)
+  report <- inspect_masks(spec)
   expect_s3_class(report, "data.frame")
   expect_identical(nrow(report), 1L)
   expect_identical(report$split, "train")
@@ -78,33 +78,33 @@ test_that("mask_report says what matched and what did not", {
   expect_identical(report$total_samples, 6L)
 })
 
-test_that("mask_report names the class a wrong colormap loses", {
+test_that("inspect_masks names the class a wrong colormap loses", {
   skip_if_no_mask_check()
   root <- tiny_dataset(n = 6, size = 32)
   spec <- platypus_spec(
     data = segmentation_data(root, root, colormap = list(c(0, 0, 0), c(128, 0, 0))),
     models = list(u_net("m", input_shape = c(32, 32), blocks = 2, filters = 4, epochs = 1))
   )
-  report <- mask_report(spec)
+  report <- inspect_masks(spec)
   expect_identical(attr(report, "missing"), 1L)
   expect_identical(report$missing_classes, "1")
   # It reads without training, which is the point of having it.
   expect_gt(report$samples_checked, 0L)
 })
 
-test_that("mask_report reads the split it is asked for", {
+test_that("inspect_masks reads the split it is asked for", {
   skip_if_no_mask_check()
   root <- tiny_dataset(n = 6, size = 32)
   spec <- platypus_spec(
     data = segmentation_data(root, root, colormap = binary_colormap),
     models = list(u_net("m", input_shape = c(32, 32), blocks = 2, filters = 4, epochs = 1))
   )
-  expect_identical(mask_report(spec, split = "validation")$split, "validation")
+  expect_identical(inspect_masks(spec, split = "validation")$split, "validation")
 })
 
 test_that("the two things the refusal tells you to do are both reachable from R", {
   skip_if_no_mask_check()
-  # This is the whole reason mask_report() and the argument exist. The engine's message
+  # This is the whole reason inspect_masks() and the argument exist. The engine's message
   # names `Engine(..., check_masks=False)` and an `inspect_masks` call - neither of which
   # an R user can type. A message that suggests something impossible is worse than one
   # that only says what is wrong, so both have an R spelling and both are exercised here.
@@ -115,6 +115,6 @@ test_that("the two things the refusal tells you to do are both reachable from R"
                         batch_size = 2))
   )
   expect_error(platypus_fit(spec))                       # refused
-  expect_identical(attr(mask_report(spec), "missing"), 1L)   # and inspectable
+  expect_identical(attr(inspect_masks(spec), "missing"), 1L)   # and inspectable
   expect_s3_class(platypus_fit(spec, check_masks = FALSE), "platypus_fit")  # and overridable
 })

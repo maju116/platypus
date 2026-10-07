@@ -403,8 +403,8 @@ callback_terminate_on_nan <- function() list(name = "terminate_on_nan")
 #' @return An augmentation specification.
 #' @export
 #' @examples
-#' augment("HorizontalFlip", p = 0.5)
-augment <- function(name, ...) {
+#' augmentation_step("HorizontalFlip", p = 0.5)
+augmentation_step <- function(name, ...) {
   list(name = name, params = list(...))
 }
 
@@ -423,16 +423,16 @@ augment <- function(name, ...) {
 #' @param pattern Optional regular expression to filter the names, for browsing: `"Flip"`,
 #'   `"3D$"`, `"Elastic|Grid"`.
 #' @return A character vector of transform names.
-#' @seealso [augment()], which uses one.
+#' @seealso [augmentation_step()], which uses one.
 #' @examples
 #' \dontrun{
-#' available_augmentations()                       # everything, for images
-#' available_augmentations(rank = 3)               # what volumes can take
-#' available_augmentations(rank = 3, pattern = "Flip|Crop")
-#' setdiff(available_augmentations(), available_augmentations(rank = 3))   # the gap
+#' available_transforms()                       # everything, for images
+#' available_transforms(rank = 3)               # what volumes can take
+#' available_transforms(rank = 3, pattern = "Flip|Crop")
+#' setdiff(available_transforms(), available_transforms(rank = 3))   # the gap
 #' }
 #' @export
-available_augmentations <- function(rank = 2, pattern = NULL) {
+available_transforms <- function(rank = 2, pattern = NULL) {
   if (!rank %in% c(2, 3)) {
     stop("`rank` is 2 for images or 3 for volumes.", call. = FALSE)
   }

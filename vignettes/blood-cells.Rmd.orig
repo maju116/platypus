@@ -147,7 +147,7 @@ spec <- platypus_spec(
     optimizer = optimizer_adam(learning_rate = 1e-4),
     # A smear has no up or down, and a left-right flip is free: the boxes follow it
     # exactly, with no interpolation and no rounding.
-    augmentation = list(augment("HorizontalFlip", p = 0.5)),
+    augmentation = list(augmentation_step("HorizontalFlip", p = 0.5)),
     callbacks = list(callback_cosine_annealing())
   )),
   seed = 1

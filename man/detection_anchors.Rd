@@ -18,7 +18,7 @@ frame with one row per anchor.
 }
 \description{
 A detector cannot be reloaded without its anchors, and when they were fitted rather than
-named in the specification this is the only record. \code{\link[=save_weights]{save_weights()}} writes them into the
+named in the specification this is the only record. \code{\link[=export_weights]{export_weights()}} writes them into the
 sidecar for the same reason.
 }
 \examples{

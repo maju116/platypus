@@ -184,7 +184,7 @@ only, since it is the one with intermediate outputs to supervise.}
 
 \item{callbacks}{A list of callbacks, see \link{callbacks}.}
 
-\item{augmentation}{A list of \code{\link[=augment]{augment()}} steps, applied to training data only.}
+\item{augmentation}{A list of \code{\link[=augmentation_step]{augmentation_step()}} steps, applied to training data only.}
 
 \item{epochs, batch_size}{Training length and batch size.}
 

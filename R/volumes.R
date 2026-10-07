@@ -140,14 +140,14 @@ as_volume_list <- function(masks) {
 #' @param names File names, without extension. Taken from `reference` when unset, which works
 #'   when the scans have distinct filenames. They often do not - one directory per case, the same
 #'   `ct.nii.gz` inside each - and writing every mask to one name would silently keep only the
-#'   last, so that case is an error asking for this argument. `split_files(split, "validation")$key`
+#'   last, so that case is an error asking for this argument. `split_path(split, "validation")$key`
 #'   is usually the answer.
 #' @param suffix Appended to each name, for telling two models' output apart.
 #' @return The paths written, invisibly.
 #' @seealso [save_masks()] for 2D masks as pictures.
 #' @examples
 #' \dontrun{
-#' validation <- split_files(split, "validation")
+#' validation <- split_path(split, "validation")
 #' masks <- predict(fit, split = "validation", space = "source")
 #' save_volumes(masks, "predictions", reference = validation$images)
 #' }
@@ -182,7 +182,7 @@ save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
          paste(utils::head(repeated, 3), collapse = ", "),
          if (length(repeated) > 3) ", ..." else "",
          ". Names come from the reference files, and one directory per case usually means ",
-         "the same filename in each. Pass `names` - `split_files(split, \"validation\")$key` ",
+         "the same filename in each. Pass `names` - `split_path(split, \"validation\")$key` ",
          "is what you want.", call. = FALSE)
   }
 
@@ -218,7 +218,7 @@ save_volumes <- function(masks, dir, reference, names = NULL, suffix = "") {
 #' @param paths Directories, each holding the slices of one series.
 #' @return A data frame with one row per directory: `path`, `ok`, `slices`, `sorted_by`,
 #'   `spacing_1/2/3`, `series_uid` and `problem`.
-#' @seealso [volume_info()] for NIfTI files, [platypus_split()] for dividing the cases up.
+#' @seealso [volume_info()] for NIfTI files, [split_dataset()] for dividing the cases up.
 #' @examples
 #' \dontrun{
 #' cases <- list.dirs("dicom_export", recursive = FALSE)

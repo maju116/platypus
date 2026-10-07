@@ -53,7 +53,7 @@
 #' @seealso [evaluate_cases()], which reports a score per case rather than one per set.
 #' @examples
 #' \dontrun{
-#' split <- platypus_split(
+#' split <- split_dataset(
 #'   "scans", "splits",
 #'   group_by = "^(patient\\\\d+)_",
 #'   fractions = c(0.7, 0.15, 0.15)
@@ -66,11 +66,11 @@
 #' )
 #' }
 #' @export
-platypus_split <- function(root, out_dir, group_by = NULL,
-                           fractions = c(0.7, 0.15, 0.15), seed = 0,
-                           mode = c("nested_dirs", "config_file"),
-                           subdirs = c("images", "masks"), column_sep = ";",
-                           strict = TRUE, relative = TRUE) {
+split_dataset <- function(root, out_dir, group_by = NULL,
+                          fractions = c(0.7, 0.15, 0.15), seed = 0,
+                          mode = c("nested_dirs", "config_file"),
+                          subdirs = c("images", "masks"), column_sep = ";",
+                          strict = TRUE, relative = TRUE) {
   mode <- match.arg(mode)
   if (!is.numeric(fractions) || length(fractions) < 2 || length(fractions) > 3) {
     stop("`fractions` must be two or three numbers (train, validation[, test]).",
@@ -127,28 +127,28 @@ print.platypus_split <- function(x, ...) {
 
 #' The files in one part of a split
 #'
-#' Reads the CSV that [platypus_split()] wrote and hands back the paths ready to use.
+#' Reads the CSV that [split_dataset()] wrote and hands back the paths ready to use.
 #'
 #' The reason this exists rather than `read.csv()`: the CSVs store paths **relative to
 #' themselves**, so that a dataset and its split can be moved or mounted elsewhere together.
 #' Read directly, those paths do not open from wherever your session happens to be - which is a
 #' trap worth removing rather than documenting.
 #'
-#' @param split A [platypus_split()].
+#' @param split A [split_dataset()].
 #' @param which `"train"`, `"validation"` or `"test"`.
 #' @return A data frame with `key`, `group`, `images` and `masks`, the paths made absolute.
 #'   `images` and `masks` hold one path per sample, or several separated by the split's
 #'   separator when a sample has several files.
 #' @examples
 #' \dontrun{
-#' split <- platypus_split("scans", "splits", group_by = "^(patient\\\\d+)_")
-#' validation <- split_files(split, "validation")
+#' split <- split_dataset("scans", "splits", group_by = "^(patient\\\\d+)_")
+#' validation <- split_path(split, "validation")
 #' images <- read_images(validation$images, size = c(32, 32, 32), channels = 1)
 #' }
 #' @export
-split_files <- function(split, which = c("train", "validation", "test")) {
+split_path <- function(split, which = c("train", "validation", "test")) {
   if (!inherits(split, "platypus_split")) {
-    stop("`split` must come from `platypus_split()`.", call. = FALSE)
+    stop("`split` must come from `split_dataset()`.", call. = FALSE)
   }
   which <- match.arg(which)
   path <- split[[paste0(which, "_path")]]

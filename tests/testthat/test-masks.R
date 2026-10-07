@@ -8,7 +8,7 @@ square <- function(size = 8) {
 }
 
 test_that("a mask is painted with its colormap", {
-  coloured <- mask_colours(square(), binary_colormap)
+  coloured <- classes_to_colours(square(), binary_colormap)
   expect_identical(dim(coloured), c(8L, 8L, 3L))
   expect_identical(coloured[1, 1, ], c(0L, 0L, 0L))
   expect_identical(coloured[4, 4, ], c(255L, 255L, 255L))
@@ -17,15 +17,15 @@ test_that("a mask is painted with its colormap", {
 test_that("a class the colormap does not define is refused, and says so", {
   # Counting from 1 is the convention here, and getting it wrong should not produce a
   # picture that looks plausible.
-  expect_error(mask_colours(matrix(c(1L, 5L), 1), binary_colormap),
+  expect_error(classes_to_colours(matrix(c(1L, 5L), 1), binary_colormap),
                "colormap defines 2 classes")
-  expect_error(mask_colours(matrix(c(0L, 1L), 1), binary_colormap),
+  expect_error(classes_to_colours(matrix(c(0L, 1L), 1), binary_colormap),
                "counted from 1")
 })
 
 test_that("colours and classes are exact inverses", {
   mask <- square()
-  back <- mask_classes(mask_colours(mask, binary_colormap), binary_colormap)
+  back <- colours_to_classes(classes_to_colours(mask, binary_colormap), binary_colormap)
   expect_identical(back$classes, mask)
   expect_identical(back$coverage, 1)
 })
@@ -33,8 +33,8 @@ test_that("colours and classes are exact inverses", {
 test_that("a colormap that does not describe the data shows up as coverage", {
   # The quietest way to train on nothing: every pixel falls through to background and the
   # run looks normal all the way to a model that learned the empty mask.
-  coloured <- mask_colours(square(), binary_colormap)
-  wrong <- mask_classes(coloured, list(c(1L, 2L, 3L), c(4L, 5L, 6L)))
+  coloured <- classes_to_colours(square(), binary_colormap)
+  wrong <- colours_to_classes(coloured, list(c(1L, 2L, 3L), c(4L, 5L, 6L)))
   expect_identical(wrong$coverage, 0)
   expect_true(all(wrong$classes == 1L))
 })

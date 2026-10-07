@@ -34,7 +34,7 @@
 #'   `fractions` (two numbers, or three to cut a test set too) and `group_by`, which is
 #'   required and may be `NULL`. Exactly one of `split` and `validation`.
 #'
-#'   This is the only way to divide one folder for detection. [platypus_split()] writes a
+#'   This is the only way to divide one folder for detection. [split_dataset()] writes a
 #'   `masks` column and so cannot be used here; `split` divides the samples themselves, so
 #'   column names never come into it. A test set cut this way carries its annotations, so
 #'   unlike a separate `test` folder it can be scored and not only predicted on.
@@ -76,7 +76,7 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
   annotation_format <- match.arg(annotation_format)
 
   if (inherits(train, "platypus_split")) {
-    stop("a `platypus_split()` carries mask paths, not annotation paths, so it cannot be ",
+    stop("a `split_dataset()` carries mask paths, not annotation paths, so it cannot be ",
          "used for detection. Use `split` instead - it divides the samples themselves ",
          "rather than three CSV files, so the column names never come into it.",
          call. = FALSE)

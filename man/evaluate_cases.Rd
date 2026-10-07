@@ -28,7 +28,7 @@ evaluate_cases(object, ...)
 \item{split}{Which data to score on.}
 
 \item{group_by}{A pattern picking a group out of each case's name, as in
-\code{\link[=platypus_split]{platypus_split()}}. With it, the rows are patients rather than slices: a patient's
+\code{\link[=split_dataset]{split_dataset()}}. With it, the rows are patients rather than slices: a patient's
 slices are pooled into one score, the way a volume would be.}
 }
 \value{
@@ -59,5 +59,5 @@ evaluate_cases(fit, group_by = "^(patient\\\\\\\\d+)_")
 }
 }
 \seealso{
-\code{\link[=platypus_split]{platypus_split()}} for keeping a patient out of two sets in the first place.
+\code{\link[=split_dataset]{split_dataset()}} for keeping a patient out of two sets in the first place.
 }

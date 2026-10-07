@@ -96,8 +96,8 @@ plot_masks <- function(images, prediction = NULL, truth = NULL,
     lapply(panels, function(panel) {
       switch(panel,
         image = as_rgb(image),
-        truth = mask_colours(slice_mask(truth, i), colormap),
-        prediction = mask_colours(slice_mask(prediction, i), colormap),
+        truth = classes_to_colours(slice_mask(truth, i), colormap),
+        prediction = classes_to_colours(slice_mask(prediction, i), colormap),
         agreement = overlay_agreement(image, slice_mask(prediction, i),
                                       slice_mask(truth, i), alpha = alpha)
       )

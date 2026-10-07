@@ -16,8 +16,8 @@
 #' @export
 #' @examples
 #' mask <- matrix(c(1, 1, 2, 2), nrow = 2)
-#' dim(mask_colours(mask, binary_colormap))
-mask_colours <- function(mask, colormap) {
+#' dim(classes_to_colours(mask, binary_colormap))
+classes_to_colours <- function(mask, colormap) {
   palette <- do.call(rbind, lapply(colormap, as.integer))
   check_classes(mask, nrow(palette))
   coloured <- palette[as.vector(mask), , drop = FALSE]
@@ -26,7 +26,7 @@ mask_colours <- function(mask, colormap) {
 
 #' Read a colour mask back to class indices
 #'
-#' The inverse of [mask_colours()]. Anything matching no colour becomes background, and
+#' The inverse of [classes_to_colours()]. Anything matching no colour becomes background, and
 #' `coverage` in the result says how much of the mask that was - a number near 1 means the
 #' colormap does not describe this dataset, which is the quietest way to train on nothing.
 #'
@@ -38,9 +38,9 @@ mask_colours <- function(mask, colormap) {
 #'   pixels that matched a colour).
 #' @export
 #' @examples
-#' coloured <- mask_colours(matrix(c(1, 2, 2, 1), nrow = 2), binary_colormap)
-#' mask_classes(coloured, binary_colormap)$classes
-mask_classes <- function(mask, colormap, tolerance = 0) {
+#' coloured <- classes_to_colours(matrix(c(1, 2, 2, 1), nrow = 2), binary_colormap)
+#' colours_to_classes(coloured, binary_colormap)$classes
+colours_to_classes <- function(mask, colormap, tolerance = 0) {
   dims <- dim(mask)
   if (utils::tail(dims, 1) < 3L) {
     stop("expected an RGB mask with three channels last, got ",
@@ -76,7 +76,7 @@ mask_classes <- function(mask, colormap, tolerance = 0) {
 #' @param colormap A list of RGB triples, one per class. Give this or `labels`.
 #' @param labels The voxel value of each class, in class order: `c(0, 1)` for a binary
 #'   segmentation. For NIfTI and other label maps. Give this or `colormap`.
-#' @param tolerance Passed to [mask_classes()]. Ignored for label maps, which are compared to
+#' @param tolerance Passed to [colours_to_classes()]. Ignored for label maps, which are compared to
 #'   within half a unit - a label map that has been resampled or merely passed through a float
 #'   will not satisfy an exact comparison, and a label that fails to match becomes background.
 #' @return An array of class indices, counted from 1.
@@ -108,7 +108,7 @@ read_masks <- function(paths, colormap = NULL, labels = NULL, size = NULL, toler
     return(label_classes(values, labels))
   }
   coloured <- read_images(paths, size = size, channels = 3, nearest = TRUE)
-  mask_classes(coloured, colormap, tolerance = tolerance)$classes
+  colours_to_classes(coloured, colormap, tolerance = tolerance)$classes
 }
 
 #' Label values to class indices
@@ -157,7 +157,7 @@ overlay_mask <- function(image, mask, colormap, alpha = 0.55) {
     stop("image is ", paste(dim(image)[1:2], collapse = "x"), " but mask is ",
          paste(dim(mask)[1:2], collapse = "x"), "; they must match.", call. = FALSE)
   }
-  tint <- mask_colours(mask, colormap)
+  tint <- classes_to_colours(mask, colormap)
   foreground <- as.vector(mask) > 1L
   blended <- image
   for (channel in 1:3) {
@@ -354,7 +354,7 @@ save_masks <- function(masks, dir, colormap, names = NULL, suffix = "") {
          call. = FALSE)
   }
 
-  coloured <- lapply(seq_len(count), function(i) mask_colours(masks[i, , ], colormap))
+  coloured <- lapply(seq_len(count), function(i) classes_to_colours(masks[i, , ], colormap))
   paths <- file.path(dir, paste0(names, suffix, ".png"))
 
   result <- shim()$write_masks(coloured, as.list(paths))

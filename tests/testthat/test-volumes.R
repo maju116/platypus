@@ -366,13 +366,13 @@ test_that("a pattern matching two files is refused with a readable message", {
 
 # ------------------------------------------------------- augmenting volumes
 test_that("`rank` is checked before Python starts", {
-  expect_error(available_augmentations(rank = 4), "2 for images")
+  expect_error(available_transforms(rank = 4), "2 for images")
 })
 
 test_that("the volume list is shorter than the image list and not empty", {
   skip_if_no_3d_augmentation()
-  flat <- available_augmentations()
-  volumes <- available_augmentations(rank = 3)
+  flat <- available_transforms()
+  volumes <- available_transforms(rank = 3)
 
   expect_true(length(volumes) > 50)
   expect_true(length(volumes) < length(flat))
@@ -383,7 +383,7 @@ test_that("the volume list is shorter than the image list and not empty", {
 
 test_that("the geometric transforms worth having are listed for volumes", {
   skip_if_no_3d_augmentation()
-  volumes <- available_augmentations(rank = 3)
+  volumes <- available_transforms(rank = 3)
   for (name in c("Affine", "ElasticTransform", "CubicSymmetry", "HorizontalFlip")) {
     expect_true(name %in% volumes, info = name)
   }
@@ -391,7 +391,7 @@ test_that("the geometric transforms worth having are listed for volumes", {
 
 test_that("the listing can be filtered for browsing", {
   skip_if_no_3d_augmentation()
-  flips <- available_augmentations(rank = 3, pattern = "Flip")
+  flips <- available_transforms(rank = 3, pattern = "Flip")
   expect_true(length(flips) >= 2)
   expect_true(all(grepl("Flip", flips)))
 })
@@ -404,8 +404,8 @@ test_that("a 3D model trains with augmentation", {
     models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
                         filters = 4, epochs = 1, batch_size = 1,
                         metrics = list(metric_dice()),
-                        augmentation = list(augment("HorizontalFlip", p = 0.5),
-                                            augment("CubicSymmetry", p = 0.5))))
+                        augmentation = list(augmentation_step("HorizontalFlip", p = 0.5),
+                                            augmentation_step("CubicSymmetry", p = 0.5))))
   )
   fit <- platypus_fit(spec, num_workers = 0)
   expect_s3_class(fit, "platypus_fit")
@@ -419,13 +419,13 @@ test_that("a transform that cannot do volumes is named when the run starts", {
     data = segmentation_data(root, root, labels = c(0, 1)),
     models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
                         filters = 4, epochs = 1, batch_size = 1,
-                        augmentation = list(augment("GaussNoise"))))
+                        augmentation = list(augmentation_step("GaussNoise"))))
   )
   expect_error(platypus_fit(spec, num_workers = 0), "GaussNoise")
 })
 
 # --------------------------------------------------- reading a split back in
-test_that("split_files resolves the paths the CSV stores relatively", {
+test_that("split_path resolves the paths the CSV stores relatively", {
   # The CSVs store paths relative to themselves *when they can*, so a dataset and its split
   # travel together. read.csv() then hands back paths that do not open from wherever the session
   # happens to be - a trap worth removing rather than documenting.
@@ -435,30 +435,30 @@ test_that("split_files resolves the paths the CSV stores relatively", {
   # and there was nothing to resolve.
   skip_if_no_splits()
   root <- tiny_patient_dataset(patients = 6, slices = 2)
-  split <- platypus_split(root, dirname(root), group_by = "^(patient\\d+)_",
-                          fractions = c(0.5, 0.5))
+  split <- split_dataset(root, dirname(root), group_by = "^(patient\\d+)_",
+                         fractions = c(0.5, 0.5))
 
   raw <- utils::read.csv(split$train_path)
   expect_false(any(startsWith(raw$images, "/")))   # as stored: relative
   expect_false(all(file.exists(raw$images)))       # and not usable from here
 
-  table <- split_files(split, "train")
+  table <- split_path(split, "train")
   expect_true(all(file.exists(table$images)))      # as returned: usable
   expect_true(all(file.exists(table$masks)))
   expect_true(all(c("key", "group", "images", "masks") %in% names(table)))
   expect_equal(nrow(table), split$samples[["train"]])
 })
 
-test_that("split_files refuses a part the split does not have", {
+test_that("split_path refuses a part the split does not have", {
   skip_if_no_splits()
   root <- tiny_patient_dataset(patients = 4, slices = 1)
-  split <- platypus_split(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
-                          fractions = c(0.75, 0.25))
-  expect_error(split_files(split, "test"), "no 'test' part")
+  split <- split_dataset(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
+                         fractions = c(0.75, 0.25))
+  expect_error(split_path(split, "test"), "no 'test' part")
 })
 
-test_that("split_files insists on a split", {
-  expect_error(split_files(list(train_path = "a.csv"), "train"), "platypus_split")
+test_that("split_path insists on a split", {
+  expect_error(split_path(list(train_path = "a.csv"), "train"), "split_dataset")
 })
 
 # ------------------------------------------------------- masks as label maps

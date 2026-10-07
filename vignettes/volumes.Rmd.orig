@@ -134,11 +134,11 @@ studies of some patient land on opposite sides of the split: the model meets tha
 training and is then tested on the same anatomy. Dice comes out several points too high
 and nothing in the result says so.
 
-`platypus_split()` takes a pattern that says which part of a name is the patient, and
+`split_dataset()` takes a pattern that says which part of a name is the patient, and
 keeps every patient whole:
 
 ```{r split}
-split <- platypus_split(
+split <- split_dataset(
   root, file.path(tempdir(), "splits"),
   group_by = "^(patient\\d+)_",
   fractions = c(0.5, 0.25, 0.25),
@@ -181,8 +181,8 @@ spec <- platypus_spec(
       loss = loss_dice(),
       metrics = list(metric_dice(include_background = FALSE)),
       augmentation = list(
-        augment("HorizontalFlip", p = 0.5),
-        augment("CubicSymmetry", p = 0.5)
+        augmentation_step("HorizontalFlip", p = 0.5),
+        augmentation_step("CubicSymmetry", p = 0.5)
       )
     )
   )
@@ -198,9 +198,9 @@ Not every augmentation works on a volume. albumentations supports them unevenly,
 rather than guess:
 
 ```{r augmentations}
-length(available_augmentations())
-length(available_augmentations(rank = 3))
-head(setdiff(available_augmentations(), available_augmentations(rank = 3)), 4)
+length(available_transforms())
+length(available_transforms(rank = 3))
+head(setdiff(available_transforms(), available_transforms(rank = 3)), 4)
 ```
 
 A transform from that difference is refused by name when the run starts, rather than
@@ -246,7 +246,7 @@ A volume cannot honestly be shown as one picture, so `plot_masks()` asks which p
 draw. `slice = "middle"` is the sensible first look:
 
 ```{r plot, fig.height = 5.5}
-validation <- split_files(split, "validation")
+validation <- split_path(split, "validation")
 images <- read_images(validation$images, size = c(32, 32, 32), channels = 1)
 truth <- read_masks(validation$masks, labels = c(0, 1), size = c(32, 32, 32))
 prediction <- predict(fit, split = "validation")

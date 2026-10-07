@@ -172,9 +172,9 @@ spec <- platypus_spec(
       metrics = list(metric_dice(include_background = FALSE),
                      metric_iou(include_background = FALSE)),
       augmentation = list(
-        augment("HorizontalFlip", p = 0.5),
-        augment("VerticalFlip", p = 0.5),
-        augment("RandomRotate90", p = 0.5)
+        augmentation_step("HorizontalFlip", p = 0.5),
+        augmentation_step("VerticalFlip", p = 0.5),
+        augmentation_step("RandomRotate90", p = 0.5)
       ),
       epochs = 12, batch_size = 16
     ),

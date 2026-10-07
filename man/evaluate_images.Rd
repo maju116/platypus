@@ -34,13 +34,18 @@ A data frame of class \code{platypus_images}, one row per image: \code{key}, \co
 \code{n_predicted}, \code{matched}, \code{missed}, \code{spurious} and \code{mean_matched_iou}.
 }
 \description{
+\strong{Detection only.} On a segmentation fit this refuses by name and points at
+\code{\link[=evaluate_cases]{evaluate_cases()}}. The name carries no \code{detection_} prefix on purpose: this is an S3
+generic, so a future task gains a method under the same name rather than a second
+spelling of one idea.
+}
+\details{
 \code{evaluate()} gives one row per model and \code{evaluate_classes()} one row per class. This
 gives one row per image, which is the question asked next: not how well on average, but
 \strong{which} pictures it fails on. A mean over a split says 0.86; it does not say the misses
 are four frames where the stain is dark, and that difference is usually something about
 the data rather than the model.
-}
-\details{
+
 Sort by \code{missed} for the frames it cannot see, and by \code{mean_matched_iou} for the ones
 where it finds everything and places it badly. Those are different problems - the first
 is usually the data, the second usually the anchors.

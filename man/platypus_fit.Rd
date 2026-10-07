@@ -32,7 +32,7 @@ a class the specification declares appears in none of them. A colormap or set of
 labels that matches none of the labelled tissue is the quietest way a run wastes a
 day: every mask reads as background, the loss falls because background is most of a
 medical image, and the model learns to answer "nothing here". Set \code{FALSE} only when
-the missing class is real but rarer than the sample - and see \code{\link[=mask_report]{mask_report()}} first,
+the missing class is real but rarer than the sample - and see \code{\link[=inspect_masks]{inspect_masks()}} first,
 which asks the same question over as much of the data as you like.}
 
 \item{verbose}{Report each epoch as it finishes.}

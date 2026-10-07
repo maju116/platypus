@@ -600,8 +600,8 @@ test_that("the task names that were renamed are named back", {
                "must be one of")
 })
 
-test_that("detection can divide one folder, which platypus_split cannot do for it", {
-  # `platypus_split()` writes a `masks` column, so it was never usable here - detection had
+test_that("detection can divide one folder, which split_dataset cannot do for it", {
+  # `split_dataset()` writes a `masks` column, so it was never usable here - detection had
   # no way to split one folder at all. This divides the samples rather than writing CSVs,
   # so the column name never arises.
   skip_if_no_split_block()

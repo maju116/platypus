@@ -23,7 +23,7 @@ segmentation_data(
 }
 \arguments{
 \item{train, validation}{Paths to the training and validation data. A
-\code{\link[=platypus_split]{platypus_split()}} may be given as \code{train} on its own: it carries all three
+\code{\link[=split_dataset]{split_dataset()}} may be given as \code{train} on its own: it carries all three
 paths and selects \code{config_file} mode, so a split needs no unpacking.
 
 \strong{\code{validation = FALSE} says this run has no validation set}, which is the third and
@@ -60,7 +60,7 @@ slices of one patient in training and validation at once make validation measure
 memory rather than generalisation, and the score comes out several points too high
 with nothing in the output to say so.
 
-Nothing is written. \code{\link[=platypus_split]{platypus_split()}} is still the way when the three CSV files are
+Nothing is written. \code{\link[=split_dataset]{split_dataset()}} is still the way when the three CSV files are
 the point - to keep, to hand to a colleague, to cite - and its result can be passed
 straight to \code{train}.}
 
@@ -102,7 +102,7 @@ come out flair, t1, t1ce, t2 - reproducible and anatomically meaningless. A mode
 with FLAIR in channel one and used on data whose channel one is T1 returns a plausible
 answer with the right shape and the right range, and nothing further down can notice.
 
-Patterns are Python regular expressions, like \code{group_by} in \code{\link[=platypus_split]{platypus_split()}}, and R's
+Patterns are Python regular expressions, like \code{group_by} in \code{\link[=split_dataset]{split_dataset()}}, and R's
 own quoting applies: \code{c("_t1\\\\.nii", "_t1ce\\\\.nii", "_t2\\\\.nii", "_flair\\\\.nii")}.
 Each must match exactly one of a sample's files - \code{"_t1"} would match both \verb{_t1.nii.gz}
 and \verb{_t1ce.nii.gz}, which is an error rather than a race - and every file must be claimed

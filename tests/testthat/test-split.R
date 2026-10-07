@@ -1,8 +1,8 @@
 test_that("`fractions` is checked before Python is ever started", {
   # Cheap arguments are checked in R so a typo costs nothing. Starting an interpreter to be
   # told that three numbers were needed is a poor trade.
-  expect_error(platypus_split("x", "y", fractions = 0.7), "two or three numbers")
-  expect_error(platypus_split("x", "y", fractions = c(0.5, 0.2, 0.2, 0.1)),
+  expect_error(split_dataset("x", "y", fractions = 0.7), "two or three numbers")
+  expect_error(split_dataset("x", "y", fractions = c(0.5, 0.2, 0.2, 0.1)),
                "two or three numbers")
 })
 
@@ -11,8 +11,8 @@ test_that("a split divides a dataset and says what it did", {
   root <- tiny_patient_dataset()
   out <- withr::local_tempdir()
 
-  split <- platypus_split(root, out, group_by = "^(patient\\d+)_",
-                          fractions = c(0.5, 0.25, 0.25), seed = 0)
+  split <- split_dataset(root, out, group_by = "^(patient\\d+)_",
+                         fractions = c(0.5, 0.25, 0.25), seed = 0)
 
   expect_s3_class(split, "platypus_split")
   expect_equal(sum(split$samples), 16)
@@ -28,7 +28,7 @@ test_that("no patient lands in two sets", {
   root <- tiny_patient_dataset()
   out <- withr::local_tempdir()
 
-  split <- platypus_split(root, out, group_by = "^(patient\\d+)_", seed = 3)
+  split <- split_dataset(root, out, group_by = "^(patient\\d+)_", seed = 3)
   groups <- lapply(c("train_path", "validation_path", "test_path"), function(field) {
     unique(utils::read.csv(split[[field]])$group)
   })
@@ -42,10 +42,10 @@ test_that("the same seed gives the same split", {
   skip_if_no_splits()
   root <- tiny_patient_dataset()
 
-  first <- platypus_split(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
-                          seed = 11)
-  again <- platypus_split(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
-                          seed = 11)
+  first <- split_dataset(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
+                         seed = 11)
+  again <- split_dataset(root, withr::local_tempdir(), group_by = "^(patient\\d+)_",
+                         seed = 11)
 
   validation <- function(split) sort(utils::read.csv(split$validation_path)$key)
   expect_identical(validation(first), validation(again))
@@ -55,16 +55,16 @@ test_that("a pattern matching nothing is refused, not silently ignored", {
   # If this ever becomes a warning, the package starts producing inflated scores quietly.
   skip_if_no_splits()
   expect_error(
-    platypus_split(tiny_patient_dataset(), withr::local_tempdir(),
-                   group_by = "^(subject\\d+)_"),
+    split_dataset(tiny_patient_dataset(), withr::local_tempdir(),
+                  group_by = "^(subject\\d+)_"),
     "does not match"
   )
 })
 
 test_that("a split goes straight into segmentation_data()", {
   skip_if_no_splits()
-  split <- platypus_split(tiny_patient_dataset(), withr::local_tempdir(),
-                          group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
+  split <- split_dataset(tiny_patient_dataset(), withr::local_tempdir(),
+                         group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
 
   data <- segmentation_data(split, colormap = binary_colormap)
 
@@ -75,16 +75,16 @@ test_that("a split goes straight into segmentation_data()", {
 
 test_that("passing a split and a validation path at once is caught", {
   skip_if_no_splits()
-  split <- platypus_split(tiny_patient_dataset(), withr::local_tempdir(),
-                          group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
+  split <- split_dataset(tiny_patient_dataset(), withr::local_tempdir(),
+                         group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
   expect_error(segmentation_data(split, "somewhere", colormap = binary_colormap),
                "already a platypus_split")
 })
 
 test_that("a split trains, and the printed summary is readable", {
   skip_if_no_splits()
-  split <- platypus_split(tiny_patient_dataset(), withr::local_tempdir(),
-                          group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
+  split <- split_dataset(tiny_patient_dataset(), withr::local_tempdir(),
+                         group_by = "^(patient\\d+)_", fractions = c(0.5, 0.5))
   spec <- platypus_spec(
     data = segmentation_data(split, colormap = binary_colormap),
     models = list(u_net("tiny", input_shape = c(32, 32), blocks = 2, filters = 4,

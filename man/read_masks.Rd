@@ -17,7 +17,7 @@ segmentation. For NIfTI and other label maps. Give this or \code{colormap}.}
 \item{size}{\code{c(height, width)} to read at, or \code{NULL} to keep each image's own size -
 which only works if they all agree.}
 
-\item{tolerance}{Passed to \code{\link[=mask_classes]{mask_classes()}}. Ignored for label maps, which are compared to
+\item{tolerance}{Passed to \code{\link[=colours_to_classes]{colours_to_classes()}}. Ignored for label maps, which are compared to
 within half a unit - a label map that has been resampled or merely passed through a float
 will not satisfy an exact comparison, and a label that fails to match becomes background.}
 }

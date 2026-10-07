@@ -41,7 +41,7 @@ test_that("a misspelled augmentation gets a suggestion", {
     platypus_spec(
       data = segmentation_data(tempdir(), tempdir(), colormap = binary_colormap),
       models = list(u_net("u", input_shape = c(64, 64),
-                          augmentation = list(augment("horizontalflip"))))
+                          augmentation = list(augmentation_step("horizontalflip"))))
     ),
     error = function(e) e
   )

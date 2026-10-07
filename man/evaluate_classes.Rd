@@ -24,6 +24,12 @@ of the boxes that matched, the number of true boxes, and precision and recall at
 model's \code{operating_point}.
 }
 \description{
+\strong{Detection only.} On a segmentation fit this refuses by name and points at
+\code{\link[=evaluate_cases]{evaluate_cases()}}. The name carries no \code{detection_} prefix on purpose: this is an S3
+generic, so a future task gains a method under the same name rather than a second
+spelling of one idea.
+}
+\details{
 The row that matters on unbalanced data, which is most detection data: BCCD has 4,155
 red cells against 372 white and 361 platelets, so a single number is a number about red
 cells. \code{\link[=evaluate]{evaluate()}} deliberately carries no overall precision or recall for the same

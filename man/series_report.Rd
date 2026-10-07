@@ -47,5 +47,5 @@ table(report$sorted_by)
 }
 }
 \seealso{
-\code{\link[=volume_info]{volume_info()}} for NIfTI files, \code{\link[=platypus_split]{platypus_split()}} for dividing the cases up.
+\code{\link[=volume_info]{volume_info()}} for NIfTI files, \code{\link[=split_dataset]{split_dataset()}} for dividing the cases up.
 }

@@ -69,7 +69,7 @@
 #' @param metrics A list of metrics, see [metrics].
 #' @param optimizer An optimiser, see [optimizers].
 #' @param callbacks A list of callbacks, see [callbacks].
-#' @param augmentation A list of [augment()] steps, applied to training data only.
+#' @param augmentation A list of [augmentation_step()] steps, applied to training data only.
 #' @param epochs,batch_size Training length and batch size.
 #' @param splits Cut each image into a grid of tiles instead of shrinking it: one number
 #'   per spatial dimension, so `c(2, 3)` gives six tiles. Use it to segment a large image

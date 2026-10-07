@@ -68,8 +68,8 @@ reference:
   - optimizers
   - callbacks
   - callback_swa
-  - augment
-  - available_augmentations
+  - augmentation_step
+  - available_transforms
   - encoders
 
 - title: The data on disk
@@ -77,20 +77,20 @@ reference:
     Splitting by patient rather than by slice, and looking at what is actually there
     before spending an afternoon training on it.
   contents:
-  - platypus_split
-  - split_files
+  - split_dataset
+  - split_path
   - read_images
   - read_masks
   - volume_info
   - series_report
-  - mask_report
+  - inspect_masks
 
 - title: Training
   contents:
   - platypus_fit
   - training_history
   - plot.platypus_fit
-  - save_weights
+  - export_weights
   - available_weights
 
 - title: Predicting and scoring
@@ -115,8 +115,8 @@ reference:
 
 - title: Masks and volumes
   contents:
-  - mask_classes
-  - mask_colours
+  - colours_to_classes
+  - classes_to_colours
   - mask_coverage
   - mask_volume
   - unite_masks

@@ -21,7 +21,7 @@
 #' five hundred directories is a warning nobody reads.
 #'
 #' @param train,validation Paths to the training and validation data. A
-#'   [platypus_split()] may be given as `train` on its own: it carries all three
+#'   [split_dataset()] may be given as `train` on its own: it carries all three
 #'   paths and selects `config_file` mode, so a split needs no unpacking.
 #'
 #'   **`validation = FALSE` says this run has no validation set**, which is the third and
@@ -48,7 +48,7 @@
 #'   memory rather than generalisation, and the score comes out several points too high
 #'   with nothing in the output to say so.
 #'
-#'   Nothing is written. [platypus_split()] is still the way when the three CSV files are
+#'   Nothing is written. [split_dataset()] is still the way when the three CSV files are
 #'   the point - to keep, to hand to a colleague, to cite - and its result can be passed
 #'   straight to `train`.
 #' @param colormap A list of RGB triples, one per class, background first. For masks stored
@@ -83,7 +83,7 @@
 #'   with FLAIR in channel one and used on data whose channel one is T1 returns a plausible
 #'   answer with the right shape and the right range, and nothing further down can notice.
 #'
-#'   Patterns are Python regular expressions, like `group_by` in [platypus_split()], and R's
+#'   Patterns are Python regular expressions, like `group_by` in [split_dataset()], and R's
 #'   own quoting applies: `c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")`.
 #'   Each must match exactly one of a sample's files - `"_t1"` would match both `_t1.nii.gz`
 #'   and `_t1ce.nii.gz`, which is an error rather than a race - and every file must be claimed

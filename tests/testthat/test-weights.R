@@ -38,7 +38,7 @@ test_that("a trained model's weights make the round trip through R", {
   fit <- platypus_fit(spec, num_workers = 0)
 
   out <- file.path(withr::local_tempdir(), "mine")
-  written <- save_weights(fit, out, data = "the tiny fixture", licence = "MIT")
+  written <- export_weights(fit, out, data = "the tiny fixture", licence = "MIT")
   expect_true(file.exists(written))
   expect_true(file.exists(sub("[.]safetensors$", ".json", written)))
 
@@ -70,8 +70,8 @@ test_that("weights that belong to another model are refused with the field that 
     models = list(u_net("tiny", input_shape = c(32, 32), blocks = 2, filters = 4,
                         epochs = 1, batch_size = 2))
   )
-  written <- save_weights(platypus_fit(spec, num_workers = 0),
-                          file.path(withr::local_tempdir(), "mine"))
+  written <- export_weights(platypus_fit(spec, num_workers = 0),
+                            file.path(withr::local_tempdir(), "mine"))
 
   wider <- platypus_spec(
     data = segmentation_data(root, root, colormap = binary_colormap),
@@ -92,6 +92,6 @@ test_that("an unknown name lists the published ones", {
   expect_error(platypus_fit(spec, num_workers = 0), "no published weights")
 })
 
-test_that("save_weights refuses what it cannot save", {
-  expect_error(save_weights(list(), "somewhere"), "platypus_fit")
+test_that("export_weights refuses what it cannot save", {
+  expect_error(export_weights(list(), "somewhere"), "platypus_fit")
 })

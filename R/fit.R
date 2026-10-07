@@ -31,7 +31,7 @@
 #'   labels that matches none of the labelled tissue is the quietest way a run wastes a
 #'   day: every mask reads as background, the loss falls because background is most of a
 #'   medical image, and the model learns to answer "nothing here". Set `FALSE` only when
-#'   the missing class is real but rarer than the sample - and see [mask_report()] first,
+#'   the missing class is real but rarer than the sample - and see [inspect_masks()] first,
 #'   which asks the same question over as much of the data as you like.
 #' @param verbose Report each epoch as it finishes.
 #' @return A `platypus_fit`.
@@ -118,6 +118,14 @@ print.platypus_fit <- function(x, ...) {
 #' why `loss_function` is there beside it. A Focal-Tversky of 0.05 is not better than a
 #' CCE-Dice of 0.14; it is not even the same question. Metrics stay comparable, because
 #' they measure the mask rather than the objective.
+#'
+#' @section A note on the name:
+#' `evaluate` is also exported by the **evaluate** package, which knitr depends on, so the
+#' two mask each other depending on which was attached last. It is a generic here, so
+#' `evaluate(fit)` dispatches on the fit's class whichever one you reach - and
+#' `platypus::evaluate(fit)` says so outright. The name is kept because it is the word for
+#' what this does; `platypus_fit()` carries a prefix only because `fit` is a generic in the
+#' tidymodels packages and a plain `fit` would have been theirs to own.
 #'
 #' @param object A [platypus_fit()].
 #' @param split Which data to score on: `"validation"`, `"train"` or `"test"`.
@@ -258,6 +266,11 @@ as_box_frames <- function(found) {
 
 #' Average precision per class
 #'
+#' **Detection only.** On a segmentation fit this refuses by name and points at
+#' [evaluate_cases()]. The name carries no `detection_` prefix on purpose: this is an S3
+#' generic, so a future task gains a method under the same name rather than a second
+#' spelling of one idea.
+#'
 #' The row that matters on unbalanced data, which is most detection data: BCCD has 4,155
 #' red cells against 372 white and 361 platelets, so a single number is a number about red
 #' cells. [evaluate()] deliberately carries no overall precision or recall for the same
@@ -289,7 +302,7 @@ evaluate_classes.platypus_fit <- function(object, model = NULL,
   if (!identical(object$task, "object_detection")) {
     stop("`evaluate_classes()` reports average precision per class, which is a detection ",
          "measure. For segmentation, `evaluate_cases()` reports per case and ",
-         "`summarise_cases()` summarises it.", call. = FALSE)
+         "`summary()` on the result summarises it.", call. = FALSE)
   }
   model <- model %||% object$models[[1]]
   result <- shim()$detection_classes(object$engine, model, split = split)
@@ -298,6 +311,11 @@ evaluate_classes.platypus_fit <- function(object, model = NULL,
 }
 
 #' Score every image separately
+#'
+#' **Detection only.** On a segmentation fit this refuses by name and points at
+#' [evaluate_cases()]. The name carries no `detection_` prefix on purpose: this is an S3
+#' generic, so a future task gains a method under the same name rather than a second
+#' spelling of one idea.
 #'
 #' `evaluate()` gives one row per model and `evaluate_classes()` one row per class. This
 #' gives one row per image, which is the question asked next: not how well on average, but
@@ -378,7 +396,7 @@ print.platypus_images <- function(x, ...) {
 #' The anchors a detector used, and whether they were fitted
 #'
 #' A detector cannot be reloaded without its anchors, and when they were fitted rather than
-#' named in the specification this is the only record. [save_weights()] writes them into the
+#' named in the specification this is the only record. [export_weights()] writes them into the
 #' sidecar for the same reason.
 #'
 #' @param object A fit from [platypus_fit()] on a detection specification.
@@ -585,11 +603,11 @@ rows_to_frame <- function(rows) {
 #' @param model Which model, by the name in the specification. Defaults to the first.
 #' @param split Which data to score on.
 #' @param group_by A pattern picking a group out of each case's name, as in
-#'   [platypus_split()]. With it, the rows are patients rather than slices: a patient's
+#'   [split_dataset()]. With it, the rows are patients rather than slices: a patient's
 #'   slices are pooled into one score, the way a volume would be.
 #' @param ... Unused.
 #' @return A data frame with one row per case, of class `platypus_cases`.
-#' @seealso [platypus_split()] for keeping a patient out of two sets in the first place.
+#' @seealso [split_dataset()] for keeping a patient out of two sets in the first place.
 #' @examples
 #' \dontrun{
 #' cases <- evaluate_cases(fit)
@@ -700,11 +718,11 @@ available_weights <- function() {
 #'   attribute - so you can see what was put beside the weights without opening the file.
 #' @examples
 #' \dontrun{
-#' save_weights(fit, "weights/my-run",
+#' export_weights(fit, "weights/my-run",
 #'              data = "our 2026 cohort", licence = "internal use only")
 #' }
 #' @export
-save_weights <- function(object, path, model = NULL, ...) {
+export_weights <- function(object, path, model = NULL, ...) {
   if (!inherits(object, "platypus_fit")) {
     stop("`object` must come from `platypus_fit()`.", call. = FALSE)
   }
@@ -715,8 +733,8 @@ save_weights <- function(object, path, model = NULL, ...) {
   }
 
   extra <- list(...)
-  result <- shim()$save_weights(object$engine, model, path.expand(path),
-                                extra = if (length(extra)) extra else NULL)
+  result <- shim()$export_weights(object$engine, model, path.expand(path),
+                                  extra = if (length(extra)) extra else NULL)
   if (!isTRUE(result$ok)) abort_engine(result)
   invisible(structure(result$path, recorded = result$recorded, sidecar = result$sidecar))
 }
@@ -759,15 +777,15 @@ save_weights <- function(object, path, model = NULL, ...) {
 #' @export
 #' @examples
 #' \dontrun{
-#' mask_report(spec)
-#' mask_report(spec, split = "validation", limit = 2000)
+#' inspect_masks(spec)
+#' inspect_masks(spec, split = "validation", limit = 2000)
 #' }
-mask_report <- function(spec, split = c("train", "validation", "test"), limit = 500) {
+inspect_masks <- function(spec, split = c("train", "validation", "test"), limit = 500) {
   if (!inherits(spec, "platypus_spec")) {
     stop("`spec` must come from `platypus_spec()`; see `?platypus_spec`.", call. = FALSE)
   }
   split <- match.arg(split)
-  result <- shim()$mask_report(spec$py, split = split, limit = as.integer(limit))
+  result <- shim()$inspect_masks(spec$py, split = split, limit = as.integer(limit))
   if (!isTRUE(result$ok)) abort_engine(result)
 
   present <- as.integer(unlist(result$present_classes))

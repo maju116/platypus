@@ -27,7 +27,7 @@ what the mask is written with, so this is required rather than optional.}
 \item{names}{File names, without extension. Taken from \code{reference} when unset, which works
 when the scans have distinct filenames. They often do not - one directory per case, the same
 \code{ct.nii.gz} inside each - and writing every mask to one name would silently keep only the
-last, so that case is an error asking for this argument. \code{split_files(split, "validation")$key}
+last, so that case is an error asking for this argument. \code{split_path(split, "validation")$key}
 is usually the answer.}
 
 \item{suffix}{Appended to each name, for telling two models' output apart.}
@@ -49,7 +49,7 @@ written somewhere wrong.
 }
 \examples{
 \dontrun{
-validation <- split_files(split, "validation")
+validation <- split_path(split, "validation")
 masks <- predict(fit, split = "validation", space = "source")
 save_volumes(masks, "predictions", reference = validation$images)
 }

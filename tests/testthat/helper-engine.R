@@ -332,7 +332,7 @@ for index in range(%d):
 }
 
 
-#' Does the engine in use augment volumes?
+#' Does the engine in use augmentation_step volumes?
 engine_augments_volumes <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
