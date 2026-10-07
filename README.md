@@ -7,7 +7,7 @@ figure.**
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/maju116/platypus/actions/workflows/pkgdown.yaml/badge.svg)](https://maju116.github.io/platypus/)
+[![docs](https://github.com/maju116/platypus/actions/workflows/docs.yaml/badge.svg)](https://maju116.github.io/platypus/)
 <!-- badges: end -->
 
 > **This is a rewrite, and an alpha.** The package released in 2020 was built on

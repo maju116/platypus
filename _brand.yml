@@ -1,0 +1,63 @@
+# The look of both platypus sites. This file is byte-for-byte identical in the R package
+# and in pyplatypus, and a test in each repository says so - two sites that must look alike
+# cannot be kept alike by anybody remembering to copy a colour.
+#
+# THE PALETTE COMES FROM THE HEXSTICKER, which is the one thing the author asked to keep
+# when both repositories were reset (CLAUDE.md §4c). Measured off
+# assets/hexsticker_platypus.png rather than chosen: cream is 54.8% of its opaque pixels,
+# the dark brown 12.1%, tan 9.1%, terracotta 4.1%. The 2022 mkdocs site set
+# `palette: primary: brown`, so this is a return to the author's own choice rather than an
+# invention - and it replaces the `#1c5d99` blue that was typed into _pkgdown.yml in
+# September and matched nothing.
+#
+# CONTRAST IS A CONSTRAINT HERE, NOT A PREFERENCE. Measured against white, for the 4.5
+# WCAG AA needs for body text:
+#
+#     brown      #53251d   11.8   links, text, anything small
+#     terracotta #c5785c    3.7   large text only
+#     tan        #de986d    2.6   decoration only
+#     cream      #f4e0c0    1.3   background only
+#
+# Tan is the prettiest colour in the sticker and must not carry a link. That is why
+# `primary` is the brown.
+
+meta:
+  name: platypus
+  link:
+    home: https://maju116.github.io/platypus/
+    github: https://github.com/maju116/platypus
+
+color:
+  palette:
+    brown: "#53251d"
+    terracotta: "#c5785c"
+    tan: "#de986d"
+    cream: "#f4e0c0"
+    ink: "#3d3636"
+  foreground: ink
+  background: white
+  primary: brown
+  secondary: terracotta
+  # `light` is the tint behind a callout or a table head, where nothing is small enough for
+  # contrast to matter.
+  light: cream
+  dark: ink
+
+typography:
+  fonts:
+    - family: Source Sans 3
+      source: google
+    - family: JetBrains Mono
+      source: google
+  base:
+    family: Source Sans 3
+    line-height: 1.6
+  headings:
+    family: Source Sans 3
+    weight: 600
+  monospace:
+    family: JetBrains Mono
+    size: 0.9em
+  link:
+    color: brown
+    decoration: underline

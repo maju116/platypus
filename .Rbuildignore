@@ -11,10 +11,11 @@
 ^vignettes/.*\.Rmd\.orig$
 ^vignettes/precompute\.R$
 ^inst/python/__pycache__$
-^_pkgdown\.yml$
 ^docs$
-^pkgdown$
 ^tools$
 ^\.lintr$
+^_brand\.yml$
 ^ruff\.toml$
 ^\.ruff_cache$
+^altdoc$
+^_quarto$

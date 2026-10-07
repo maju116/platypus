@@ -28,7 +28,11 @@ src/*.dll
 __pycache__/
 *.py[cod]
 
-# The pkgdown site is built by CI and deployed to the gh-pages branch, so the built
-# copy has no business in history - it is several megabytes of generated HTML that
-# would change on every documentation edit.
+# The site is built by CI and deployed to the gh-pages branch, so the built copy has no
+# business in history - it is several megabytes of generated HTML that would change on
+# every documentation edit. `_quarto/` is altdoc's working directory and is generated the
+# same way; its `_freeze/` was measured at 220s against 223s with and without, so there is
+# nothing to gain by keeping it either.
 /docs/
+altdoc/freeze.rds
+_quarto/

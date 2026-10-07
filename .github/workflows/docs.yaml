@@ -1,0 +1,100 @@
+# The documentation as a website, because GitHub cannot render an .Rmd.
+#
+# Asked for a vignette, GitHub's own API answers `class="Rmd"` wrapped in
+# `<div class="plain"><pre>` - the source, with no figures. A committed .html file gets
+# exactly the same treatment. So a reader who is not running R has no way to see any of
+# this, and the vignettes are where most of the package's argument lives.
+#
+# WHY NOT PKGDOWN. pkgdown has no persistent sidebar for the reference: its index is one
+# long page and every topic page after it carries no navigation. A nested sidebar is the
+# whole reason for rebuilding this, and pkgdown does not give one without fighting the
+# tool. Quarto does, and the engine's site is being built with the same thing, so the two
+# halves look alike by construction rather than by matching colours by hand.
+#
+# Quarto is also not a free choice here: `altdoc` renders manual pages and vignettes
+# through Quarto whichever backend it is told to use, so it is a dependency of this site
+# either way. Choosing MkDocs would have added a whole layer - and MkDocs 1.x is
+# unmaintained, Material for MkDocs is in maintenance mode, and its successor is at an
+# early stage.
+#
+# Nothing here runs a model. The vignettes are precomputed - the checked-in .Rmd holds no
+# live code, only its output and the figures beside it - so this needs pandoc, R and
+# Quarto, and no Python.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+name: docs
+
+permissions: read-all
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::altdoc, any::yaml, local::.
+          needs: website
+
+      # The sidebar is generated from tools/reference-groups.yml, which is where the
+      # grouping - the one judgement on this site - lives. Running it here means a stale
+      # `altdoc/quarto_website.yml` cannot ship; `tests/testthat/test-reference-groups.R`
+      # is what fails when it is stale, but this job should not depend on somebody having
+      # run the tests.
+      - name: Generate the sidebar from the reference grouping
+        run: Rscript tools/build-reference.R
+
+      # Fails when a topic is in no group, or a group names a topic that does not exist.
+      # This is what `pkgdown::check_pkgdown()` used to do, and §4v put that *before* the
+      # build on purpose: adding a function and forgetting the index is the ordinary way
+      # to break the site, and two seconds beats four minutes.
+      - name: Check the reference index
+        run: |
+          Rscript -e 'library(testthat); library(platypus);
+            out <- test_file("tests/testthat/test-reference-groups.R", reporter = "summary");
+            results <- as.data.frame(out);
+            if (sum(results$failed) + sum(results$error) > 0) stop("the reference index is wrong")'
+
+      - name: Build the site
+        run: Rscript -e 'altdoc::render_docs()'
+
+      # Quarto's `code-link` resolves function names through downlit, which reads the
+      # package's *published* pkgdown index - so it writes absolute links into
+      # /platypus/reference/, a path this site does not serve. 186 of them, on 50 pages,
+      # all of which would 404 the day this replaces pkgdown, with a green build and
+      # nothing to say so. This rewrites them site-relative and links the prose mentions
+      # altdoc's Rd conversion leaves bare; it exits non-zero if any absolute link is
+      # left, so a failure here stops the deploy rather than being read later in a log.
+      - name: Fix the links
+        run: Rscript tools/polish-docs.R
+
+      - name: Deploy to GitHub pages
+        if: github.event_name != 'pull_request'
+        # Third-party, so pinned by commit rather than by tag - the pin r-lib's own
+        # reference workflow ships.
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs
