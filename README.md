@@ -33,75 +33,10 @@ There is nothing to set up afterwards. The first call that needs the engine buil
 isolated Python environment for it, and everything after that uses the cache. You never
 choose an interpreter, activate anything, or match a version.
 
-### Coming from platypus 0.1.1
-
-**Code written against the 2020 release will not run on this one.** That version built Keras
-models through the R `keras` package and handed them back to you; this one describes a whole
-run as a specification and computes it in PyTorch. Of the 37 functions and objects the old
-version exported, **30 are gone** — including all of `yolo3()`, `darknet53()`,
-`load_darknet_weights()`, `get_boxes()`, `non_max_suppression()`, `plot_boxes()`,
-`segmentation_generator()` and the annotation readers.
-
-Seven names survive, and **three of them are the ones to watch**, because they are still
-exported, still callable, and mean something different:
-
-| name | 0.1.1 | now |
-|---|---|---|
-| `u_net()` | `u_net(net_h, net_w, grayscale, ...)` → a Keras model | `u_net(name, input_shape, ...)` → one model in a specification |
-| `plot_masks()` | `plot_masks(images_paths, masks, labels, colormap)` | `plot_masks(images, prediction, truth, ...)` |
-| `loss_dice()` | no arguments, returns a Keras loss | `loss_dice(smooth = 1)`, returns a loss to name in a specification |
-
-The other four — `binary_colormap`, `voc_colormap`, `binary_labels`, `voc_labels` — are the
-same data as before.
-
-**Object detection is back, and the names are different.** The old package handed you a Keras
-YOLOv3; this one describes a detector in a specification like everything else. So those five
-names are gone rather than moved, and what replaces them is:
-
-| 0.1.1 | now |
-|---|---|
-| `yolo3()`, `darknet53()` | `yolo3()` as one entry in `platypus_spec()` - same name, a specification rather than a model |
-| `load_darknet_weights()` | `weights = "bccd-yolo3"`, or a path, or `hf://owner/repo/file@commit` |
-| `get_boxes()`, `non_max_suppression()` | done inside `predict()`, which returns boxes already suppressed and in each image's own pixels |
-| `plot_boxes()` | `plot_boxes()` - same name, takes what `predict()` returns |
-
-The annotation readers are gone as functions and are now what `detection_data()` reads for
-you: Pascal VOC XML or LabelMe JSON, named rather than guessed.
-
-The old release is still there and still installable, pinned:
-
-```r
-remotes::install_github("maju116/platypus@0.1.1")
-```
-
-Its source is on the `master` branch, and the issues filed against it stay open. What has aged
-is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
-Python, which is the reason for a rewrite rather than a consequence of one.
-
-### Eight functions were renamed on 2026-10-07
-
-Not a new release - this package has none yet - but `install_github` serves the default branch,
-so code written against it last week needs these eight edits. The reason is that the engine and
-this package had grown two words for the same thing in eight places, and a reader moving between
-the two halves paid for every one of them. One name per concept now, and where the two disagreed
-the engine's name won, because it is the layer that cannot be renamed later without changing the
-configuration format.
-
-| was | is | why |
-|---|---|---|
-| `platypus_split()` | `split_dataset()` | the engine's name. The S3 **class** is still `platypus_split` - that is the object's identity, and every class here is prefixed |
-| `split_files()` | `split_path()` | it reads one split's path; it does not split files. `split_samples()` in the engine is a different function, and the two names invited pairing them |
-| `mask_report()` | `inspect_masks()` | the engine's name, and the method it calls |
-| `mask_classes()` | `colours_to_classes()` | the engine's name, and it says which way the conversion goes |
-| `mask_colours()` | `classes_to_colours()` | likewise. Note the engine's `onehot_to_colours()` is **not** this function - it takes probabilities and argmaxes them, this takes class indices |
-| `save_weights()` | `export_weights()` | the engine's name; "export" says a sidecar is written beside the file |
-| `available_augmentations()` | `available_transforms()` | the engine's name, and albumentations' own word for them |
-| `augment()` | `augmentation_step()` | `augment` is a generic in **broom** and means something else there. `augmentation` alone would have shadowed the `augmentation =` argument it builds a list for |
-
-`evaluate()`, `evaluate_cases()`, `evaluate_classes()` and `evaluate_images()` keep their names
-and so does `platypus_fit()`. The prefix on that one is not an inconsistency: `fit` is a generic
-in the tidymodels packages, so a bare `fit` would have been theirs to own, while `evaluate` is a
-generic here and dispatches on the fit's class whichever package was attached last.
+**Coming from platypus 0.1.1?** Code written against the 2020 release will not run on this one,
+and the [changelog](https://github.com/maju116/platypus/blob/main/NEWS.md) says what moved,
+what is gone, and which three names are still exported and mean something else. It is seventy
+lines and most readers need none of them, which is why it is there rather than here.
 
 ## A worked example
 
