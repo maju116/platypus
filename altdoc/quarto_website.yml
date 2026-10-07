@@ -77,8 +77,6 @@ website:
               - man/platypus_fit.qmd
               - man/training_history.qmd
               - man/plot.platypus_fit.qmd
-              - man/export_weights.qmd
-              - man/available_weights.qmd
           - section: "Predicting and scoring"
             contents:
               - man/predict.platypus_fit.qmd
@@ -88,6 +86,10 @@ website:
               - man/evaluate_images.qmd
               - man/detection_anchors.qmd
               - man/detection_crops.qmd
+          - section: "Weights"
+            contents:
+              - man/export_weights.qmd
+              - man/available_weights.qmd
           - section: "Looking at the results"
             contents:
               - man/plot_masks.qmd

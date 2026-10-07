@@ -126,3 +126,87 @@ test_that("the About section is in the agreed order and every entry has a file",
     )
   }
 })
+
+# The reference groups, in the order both sites show them. Each package carries the subset it
+# has: "Setting up" is the reticulate bridge and exists only here, "Looking at the results" is
+# plotting which the engine deliberately does not carry, "Masks and volumes" has no public
+# counterpart there - measured, the engine's `__all__` holds 24 names and not one is a mask,
+# volume or colormap utility - and "Records" and "When something is wrong" are the engine's,
+# because this package has no record reader and documents no condition classes.
+#
+# **Asserting the two lists are equal would assert something false**, which CLAUDE.md did for
+# a while: "the same eight groups" was written down and five of eight titles matched. A shared
+# order with each side showing its own subset is what is actually true, and it still catches
+# the drift that mattered - `export_weights` and `available_weights` were under "Training"
+# here while the engine had a "Weights" group, so the same two functions were filed in the one
+# place a reader of both sites would not look.
+#
+# Also in pyplatypus's tests/test_reference_groups.py.
+group_order <- c(
+  "Setting up",
+  "A specification",
+  "What a model is made of",
+  "The data on disk",
+  "Training",
+  "Predicting and scoring",
+  "Weights",
+  "Records",
+  "Looking at the results",
+  "Masks and volumes",
+  "When something is wrong"
+)
+
+test_that("the groups are a subsequence of the order pyplatypus shares", {
+  groups <- reference_groups()
+  skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
+
+  titles <- vapply(groups, `[[`, character(1), "title")
+
+  unknown <- setdiff(titles, group_order)
+  expect_identical(
+    unknown, character(0),
+    info = paste(
+      "group titles outside the shared order. Adding one means adding it to group_order",
+      "here and in pyplatypus, or naming it what the other side already calls it"
+    )
+  )
+
+  expect_identical(
+    titles, group_order[group_order %in% titles],
+    info = "the groups are out of the order both sites share"
+  )
+})
+
+# Where the names that exist on both sides must be filed. The subsequence test above cannot do
+# this: deleting a group leaves a shorter subsequence, which is still a subsequence, so it
+# passes - verified by mutation. That is exactly the drift this pins against, because it is the
+# drift that happened: `export_weights` and `available_weights` were here under "Training"
+# while the engine had them under "Weights".
+#
+# Only names that exist in both packages are listed, so this is a claim about agreement and not
+# a second copy of the grouping. Also in pyplatypus's tests/test_reference_groups.py.
+shared_placement <- c(
+  available_transforms = "What a model is made of",
+  split_dataset = "The data on disk",
+  export_weights = "Weights",
+  available_weights = "Weights"
+)
+
+test_that("the shared names are filed where pyplatypus files them", {
+  groups <- reference_groups()
+  skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
+
+  located <- unlist(lapply(groups, function(g) {
+    stats::setNames(rep(g$title, length(g$contents)), unlist(g$contents))
+  }))
+
+  for (name in names(shared_placement)) {
+    expect_identical(
+      unname(located[name]), unname(shared_placement[name]),
+      info = sprintf(
+        "%s is under %s here and under %s in pyplatypus", name,
+        if (is.na(located[name])) "nothing" else located[name], shared_placement[name]
+      )
+    )
+  }
+})

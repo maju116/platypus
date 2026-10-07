@@ -37,12 +37,17 @@ groups:
                series_report, inspect_masks]
 
   - title: Training
-    contents: [platypus_fit, training_history, plot.platypus_fit, export_weights,
-               available_weights]
+    contents: [platypus_fit, training_history, plot.platypus_fit]
 
   - title: Predicting and scoring
     contents: [predict.platypus_fit, evaluate, evaluate_cases, evaluate_classes,
                evaluate_images, detection_anchors, detection_crops]
+
+  - title: Weights
+    desc: >-
+      Published weights, and your own. The group pyplatypus already had: these two were
+      under Training here, which is the one place a reader of both sites would not look.
+    contents: [export_weights, available_weights]
 
   - title: Looking at the results
     desc: A figure is the point. These are the ones you put in a paper.
