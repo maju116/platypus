@@ -77,6 +77,17 @@ why <code>loss_function</code> is there beside it. A Focal-Tversky of 0.05 is no
 CCE-Dice of 0.14; it is not even the same question. Metrics stay comparable, because
 they measure the mask rather than the objective.</p>
     </div>
+    <div class="section level2">
+    <h2 id="a-note-on-the-name">A note on the name<a class="anchor" aria-label="anchor" href="#a-note-on-the-name"></a></h2>
+
+
+<p><code>evaluate</code> is also exported by the <strong>evaluate</strong> package, which knitr depends on, so the
+two mask each other depending on which was attached last. It is a generic here, so
+<code>evaluate(fit)</code> dispatches on the fit's class whichever one you reach - and
+<code>platypus::evaluate(fit)</code> says so outright. The name is kept because it is the word for
+what this does; <code><a href="platypus_fit.html">platypus_fit()</a></code> carries a prefix only because <code>fit</code> is a generic in the
+tidymodels packages and a plain <code>fit</code> would have been theirs to own.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

@@ -110,7 +110,7 @@ result.</p></dd>
 <dd><p>Divide <code>train</code> instead of naming a <code>validation</code> set: a list with
 <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is
 required and may be <code>NULL</code>. Exactly one of <code>split</code> and <code>validation</code>.</p>
-<p>This is the only way to divide one folder for detection. <code><a href="platypus_split.html">platypus_split()</a></code> writes a
+<p>This is the only way to divide one folder for detection. <code><a href="split_dataset.html">split_dataset()</a></code> writes a
 <code>masks</code> column and so cannot be used here; <code>split</code> divides the samples themselves, so
 column names never come into it. A test set cut this way carries its annotations, so
 unlike a separate <code>test</code> folder it can be scored and not only predicted on.</p></dd>

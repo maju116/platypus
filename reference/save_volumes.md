@@ -49,7 +49,7 @@ save_volumes(masks, dir, reference, names = NULL, suffix = "")
   not - one directory per case, the same `ct.nii.gz` inside each - and
   writing every mask to one name would silently keep only the last, so
   that case is an error asking for this argument.
-  `split_files(split, "validation")$key` is usually the answer.
+  `split_path(split, "validation")$key` is usually the answer.
 
 - suffix:
 
@@ -76,7 +76,7 @@ for 2D masks as pictures.
 
 ``` r
 if (FALSE) { # \dontrun{
-validation <- split_files(split, "validation")
+validation <- split_path(split, "validation")
 masks <- predict(fit, split = "validation", space = "source")
 save_volumes(masks, "predictions", reference = validation$images)
 } # }

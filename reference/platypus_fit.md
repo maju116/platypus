@@ -51,7 +51,7 @@ platypus_fit(
   loss falls because background is most of a medical image, and the
   model learns to answer "nothing here". Set `FALSE` only when the
   missing class is real but rarer than the sample - and see
-  [`mask_report()`](https://maju116.github.io/platypus/reference/mask_report.md)
+  [`inspect_masks()`](https://maju116.github.io/platypus/reference/inspect_masks.md)
   first, which asks the same question over as much of the data as you
   like.
 

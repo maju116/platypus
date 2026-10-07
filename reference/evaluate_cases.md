@@ -46,7 +46,7 @@ summary(object, ...)
 - group_by:
 
   A pattern picking a group out of each case's name, as in
-  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md).
+  [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md).
   With it, the rows are patients rather than slices: a patient's slices
   are pooled into one score, the way a volume would be.
 
@@ -68,7 +68,7 @@ straddle a boundary.
 
 ## See also
 
-[`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+[`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
 for keeping a patient out of two sets in the first place.
 
 ## Examples

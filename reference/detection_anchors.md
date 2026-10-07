@@ -2,7 +2,7 @@
 
 A detector cannot be reloaded without its anchors, and when they were
 fitted rather than named in the specification this is the only record.
-[`save_weights()`](https://maju116.github.io/platypus/reference/save_weights.md)
+[`export_weights()`](https://maju116.github.io/platypus/reference/export_weights.md)
 writes them into the sidecar for the same reason.
 
 ## Usage

@@ -85,7 +85,7 @@ what the mask is written with, so this is required rather than optional.</p></dd
 <dd><p>File names, without extension. Taken from <code>reference</code> when unset, which works
 when the scans have distinct filenames. They often do not - one directory per case, the same
 <code>ct.nii.gz</code> inside each - and writing every mask to one name would silently keep only the
-last, so that case is an error asking for this argument. <code>split_files(split, "validation")$key</code>
+last, so that case is an error asking for this argument. <code>split_path(split, "validation")$key</code>
 is usually the answer.</p></dd>
 
 
@@ -112,7 +112,7 @@ written somewhere wrong.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="split_files.html">split_files</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="split_path.html">split_path</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"validation"</span>, space <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">save_volumes</span><span class="op">(</span><span class="va">masks</span>, <span class="st">"predictions"</span>, reference <span class="op">=</span> <span class="va">validation</span><span class="op">$</span><span class="va">images</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

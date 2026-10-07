@@ -71,9 +71,9 @@ Losses, metrics, optimisers, callbacks, augmentation, encoders.
   : Callbacks
 - [`callback_swa()`](https://maju116.github.io/platypus/reference/callback_swa.md)
   : Average the weights over the last part of the run
-- [`augment()`](https://maju116.github.io/platypus/reference/augment.md)
+- [`augmentation_step()`](https://maju116.github.io/platypus/reference/augmentation_step.md)
   : An augmentation step
-- [`available_augmentations()`](https://maju116.github.io/platypus/reference/available_augmentations.md)
+- [`available_transforms()`](https://maju116.github.io/platypus/reference/available_transforms.md)
   : Which augmentations are available
 - [`encoders`](https://maju116.github.io/platypus/reference/encoders.md)
   : Pretrained encoders, and what they are worth
@@ -83,9 +83,9 @@ Losses, metrics, optimisers, callbacks, augmentation, encoders.
 Splitting by patient rather than by slice, and looking at what is
 actually there before spending an afternoon training on it.
 
-- [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+- [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
   : Split a dataset into training, validation and test sets
-- [`split_files()`](https://maju116.github.io/platypus/reference/split_files.md)
+- [`split_path()`](https://maju116.github.io/platypus/reference/split_path.md)
   : The files in one part of a split
 - [`read_images()`](https://maju116.github.io/platypus/reference/read_images.md)
   : Read images as the model sees them
@@ -95,7 +95,7 @@ actually there before spending an afternoon training on it.
   : What is in a volume file
 - [`series_report()`](https://maju116.github.io/platypus/reference/series_report.md)
   : Check folders of DICOM slices before training on them
-- [`mask_report()`](https://maju116.github.io/platypus/reference/mask_report.md)
+- [`inspect_masks()`](https://maju116.github.io/platypus/reference/inspect_masks.md)
   : What the colormap or labels match in your masks
 
 ## Training
@@ -106,7 +106,7 @@ actually there before spending an afternoon training on it.
   : The epoch-by-epoch record
 - [`plot(`*`<platypus_fit>`*`)`](https://maju116.github.io/platypus/reference/plot.platypus_fit.md)
   : Plot what happened during training
-- [`save_weights()`](https://maju116.github.io/platypus/reference/save_weights.md)
+- [`export_weights()`](https://maju116.github.io/platypus/reference/export_weights.md)
   : Save a trained model's weights
 - [`available_weights()`](https://maju116.github.io/platypus/reference/available_weights.md)
   : The published weights, and what they are
@@ -146,9 +146,9 @@ A figure is the point. These are the ones you put in a paper.
 
 ## Masks and volumes
 
-- [`mask_classes()`](https://maju116.github.io/platypus/reference/mask_classes.md)
+- [`colours_to_classes()`](https://maju116.github.io/platypus/reference/colours_to_classes.md)
   : Read a colour mask back to class indices
-- [`mask_colours()`](https://maju116.github.io/platypus/reference/mask_colours.md)
+- [`classes_to_colours()`](https://maju116.github.io/platypus/reference/classes_to_colours.md)
   : Paint a mask with its colormap
 - [`mask_coverage()`](https://maju116.github.io/platypus/reference/mask_coverage.md)
   : How much of each class a mask covers

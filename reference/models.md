@@ -236,7 +236,7 @@ linknet(
 - augmentation:
 
   A list of
-  [`augment()`](https://maju116.github.io/platypus/reference/augment.md)
+  [`augmentation_step()`](https://maju116.github.io/platypus/reference/augmentation_step.md)
   steps, applied to training data only.
 
 - epochs, batch_size:

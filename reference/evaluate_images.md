@@ -1,13 +1,11 @@
 # Score every image separately
 
-[`evaluate()`](https://maju116.github.io/platypus/reference/evaluate.md)
-gives one row per model and
-[`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
-one row per class. This gives one row per image, which is the question
-asked next: not how well on average, but **which** pictures it fails on.
-A mean over a split says 0.86; it does not say the misses are four
-frames where the stain is dark, and that difference is usually something
-about the data rather than the model.
+**Detection only.** On a segmentation fit this refuses by name and
+points at
+[`evaluate_cases()`](https://maju116.github.io/platypus/reference/evaluate_cases.md).
+The name carries no `detection_` prefix on purpose: this is an S3
+generic, so a future task gains a method under the same name rather than
+a second spelling of one idea.
 
 ## Usage
 
@@ -58,6 +56,15 @@ A data frame of class `platypus_images`, one row per image: `key`,
 `mean_matched_iou`.
 
 ## Details
+
+[`evaluate()`](https://maju116.github.io/platypus/reference/evaluate.md)
+gives one row per model and
+[`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
+one row per class. This gives one row per image, which is the question
+asked next: not how well on average, but **which** pictures it fails on.
+A mean over a split says 0.86; it does not say the misses are four
+frames where the stain is dark, and that difference is usually something
+about the data rather than the model.
 
 Sort by `missed` for the frames it cannot see, and by `mean_matched_iou`
 for the ones where it finds everything and places it badly. Those are

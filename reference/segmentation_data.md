@@ -33,7 +33,7 @@ segmentation_data(
 - train, validation:
 
   Paths to the training and validation data. A
-  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+  [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
   may be given as `train` on its own: it carries all three paths and
   selects `config_file` mode, so a split needs no unpacking.
 
@@ -84,7 +84,7 @@ segmentation_data(
   to say so.
 
   Nothing is written.
-  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+  [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
   is still the way when the three CSV files are the point - to keep, to
   hand to a colleague, to cite - and its result can be passed straight
   to `train`.
@@ -145,7 +145,7 @@ segmentation_data(
   down can notice.
 
   Patterns are Python regular expressions, like `group_by` in
-  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md),
+  [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md),
   and R's own quoting applies:
   `c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")`. Each
   must match exactly one of a sample's files - `"_t1"` would match both

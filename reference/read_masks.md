@@ -34,7 +34,7 @@ read_masks(paths, colormap = NULL, labels = NULL, size = NULL, tolerance = 0)
 - tolerance:
 
   Passed to
-  [`mask_classes()`](https://maju116.github.io/platypus/reference/mask_classes.md).
+  [`colours_to_classes()`](https://maju116.github.io/platypus/reference/colours_to_classes.md).
   Ignored for label maps, which are compared to within half a unit - a
   label map that has been resampled or merely passed through a float
   will not satisfy an exact comparison, and a label that fails to match

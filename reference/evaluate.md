@@ -39,6 +39,17 @@ of 0.05 is not better than a CCE-Dice of 0.14; it is not even the same
 question. Metrics stay comparable, because they measure the mask rather
 than the objective.
 
+## A note on the name
+
+`evaluate` is also exported by the **evaluate** package, which knitr
+depends on, so the two mask each other depending on which was attached
+last. It is a generic here, so `evaluate(fit)` dispatches on the fit's
+class whichever one you reach - and `platypus::evaluate(fit)` says so
+outright. The name is kept because it is the word for what this does;
+[`platypus_fit()`](https://maju116.github.io/platypus/reference/platypus_fit.md)
+carries a prefix only because `fit` is a generic in the tidymodels
+packages and a plain `fit` would have been theirs to own.
+
 ## Examples
 
 ``` r

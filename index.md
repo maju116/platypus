@@ -86,6 +86,40 @@ stay open. What has aged is its dependencies rather than its code: the
 pinned TensorFlow no longer installs on a current Python, which is the
 reason for a rewrite rather than a consequence of one.
 
+### Eight functions were renamed on 2026-10-07
+
+Not a new release - this package has none yet - but `install_github`
+serves the default branch, so code written against it last week needs
+these eight edits. The reason is that the engine and this package had
+grown two words for the same thing in eight places, and a reader moving
+between the two halves paid for every one of them. One name per concept
+now, and where the two disagreed the engine’s name won, because it is
+the layer that cannot be renamed later without changing the
+configuration format.
+
+| was | is | why |
+|----|----|----|
+| `platypus_split()` | [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md) | the engine’s name. The S3 **class** is still `platypus_split` - that is the object’s identity, and every class here is prefixed |
+| `split_files()` | [`split_path()`](https://maju116.github.io/platypus/reference/split_path.md) | it reads one split’s path; it does not split files. `split_samples()` in the engine is a different function, and the two names invited pairing them |
+| `mask_report()` | [`inspect_masks()`](https://maju116.github.io/platypus/reference/inspect_masks.md) | the engine’s name, and the method it calls |
+| `mask_classes()` | [`colours_to_classes()`](https://maju116.github.io/platypus/reference/colours_to_classes.md) | the engine’s name, and it says which way the conversion goes |
+| `mask_colours()` | [`classes_to_colours()`](https://maju116.github.io/platypus/reference/classes_to_colours.md) | likewise. Note the engine’s `onehot_to_colours()` is **not** this function - it takes probabilities and argmaxes them, this takes class indices |
+| `save_weights()` | [`export_weights()`](https://maju116.github.io/platypus/reference/export_weights.md) | the engine’s name; “export” says a sidecar is written beside the file |
+| `available_augmentations()` | [`available_transforms()`](https://maju116.github.io/platypus/reference/available_transforms.md) | the engine’s name, and albumentations’ own word for them |
+| `augment()` | [`augmentation_step()`](https://maju116.github.io/platypus/reference/augmentation_step.md) | `augment` is a generic in **broom** and means something else there. `augmentation` alone would have shadowed the `augmentation =` argument it builds a list for |
+
+[`evaluate()`](https://maju116.github.io/platypus/reference/evaluate.md),
+[`evaluate_cases()`](https://maju116.github.io/platypus/reference/evaluate_cases.md),
+[`evaluate_classes()`](https://maju116.github.io/platypus/reference/evaluate_classes.md)
+and
+[`evaluate_images()`](https://maju116.github.io/platypus/reference/evaluate_images.md)
+keep their names and so does
+[`platypus_fit()`](https://maju116.github.io/platypus/reference/platypus_fit.md).
+The prefix on that one is not an inconsistency: `fit` is a generic in
+the tidymodels packages, so a bare `fit` would have been theirs to own,
+while `evaluate` is a generic here and dispatches on the fit’s class
+whichever package was attached last.
+
 ## A worked example
 
 ``` r
@@ -209,7 +243,7 @@ goes in a report, not a voxel count that means nothing outside one
 scanner.
 
 **Splitting by patient, not by slice.**
-[`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+[`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
 divides one directory into training, validation and test sets and keeps
 every group whole; the result goes straight into
 [`segmentation_data()`](https://maju116.github.io/platypus/reference/segmentation_data.md).
@@ -227,7 +261,7 @@ distribution and names the worst one. On the Data Science Bowl a model
 averaging Dice 0.855 turned out to score 0.006 on three images. The mean
 had no way of saying so.
 
-**Augmentation in 3D**, with `available_augmentations(rank = 3)` to say
+**Augmentation in 3D**, with `available_transforms(rank = 3)` to say
 what can be used on a volume — albumentations supports them unevenly,
 and a transform that cannot is refused by name when the run starts
 rather than raising `KeyError: 'images'` from inside the library an hour
@@ -245,7 +279,7 @@ architecture loads a trained model instead of training one —
 lists what is published and what each one can and cannot do. A name is
 pinned to one commit of the repository holding it, so it means the same
 numbers next year.
-[`save_weights()`](https://maju116.github.io/platypus/reference/save_weights.md)
+[`export_weights()`](https://maju116.github.io/platypus/reference/export_weights.md)
 writes your own the same way, with a sidecar recording what they were
 trained on, which is what makes them usable by anybody else.
 
@@ -258,7 +292,7 @@ reason, and the model learns to answer “nothing here”.
 reads a sample of the training masks first and **refuses when a class
 the specification declares appears in none of them** — which is provable
 rather than suspicious, because a class with no examples has no gradient
-towards it. `mask_report(spec)` asks the same question over as much of
+towards it. `inspect_masks(spec)` asks the same question over as much of
 the data as you like, and `check_masks = FALSE` proceeds regardless.
 
 **A backbone where one helps.** `encoder = "resnet34"` swaps the
@@ -284,7 +318,7 @@ cells <- c("RBC", "WBC", "Platelets")
 spec <- platypus_spec(
   data = detection_data("train.csv", "valid.csv", classes = cells, mode = "config_file"),
   models = list(yolo3("cells", input_shape = c(416, 416), epochs = 150,
-                      augmentation = list(augment("HorizontalFlip", p = 0.5)),
+                      augmentation = list(augmentation_step("HorizontalFlip", p = 0.5)),
                       callbacks = list(callback_cosine_annealing())))
 )
 
@@ -466,7 +500,7 @@ Augmentation in 3D works, but unevenly, because albumentations supports
 volumes for most of its transforms and not all of them. Every transform
 in a 3D specification is probed while the pipeline is built, so one that
 cannot take a volume is named at that point rather than failing mid-run;
-`available_augmentations(rank = 3)` lists what is usable.
+`available_transforms(rank = 3)` lists what is usable.
 
 Resampling volumes to isotropic spacing is deliberate rather than
 automatic:

@@ -49,7 +49,7 @@ required to be unique - worth knowing before trusting the result.
 
 [`volume_info()`](https://maju116.github.io/platypus/reference/volume_info.md)
 for NIfTI files,
-[`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+[`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
 for dividing the cases up.
 
 ## Examples

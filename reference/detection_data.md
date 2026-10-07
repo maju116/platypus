@@ -67,7 +67,7 @@ detection_data(
   `split` and `validation`.
 
   This is the only way to divide one folder for detection.
-  [`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+  [`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
   writes a `masks` column and so cannot be used here; `split` divides
   the samples themselves, so column names never come into it. A test set
   cut this way carries its annotations, so unlike a separate `test`

@@ -117,13 +117,13 @@ split: the model meets that patient in training and is then tested on
 the same anatomy. Dice comes out several points too high and nothing in
 the result says so.
 
-[`platypus_split()`](https://maju116.github.io/platypus/reference/platypus_split.md)
+[`split_dataset()`](https://maju116.github.io/platypus/reference/split_dataset.md)
 takes a pattern that says which part of a name is the patient, and keeps
 every patient whole:
 
 ``` r
 
-split <- platypus_split(
+split <- split_dataset(
   root, file.path(tempdir(), "splits"),
   group_by = "^(patient\\d+)_",
   fractions = c(0.5, 0.25, 0.25),
@@ -174,8 +174,8 @@ spec <- platypus_spec(
       loss = loss_dice(),
       metrics = list(metric_dice(include_background = FALSE)),
       augmentation = list(
-        augment("HorizontalFlip", p = 0.5),
-        augment("CubicSymmetry", p = 0.5)
+        augmentation_step("HorizontalFlip", p = 0.5),
+        augmentation_step("CubicSymmetry", p = 0.5)
       )
     )
   )
@@ -197,11 +197,11 @@ unevenly, so ask rather than guess:
 
 ``` r
 
-length(available_augmentations())
+length(available_transforms())
 #> [1] 130
-length(available_augmentations(rank = 3))
+length(available_transforms(rank = 3))
 #> [1] 97
-head(setdiff(available_augmentations(), available_augmentations(rank = 3)), 4)
+head(setdiff(available_transforms(), available_transforms(rank = 3)), 4)
 #> [1] "AdditiveNoise"       "BBoxSafeRandomCrop"  "ChannelDropout"     
 #> [4] "ChromaticAberration"
 ```
@@ -277,7 +277,7 @@ asks which plane to draw. `slice = "middle"` is the sensible first look:
 
 ``` r
 
-validation <- split_files(split, "validation")
+validation <- split_path(split, "validation")
 images <- read_images(validation$images, size = c(32, 32, 32), channels = 1)
 truth <- read_masks(validation$masks, labels = c(0, 1), size = c(32, 32, 32))
 prediction <- predict(fit, split = "validation")

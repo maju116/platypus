@@ -153,6 +153,67 @@
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"maju116/platypus@0.1.1"</span><span class="op">)</span></span></code></pre></div>
 <p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 </div>
+<div class="section level3">
+<h3 id="eight-functions-were-renamed-on-2026-10-07">Eight functions were renamed on 2026-10-07<a class="anchor" aria-label="anchor" href="#eight-functions-were-renamed-on-2026-10-07"></a>
+</h3>
+<p>Not a new release - this package has none yet - but <code>install_github</code> serves the default branch, so code written against it last week needs these eight edits. The reason is that the engine and this package had grown two words for the same thing in eight places, and a reader moving between the two halves paid for every one of them. One name per concept now, and where the two disagreed the engine’s name won, because it is the layer that cannot be renamed later without changing the configuration format.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>was</th>
+<th>is</th>
+<th>why</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>platypus_split()</code></td>
+<td><code><a href="reference/split_dataset.html">split_dataset()</a></code></td>
+<td>the engine’s name. The S3 <strong>class</strong> is still <code>platypus_split</code> - that is the object’s identity, and every class here is prefixed</td>
+</tr>
+<tr>
+<td><code>split_files()</code></td>
+<td><code><a href="reference/split_path.html">split_path()</a></code></td>
+<td>it reads one split’s path; it does not split files. <code>split_samples()</code> in the engine is a different function, and the two names invited pairing them</td>
+</tr>
+<tr>
+<td><code>mask_report()</code></td>
+<td><code><a href="reference/inspect_masks.html">inspect_masks()</a></code></td>
+<td>the engine’s name, and the method it calls</td>
+</tr>
+<tr>
+<td><code>mask_classes()</code></td>
+<td><code><a href="reference/colours_to_classes.html">colours_to_classes()</a></code></td>
+<td>the engine’s name, and it says which way the conversion goes</td>
+</tr>
+<tr>
+<td><code>mask_colours()</code></td>
+<td><code><a href="reference/classes_to_colours.html">classes_to_colours()</a></code></td>
+<td>likewise. Note the engine’s <code>onehot_to_colours()</code> is <strong>not</strong> this function - it takes probabilities and argmaxes them, this takes class indices</td>
+</tr>
+<tr>
+<td><code>save_weights()</code></td>
+<td><code><a href="reference/export_weights.html">export_weights()</a></code></td>
+<td>the engine’s name; “export” says a sidecar is written beside the file</td>
+</tr>
+<tr>
+<td><code>available_augmentations()</code></td>
+<td><code><a href="reference/available_transforms.html">available_transforms()</a></code></td>
+<td>the engine’s name, and albumentations’ own word for them</td>
+</tr>
+<tr>
+<td><code>augment()</code></td>
+<td><code><a href="reference/augmentation_step.html">augmentation_step()</a></code></td>
+<td>
+<code>augment</code> is a generic in <strong>broom</strong> and means something else there. <code>augmentation</code> alone would have shadowed the <code>augmentation =</code> argument it builds a list for</td>
+</tr>
+</tbody>
+</table>
+<p><code><a href="reference/evaluate.html">evaluate()</a></code>, <code><a href="reference/evaluate_cases.html">evaluate_cases()</a></code>, <code><a href="reference/evaluate_classes.html">evaluate_classes()</a></code> and <code><a href="reference/evaluate_images.html">evaluate_images()</a></code> keep their names and so does <code><a href="reference/platypus_fit.html">platypus_fit()</a></code>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="a-worked-example">A worked example<a class="anchor" aria-label="anchor" href="#a-worked-example"></a>
@@ -208,12 +269,12 @@
 <p><strong>One channel per file.</strong> <code>channels_from = c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")</code> stacks four MRI sequences per patient in the order you name, which is how BraTS ships and how satellite bands arrive. The order is stated rather than inferred: sorted, those names come out flair, t1, t1ce, t2 — reproducible and anatomically meaningless, and a model trained with FLAIR in channel one answers plausibly on data where channel one is T1.</p>
 <p><strong>The mask comes back on the scan’s grid.</strong> <code>predict(fit, space = "source")</code> maps each prediction out of the model’s grid onto the one its scan arrived on, undoing the resampling and the crop, so <code><a href="reference/save_volumes.html">save_volumes()</a></code> can write a mask that opens on top of that scan in any viewer. It returns a list rather than an array, because scans differ in size and resizing them to match is how a mask ends up describing the wrong anatomy.</p>
 <p><strong>Volumes.</strong> NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same tiling. <code>target_spacing = c(1, 1, 1)</code> resamples every scan to a common voxel size and then crops or pads to the model’s shape, rather than squeezing each one into the same box — forty slices of 1 mm is 40 mm of patient and forty of 2.5 mm is 100 mm, so resizing alone leaves the same organ a different size in each. <code><a href="reference/series_report.html">series_report()</a></code> checks a whole export before anything trains — reading no pixels, one row per folder — and says which series have a missing slice, duplicated files, or two series sitting in one directory. A gap matters more than it sounds: it does not shorten a volume, it moves everything past it, and no metric would show that. Masks are label maps (<code>labels = c(0, 1)</code>) rather than colours, because that is how volume formats store them. <code><a href="reference/save_volumes.html">save_volumes()</a></code> writes predictions as NIfTI carrying the geometry of the scan they came from — a mask without that affine cannot be laid over its scan by any viewer — and <code><a href="reference/mask_volume.html">mask_volume()</a></code> reports a segmented structure in millilitres, which is the number that goes in a report, not a voxel count that means nothing outside one scanner.</p>
-<p><strong>Splitting by patient, not by slice.</strong> <code><a href="reference/platypus_split.html">platypus_split()</a></code> divides one directory into training, validation and test sets and keeps every group whole; the result goes straight into <code><a href="reference/segmentation_data.html">segmentation_data()</a></code>. This is the most common way a segmentation result comes out several points too good: a scan is many slices of one patient, so splitting at random puts the same anatomy on both sides and validation ends up measuring memory. A <code>group_by</code> pattern that matches nothing is an error, never a quiet fallback.</p>
+<p><strong>Splitting by patient, not by slice.</strong> <code><a href="reference/split_dataset.html">split_dataset()</a></code> divides one directory into training, validation and test sets and keeps every group whole; the result goes straight into <code><a href="reference/segmentation_data.html">segmentation_data()</a></code>. This is the most common way a segmentation result comes out several points too good: a scan is many slices of one patient, so splitting at random puts the same anatomy on both sides and validation ends up measuring memory. A <code>group_by</code> pattern that matches nothing is an error, never a quiet fallback.</p>
 <p><strong>A score per case, not one per dataset.</strong> <code><a href="reference/evaluate_cases.html">evaluate_cases()</a></code> reports each image — or each patient — and <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> gives the distribution and names the worst one. On the Data Science Bowl a model averaging Dice 0.855 turned out to score 0.006 on three images. The mean had no way of saying so.</p>
-<p><strong>Augmentation in 3D</strong>, with <code>available_augmentations(rank = 3)</code> to say what can be used on a volume — albumentations supports them unevenly, and a transform that cannot is refused by name when the run starts rather than raising <code>KeyError: 'images'</code> from inside the library an hour in.</p>
+<p><strong>Augmentation in 3D</strong>, with <code>available_transforms(rank = 3)</code> to say what can be used on a volume — albumentations supports them unevenly, and a transform that cannot is refused by name when the run starts rather than raising <code>KeyError: 'images'</code> from inside the library an hour in.</p>
 <p><strong>The parts that make an analysis fast</strong>, which is what the package was always for: combining the per-object mask files that datasets like the Data Science Bowl ship, converting between class indices and colours, overlaying, and drawing the comparison above. These work on ordinary R arrays and need no Python at all.</p>
-<p><strong>Published weights, by name.</strong> <code>weights = "dsbowl-unet"</code> in an architecture loads a trained model instead of training one — <code><a href="reference/available_weights.html">available_weights()</a></code> lists what is published and what each one can and cannot do. A name is pinned to one commit of the repository holding it, so it means the same numbers next year. <code><a href="reference/save_weights.html">save_weights()</a></code> writes your own the same way, with a sidecar recording what they were trained on, which is what makes them usable by anybody else.</p>
-<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <code><a href="reference/platypus_fit.html">platypus_fit()</a></code> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>mask_report(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
+<p><strong>Published weights, by name.</strong> <code>weights = "dsbowl-unet"</code> in an architecture loads a trained model instead of training one — <code><a href="reference/available_weights.html">available_weights()</a></code> lists what is published and what each one can and cannot do. A name is pinned to one commit of the repository holding it, so it means the same numbers next year. <code><a href="reference/export_weights.html">export_weights()</a></code> writes your own the same way, with a sidecar recording what they were trained on, which is what makes them usable by anybody else.</p>
+<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <code><a href="reference/platypus_fit.html">platypus_fit()</a></code> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>inspect_masks(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
 <p><strong>A backbone where one helps.</strong> <code>encoder = "resnet34"</code> swaps the contracting path for a timm architecture and <code>pretrained = TRUE</code> loads its ImageNet weights, with <code>freeze_encoder</code> to keep them from being undone. Whether that is worth doing is a measured question rather than a rhetorical one — see below, and <code><a href="reference/encoders.html">?encoders</a></code> for the table.</p>
 </div>
 <div class="section level2">
@@ -226,7 +287,7 @@
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/platypus_spec.html">platypus_spec</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="reference/detection_data.html">detection_data</a></span><span class="op">(</span><span class="st">"train.csv"</span>, <span class="st">"valid.csv"</span>, classes <span class="op">=</span> <span class="va">cells</span>, mode <span class="op">=</span> <span class="st">"config_file"</span><span class="op">)</span>,</span>
 <span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="reference/yolo3.html">yolo3</a></span><span class="op">(</span><span class="st">"cells"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">416</span>, <span class="fl">416</span><span class="op">)</span>, epochs <span class="op">=</span> <span class="fl">150</span>,</span>
-<span>                      augmentation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="reference/augment.html">augment</a></span><span class="op">(</span><span class="st">"HorizontalFlip"</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                      augmentation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="reference/augmentation_step.html">augmentation_step</a></span><span class="op">(</span><span class="st">"HorizontalFlip"</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                      callbacks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="reference/callbacks.html">callback_cosine_annealing</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -328,7 +389,7 @@
 <h2 id="what-is-not-in-it-yet">What is not in it yet<a class="anchor" aria-label="anchor" href="#what-is-not-in-it-yet"></a>
 </h2>
 <p>Ensembling. Classification. Boxes in three dimensions - <code><a href="reference/yolo3.html">yolo3()</a></code> is 2D and says so rather than accepting a third number and ignoring it.</p>
-<p>Augmentation in 3D works, but unevenly, because albumentations supports volumes for most of its transforms and not all of them. Every transform in a 3D specification is probed while the pipeline is built, so one that cannot take a volume is named at that point rather than failing mid-run; <code>available_augmentations(rank = 3)</code> lists what is usable.</p>
+<p>Augmentation in 3D works, but unevenly, because albumentations supports volumes for most of its transforms and not all of them. Every transform in a 3D specification is probed while the pipeline is built, so one that cannot take a volume is named at that point rather than failing mid-run; <code>available_transforms(rank = 3)</code> lists what is usable.</p>
 <p>Resampling volumes to isotropic spacing is deliberate rather than automatic: <code><a href="reference/volume_info.html">volume_info()</a></code> reads and reports the spacing, and <code>target_spacing</code> applies it, but applying it changes the voxel grid the model sees, which is a decision to take rather than a default to inherit.</p>
 <p>The package is <strong>not on CRAN</strong>, and not submitted yet. The name also collides, case-insensitively, with an unrelated immunology package archived there in February 2026, which is a question to settle before a submission rather than after.</p>
 </div>
