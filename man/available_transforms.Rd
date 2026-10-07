@@ -24,14 +24,22 @@ Worth asking rather than guessing. Support for volumes is uneven: most geometric
 work and several intensity ones raise from inside the library, so \code{rank = 3} returns a
 shorter list than \code{rank = 2}. A transform outside it is refused when the specification is
 built, by name, rather than failing an hour into training.
+
+The number of names at \code{rank = 2} is a property of the installed 'albumentations'. The
+number at \code{rank = 3} is not: the engine finds that list by running each transform against
+a small probe, and eleven of the ones it rejects fail for the probe's reasons rather than
+the library's - nine want three channels where the probe has one, and four fail on its
+size. Which of those eleven tips over differs between machines, so the count below is what
+was measured rather than a guarantee. The check that decides your run is made when the
+specification is built, against your own shape and parameters.
 }
 \examples{
 \dontrun{
 available_transforms()                       # everything, for images
-#> 130 names, with albumentations 2.0.8
+#> 118 names, with albumentations 2.0.8
 
 available_transforms(rank = 3)               # what volumes can take
-#> 97 - the other 33 raise from inside albumentations when handed a volume
+#> 87 - the other 31 are refused when handed a volume
 
 available_transforms(rank = 3, pattern = "Flip|Crop")
 #> [1] "AtLeastOneBBoxRandomCrop" "CenterCrop"   "CenterCrop3D"
@@ -41,7 +49,7 @@ available_transforms(rank = 3, pattern = "Flip|Crop")
 #> [13] "VerticalFlip"
 
 length(setdiff(available_transforms(), available_transforms(rank = 3)))
-#> [1] 33
+#> [1] 31
 }
 }
 \seealso{
