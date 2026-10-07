@@ -4,13 +4,24 @@
 # nobody can find again. Run from the package root:
 #
 #     PLATYPUS_BCCD=/path/to/BCCD Rscript tools/readme_figures.R boxes
+#     PLATYPUS_DSBOWL=/path/to/stage1_train:/path/to/stage1_validation \
+#         Rscript tools/readme_figures.R masks
 #
-# `boxes` needs BCCD's images and the published `bccd-yolo3` weights, and trains nothing -
-# the point of the figure is that a detector you did not fit puts boxes on a photograph.
+# Neither trains. `boxes` needs BCCD's images and the published `bccd-yolo3` weights - the
+# point of the figure is that a detector you did not fit puts boxes on a photograph - and
+# `masks` needs `dsbowl-unet` and every Data Science Bowl case those weights were split out
+# of, which may be in one directory or several, colon-separated.
 #
-# `masks` is listed for completeness and is NOT what produced the README-masks.png now in
-# the repo: that one was made by hand in September, before this script existed, and
-# regenerating it would change a committed figure to prove nothing. Use it for a new one.
+# `masks` insists on all of them because the weights were measured on a seeded 80/20 split
+# of the whole set, and its held-out 134 can only be recovered by making that split again.
+# A directory named `stage1_validation` is not it: on the machine this was written on, three
+# of the five cases the model card names as its worst are in the *training* directory beside
+# it, so drawing Dice from there would print numbers for images the model was trained on.
+# The check stayed in - this refuses to draw unless the split it reconstructs reproduces the
+# card's own mean and worst case.
+#
+# The README-masks.png this replaces was made by hand in September, before this script
+# existed, and had no provenance at all. That was the thing worth not repeating.
 
 which <- commandArgs(trailingOnly = TRUE)
 if (!length(which)) which <- "boxes"
@@ -75,6 +86,70 @@ if ("boxes" %in% which) {
 }
 
 if ("masks" %in% which) {
-  stop("See the note at the top of this file: `masks` would overwrite a committed figure. ",
-       "Edit this script deliberately if that is what you want.", call. = FALSE)
+  roots <- strsplit(Sys.getenv("PLATYPUS_DSBOWL"), ":", fixed = TRUE)[[1]]
+  roots <- roots[nzchar(roots)]
+  stopifnot(length(roots) >= 1)
+
+  # One pool of every case, so the split can be made over the whole set the way the weights
+  # were. Symbolic links rather than copies: it is 670 directories of images.
+  pool <- file.path(tempdir(), "dsbowl-cases")
+  unlink(pool, recursive = TRUE)
+  dir.create(pool, recursive = TRUE)
+  for (root in roots) {
+    for (case in list.dirs(root, recursive = FALSE)) {
+      file.symlink(normalizePath(case), file.path(pool, basename(case)))
+    }
+  }
+  message(length(list.dirs(pool, recursive = FALSE)), " cases from ", length(roots), " root(s)")
+
+  split <- split_dataset(pool, file.path(tempdir(), "dsbowl-splits"),
+                         fractions = c(0.8, 0.2), seed = 1)
+
+  fit <- platypus_fit(platypus_spec(
+    data = segmentation_data(split$train_path, split$validation_path,
+                             colormap = binary_colormap, mode = "config_file"),
+    # Architecture, blocks and filters are adopted from the weights. Restating them here
+    # would let the specification disagree with the file, and the file would win.
+    models = list(u_net("nuclei", input_shape = c(256, 256),
+                        weights = "dsbowl-unet", fit = FALSE,
+                        metrics = list(metric_dice(include_background = FALSE))))
+  ), verbose = FALSE)
+
+  cases <- evaluate_cases(fit)
+  message(sprintf("  split: n=%d mean=%.4f worst=%.4f",
+                  nrow(cases), mean(cases$dice), min(cases$dice)))
+  message("  card : n=134 mean=0.9205 worst=0.7240")
+  if (nrow(cases) != 134 || abs(mean(cases$dice) - 0.9205) > 5e-4 ||
+      abs(min(cases$dice) - 0.7240) > 5e-4) {
+    stop("this split does not reproduce the model card's numbers, so these are not the ",
+         "images `dsbowl-unet` was held out from. Drawing Dice for them would be leakage ",
+         "wearing the costume of a result.", call. = FALSE)
+  }
+
+  # The best, two from the middle of the ranking and the worst, rather than four good ones:
+  # a README that shows only what a model does well is an advertisement.
+  ranked <- order(cases$dice)
+  shown <- c(ranked[length(ranked)], ranked[length(ranked) %/% 2], ranked[length(ranked) %/% 3],
+             ranked[1])
+
+  listing <- utils::read.csv(split$validation_path, stringsAsFactors = FALSE)
+  images <- read_images(listing$images[shown], size = c(256, 256))
+  # One file per nucleus, which is the layout this dataset is known for, so the truth for
+  # one image is the union of its masks - read at the size the model saw, with `nearest`,
+  # which `read_masks` does.
+  truth <- vapply(shown, function(i) {
+    unite_masks(lapply(
+      strsplit(listing$masks[i], ";", fixed = TRUE)[[1]],
+      function(path) read_masks(path, binary_colormap, size = c(256, 256))[1, , ]
+    ))
+  }, matrix(0L, 256, 256))
+  truth <- aperm(truth, c(3, 1, 2))
+
+  predictions <- predict(fit, split = "validation")
+
+  figure("README-masks.png", width = 9.5, height = 9.0,
+         plot_masks(images, prediction = predictions[shown, , ], truth = truth,
+                    colormap = binary_colormap,
+                    labels = sprintf("dice %.3f", cases$dice[shown])))
+  message("  dice drawn: ", paste(sprintf("%.3f", cases$dice[shown]), collapse = ", "))
 }

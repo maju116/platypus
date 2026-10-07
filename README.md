@@ -81,12 +81,21 @@ plot_masks(images, prediction = predict(fit, "unet"), truth = truth,
 
 <img src="man/figures/README-masks.png" alt="" width="100%" />
 
-Green is what was found, red what was missed, yellow what was invented. Here nearly all of
-the red is a thin rim around nuclei that were otherwise located correctly — the model
-draws them slightly too small. If the question is *how many nuclei*, that hardly matters;
-if it is *how large*, it is the whole answer. No single overlap score tells those apart.
+Four of the 134 images the published `dsbowl-unet` weights were held out from: the best,
+two from the middle of the ranking and the worst, so the picture covers the distribution
+the model card reports rather than its top. Green is what was found, red what was missed,
+yellow what was invented.
 
-The full walk-through is in `vignette("data-science-bowl")`.
+In the third row nearly all of the red is a thin rim around nuclei that were otherwise
+located correctly — the model draws them slightly too small. If the question is *how many
+nuclei*, that hardly matters; if it is *how large*, it is the whole answer. No single
+overlap score tells those apart. The bottom row is the card's worst case at 0.724, and it
+shows what that number is rather than asserting it: tiny dark nuclei in a brightfield
+image, where the model finds specks.
+
+Drawn by `tools/readme_figures.R`, which remakes the seeded split those weights were
+measured on and refuses to draw unless it reproduces the card's own mean of 0.9205 and
+worst case of 0.7240. The full walk-through is in `vignette("data-science-bowl")`.
 
 ## The same thing from a file
 
