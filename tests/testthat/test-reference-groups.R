@@ -69,15 +69,19 @@ test_that("the generated sidebar matches the grouping it was generated from", {
 
   sections <- generated$website$sidebar$contents
   reference <- Filter(function(entry) identical(entry$section, "Reference"), sections)[[1]]
+  # The Overview is a page rather than a group, so it carries `file` and no `section` - and
+  # taking `section` off every entry is an error rather than a mismatch, which is how this
+  # first reported the Overview being added. pyplatypus's equivalent filters the same way.
+  nested <- Filter(function(entry) !is.null(entry$section), reference$contents)
 
   expect_identical(
-    vapply(reference$contents, `[[`, character(1), "section"),
+    vapply(nested, `[[`, character(1), "section"),
     vapply(groups, `[[`, character(1), "title"),
     info = "run tools/build-reference.R - the sidebar is stale"
   )
 
   from_groups <- unlist(lapply(groups, function(g) paste0("man/", unlist(g$contents), ".qmd")))
-  from_sidebar <- unlist(lapply(reference$contents, `[[`, "contents"))
+  from_sidebar <- unlist(lapply(nested, `[[`, "contents"))
   expect_identical(from_sidebar, from_groups,
                    info = "run tools/build-reference.R - the sidebar is stale")
 })
@@ -209,4 +213,20 @@ test_that("the shared names are filed where pyplatypus files them", {
       )
     )
   }
+})
+
+test_that("every group says what it is for, because the Overview page publishes it", {
+  # `desc` was in this file from the start and rendered nowhere, so three groups had none and
+  # nothing noticed. tools/build-reference.R now writes _quarto/overview.qmd from these, which
+  # makes an empty one a blank section on a published page rather than a blank field in a
+  # configuration nobody reads. The page's topic links are covered by the two tests above,
+  # which already check the grouping against the exports in both directions.
+  groups <- reference_groups()
+  skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
+
+  without <- vapply(groups, function(g) is.null(g$desc) || !nzchar(trimws(g$desc)), logical(1))
+  expect_identical(
+    vapply(groups, `[[`, character(1), "title")[without], character(0),
+    info = "a group with no `desc` is a blank section on the Overview page"
+  )
 })
