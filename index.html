@@ -612,11 +612,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </div>
       <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
- <span class="menu-text">Changelog</span>
-  </li>
-          <li class="sidebar-item">
- <span class="menu-text">Licence</span>
-  </li>
+  <div class="sidebar-item-container"> 
+  <a href="./LICENSE.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Licence</span></a>
+  </div>
+</li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./CODE_OF_CONDUCT.html" class="sidebar-item-text sidebar-link">
@@ -672,7 +672,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>platypus</h1>
 <p><strong>Segmentation and object detection for medical images, from a folder of pictures to a figure.</strong></p>
 <!-- badges: start -->
-<p><a href="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://maju116.github.io/platypus/"><img src="https://github.com/maju116/platypus/actions/workflows/docs.yaml/badge.svg" class="img-fluid" alt="docs"></a> <!-- badges: end --></p>
+<p><a href="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href=""><img src="https://github.com/maju116/platypus/actions/workflows/docs.yaml/badge.svg" class="img-fluid" alt="docs"></a> <!-- badges: end --></p>
 <blockquote class="blockquote">
 <p><strong>This is a rewrite, and an alpha.</strong> The package released in 2020 was built on TensorFlow through the R keras package. This one runs on PyTorch through <a href="https://pypi.org/project/pyplatypus/">pyplatypus</a>, which it installs and isolates for you. The API is different and will still move. The old version is on the <code>master</code> branch.</p>
 </blockquote>
@@ -907,7 +907,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="learning-it" class="level2">
 <h2 class="anchored" data-anchor-id="learning-it">Learning it</h2>
 <p>Three vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.</p>
-<p><strong>Read them at <a href="https://maju116.github.io/platypus/">maju116.github.io/platypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
+<p><strong>Read them at <a href="">maju116.github.io/platypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
 <p><code>vignette("data-science-bowl")</code> is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.</p>
 <p><code>vignette("blood-cells")</code> is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.</p>
 <p><code>vignette("volumes")</code> is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.</p>
