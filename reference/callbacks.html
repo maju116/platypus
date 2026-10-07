@@ -120,6 +120,9 @@ over. Unset means the model's <code>epochs</code>.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Whether the watched quantity should rise or fall is worked out from its name: anything
 ending in <code>loss</code> is minimised, everything else maximised.</p>
+<p>There is a seventh, documented separately because it needs a page of its own:
+<code><a href="callback_swa.html">callback_swa()</a></code> averages the weights over the last part of the run. It watches
+nothing and changes how reproducible a run is rather than how well it scores.</p>
     </div>
     <div class="section level2">
     <h2 id="cosine-annealing">Cosine annealing<a class="anchor" aria-label="anchor" href="#cosine-annealing"></a></h2>

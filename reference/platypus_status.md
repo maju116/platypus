@@ -16,6 +16,12 @@ A list with the engine version, the interpreter in use and where its
 environment lives, or `NULL` fields when Python has not been started
 yet.
 
+## Why this page shows no output
+
+What this prints is a property of the machine it runs on, so an example
+output here would describe whichever machine built this page rather than
+yours. Run it and read your own.
+
 ## Examples
 
 ``` r

@@ -77,6 +77,12 @@ A callback specification.
 Whether the watched quantity should rise or fall is worked out from its
 name: anything ending in `loss` is minimised, everything else maximised.
 
+There is a seventh, documented separately because it needs a page of its
+own:
+[`callback_swa()`](https://maju116.github.io/platypus/reference/callback_swa.md)
+averages the weights over the last part of the run. It watches nothing
+and changes how reproducible a run is rather than how well it scores.
+
 ## Cosine annealing
 
 `callback_cosine_annealing()` decays the learning rate from its initial

@@ -49,6 +49,15 @@ loss_lovasz(per_image = FALSE)
 
 A loss specification, to be passed to a model constructor.
 
+## Details
+
+There is a tenth, documented separately because it needs a page of its
+own:
+[`loss_boundary()`](https://maju116.github.io/platypus/reference/loss_boundary.md)
+adds the signed distance to the truth's boundary on top of any of these,
+which removes the systematic volume bias at some cost in per-case
+accuracy.
+
 ## Examples
 
 ``` r

@@ -42,8 +42,19 @@ which uses one.
 ``` r
 if (FALSE) { # \dontrun{
 available_transforms()                       # everything, for images
+#> 130 names, with albumentations 2.0.8
+
 available_transforms(rank = 3)               # what volumes can take
+#> 97 - the other 33 raise from inside albumentations when handed a volume
+
 available_transforms(rank = 3, pattern = "Flip|Crop")
-setdiff(available_transforms(), available_transforms(rank = 3))   # the gap
+#> [1] "AtLeastOneBBoxRandomCrop" "CenterCrop"   "CenterCrop3D"
+#> [4] "CropAndPad"   "CropNonEmptyMaskIfExists"  "HorizontalFlip"
+#> [7] "RandomCrop"   "RandomCrop3D"              "RandomCropFromBorders"
+#> [10] "RandomResizedCrop"  "RandomSizedBBoxSafeCrop"  "RandomSizedCrop"
+#> [13] "VerticalFlip"
+
+length(setdiff(available_transforms(), available_transforms(rank = 3)))
+#> [1] 33
 } # }
 ```
