@@ -123,7 +123,7 @@ def build_engine(
     return {"ok": True, "engine": engine}
 
 
-def mask_report(spec: Any, split: str = "train", limit: int = 500) -> dict:
+def inspect_masks(spec: Any, split: str = "train", limit: int = 500) -> dict:
     """What the colormap or labels match in one split's masks, over `limit` samples.
 
     The engine reads a small sample before training and refuses when a declared class
@@ -820,7 +820,7 @@ def transform_names(rank: int = 2) -> dict:
     import pyplatypus
 
     try:
-        from pyplatypus.spec.components import available_transforms
+        from pyplatypus import available_transforms
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
 
@@ -858,7 +858,7 @@ def weights_listing() -> dict:
     return {"ok": True, "weights": rows}
 
 
-def save_weights(engine: Any, model_name: str, path: str, extra: dict | None = None) -> dict:
+def export_weights(engine: Any, model_name: str, path: str, extra: dict | None = None) -> dict:
     """Write one trained model's weights, with the sidecar describing them."""
     import pyplatypus
 
