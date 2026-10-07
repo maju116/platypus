@@ -1,6 +1,6 @@
-<img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
-
 # platypus
+
+<img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
 
 **Segmentation and object detection for medical images, from a folder of pictures to a
 figure.**
