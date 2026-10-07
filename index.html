@@ -672,11 +672,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#platypus" id="toc-platypus" class="nav-link active" data-scroll-target="#platypus">platypus</a>
   <ul class="collapse">
-  <li><a href="#installing" id="toc-installing" class="nav-link" data-scroll-target="#installing">Installing</a>
-  <ul class="collapse">
-  <li><a href="#coming-from-platypus-0.1.1" id="toc-coming-from-platypus-0.1.1" class="nav-link" data-scroll-target="#coming-from-platypus-0.1.1">Coming from platypus 0.1.1</a></li>
-  <li><a href="#eight-functions-were-renamed-on-2026-10-07" id="toc-eight-functions-were-renamed-on-2026-10-07" class="nav-link" data-scroll-target="#eight-functions-were-renamed-on-2026-10-07">Eight functions were renamed on 2026-10-07</a></li>
-  </ul></li>
+  <li><a href="#installing" id="toc-installing" class="nav-link" data-scroll-target="#installing">Installing</a></li>
   <li><a href="#a-worked-example" id="toc-a-worked-example" class="nav-link" data-scroll-target="#a-worked-example">A worked example</a></li>
   <li><a href="#the-same-thing-from-a-file" id="toc-the-same-thing-from-a-file" class="nav-link" data-scroll-target="#the-same-thing-from-a-file">The same thing from a file</a></li>
   <li><a href="#what-is-in-it" id="toc-what-is-in-it" class="nav-link" data-scroll-target="#what-is-in-it">What is in it</a></li>
@@ -711,178 +707,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>There is nothing to set up afterwards. The first call that needs the engine builds an isolated Python environment for it, and everything after that uses the cache. You never choose an interpreter, activate anything, or match a version.</p>
-<section id="coming-from-platypus-0.1.1" class="level3">
-<h3 class="anchored" data-anchor-id="coming-from-platypus-0.1.1">Coming from platypus 0.1.1</h3>
-<p><strong>Code written against the 2020 release will not run on this one.</strong> That version built Keras models through the R <code>keras</code> package and handed them back to you; this one describes a whole run as a specification and computes it in PyTorch. Of the 37 functions and objects the old version exported, <strong>30 are gone</strong> — including all of <a href="man/yolo3.html"><code>yolo3()</code></a>, <code>darknet53()</code>, <code>load_darknet_weights()</code>, <code>get_boxes()</code>, <code>non_max_suppression()</code>, <a href="man/plot_boxes.html"><code>plot_boxes()</code></a>, <code>segmentation_generator()</code> and the annotation readers.</p>
-<p>Seven names survive, and <strong>three of them are the ones to watch</strong>, because they are still exported, still callable, and mean something different:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>name</th>
-<th>0.1.1</th>
-<th>now</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><a href="man/models.html"><code>u_net()</code></a></td>
-<td><code>u_net(net_h, net_w, grayscale, ...)</code> → a Keras model</td>
-<td><code>u_net(name, input_shape, ...)</code> → one model in a specification</td>
-</tr>
-<tr class="even">
-<td><a href="man/plot_masks.html"><code>plot_masks()</code></a></td>
-<td><code>plot_masks(images_paths, masks, labels, colormap)</code></td>
-<td><code>plot_masks(images, prediction, truth, ...)</code></td>
-</tr>
-<tr class="odd">
-<td><a href="man/losses.html"><code>loss_dice()</code></a></td>
-<td>no arguments, returns a Keras loss</td>
-<td><code>loss_dice(smooth = 1)</code>, returns a loss to name in a specification</td>
-</tr>
-</tbody>
-</table>
-<p>The other four — <code>binary_colormap</code>, <code>voc_colormap</code>, <code>binary_labels</code>, <code>voc_labels</code> — are the same data as before.</p>
-<p><strong>Object detection is back, and the names are different.</strong> The old package handed you a Keras YOLOv3; this one describes a detector in a specification like everything else. So those five names are gone rather than moved, and what replaces them is:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>0.1.1</th>
-<th>now</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>yolo3()</code>, <code>darknet53()</code></td>
-<td><code>yolo3()</code> as one entry in <a href="man/platypus_spec.html"><code>platypus_spec()</code></a> - same name, a specification rather than a model</td>
-</tr>
-<tr class="even">
-<td><code>load_darknet_weights()</code></td>
-<td><code>weights = "bccd-yolo3"</code>, or a path, or <code>hf://owner/repo/file@commit</code></td>
-</tr>
-<tr class="odd">
-<td><code>get_boxes()</code>, <code>non_max_suppression()</code></td>
-<td>done inside <code>predict()</code>, which returns boxes already suppressed and in each image’s own pixels</td>
-</tr>
-<tr class="even">
-<td><code>plot_boxes()</code></td>
-<td><code>plot_boxes()</code> - same name, takes what <code>predict()</code> returns</td>
-</tr>
-</tbody>
-</table>
-<p>The annotation readers are gone as functions and are now what <a href="man/detection_data.html"><code>detection_data()</code></a> reads for you: Pascal VOC XML or LabelMe JSON, named rather than guessed.</p>
-<p>The old release is still there and still installable, pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
-</section>
-<section id="eight-functions-were-renamed-on-2026-10-07" class="level3">
-<h3 class="anchored" data-anchor-id="eight-functions-were-renamed-on-2026-10-07">Eight functions were renamed on 2026-10-07</h3>
-<p>Not a new release - this package has none yet - but <code>install_github</code> serves the default branch, so code written against it last week needs these eight edits. The reason is that the engine and this package had grown two words for the same thing in eight places, and a reader moving between the two halves paid for every one of them. One name per concept now, and where the two disagreed the engine’s name won, because it is the layer that cannot be renamed later without changing the configuration format.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>was</th>
-<th>is</th>
-<th>why</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>platypus_split()</code></td>
-<td><a href="man/split_dataset.html"><code>split_dataset()</code></a></td>
-<td>the engine’s name. The S3 <strong>class</strong> is still <code>platypus_split</code> - that is the object’s identity, and every class here is prefixed</td>
-</tr>
-<tr class="even">
-<td><code>split_files()</code></td>
-<td><a href="man/split_path.html"><code>split_path()</code></a></td>
-<td>it reads one split’s path; it does not split files. <code>split_samples()</code> in the engine is a different function, and the two names invited pairing them</td>
-</tr>
-<tr class="odd">
-<td><code>mask_report()</code></td>
-<td><a href="man/inspect_masks.html"><code>inspect_masks()</code></a></td>
-<td>the engine’s name, and the method it calls</td>
-</tr>
-<tr class="even">
-<td><code>mask_classes()</code></td>
-<td><a href="man/colours_to_classes.html"><code>colours_to_classes()</code></a></td>
-<td>the engine’s name, and it says which way the conversion goes</td>
-</tr>
-<tr class="odd">
-<td><code>mask_colours()</code></td>
-<td><a href="man/classes_to_colours.html"><code>classes_to_colours()</code></a></td>
-<td>likewise. Note the engine’s <code>onehot_to_colours()</code> is <strong>not</strong> this function - it takes probabilities and argmaxes them, this takes class indices</td>
-</tr>
-<tr class="even">
-<td><code>save_weights()</code></td>
-<td><a href="man/export_weights.html"><code>export_weights()</code></a></td>
-<td>the engine’s name; “export” says a sidecar is written beside the file</td>
-</tr>
-<tr class="odd">
-<td><code>available_augmentations()</code></td>
-<td><a href="man/available_transforms.html"><code>available_transforms()</code></a></td>
-<td>the engine’s name, and albumentations’ own word for them</td>
-</tr>
-<tr class="even">
-<td><code>augment()</code></td>
-<td><a href="man/augmentation_step.html"><code>augmentation_step()</code></a></td>
-<td><code>augment</code> is a generic in <strong>broom</strong> and means something else there. <code>augmentation</code> alone would have shadowed the <code>augmentation =</code> argument it builds a list for</td>
-</tr>
-</tbody>
-</table>
-<p><a href="man/evaluate.html"><code>evaluate()</code></a>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p>
-</section>
+<p><strong>Coming from platypus 0.1.1?</strong> Code written against the 2020 release will not run on this one, and the <a href="https://github.com/maju116/platypus/blob/main/NEWS.md">changelog</a> says what moved, what is gone, and which three names are still exported and mean something else. It is seventy lines and most readers need none of them, which is why it is there rather than here.</p>
 </section>
 <section id="a-worked-example" class="level2">
 <h2 class="anchored" data-anchor-id="a-worked-example">A worked example</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">segmentation_data</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">train      =</span> <span class="st">"stage1_train"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">validation =</span> <span class="st">"stage1_validation"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">colormap   =</span> binary_colormap</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">u_net</span>(<span class="st">"unet"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">160</span>),</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">loss    =</span> <span class="fu">loss_cce_dice</span>(),</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">metrics =</span> <span class="fu">list</span>(<span class="fu">metric_dice</span>(<span class="at">include_background =</span> <span class="cn">FALSE</span>)),</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">epochs  =</span> <span class="dv">12</span>),</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">linknet</span>(<span class="st">"linknet"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">160</span>),</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss    =</span> <span class="fu">loss_focal_tversky</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>),</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">metrics =</span> <span class="fu">list</span>(<span class="fu">metric_dice</span>(<span class="at">include_background =</span> <span class="cn">FALSE</span>)),</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs  =</span> <span class="dv">12</span>)</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(spec)</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(fit)</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     model architecture loss_function parameters epochs_run  loss  dice   iou</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    unet        u_net      cce_dice    1942594         12 0.096 0.878 0.797</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 linknet      linknet focal_tversky    1746754         12 0.071 0.881 0.797</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">segmentation_data</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">train      =</span> <span class="st">"stage1_train"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">validation =</span> <span class="st">"stage1_validation"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">colormap   =</span> binary_colormap</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">u_net</span>(<span class="st">"unet"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">160</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">loss    =</span> <span class="fu">loss_cce_dice</span>(),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">metrics =</span> <span class="fu">list</span>(<span class="fu">metric_dice</span>(<span class="at">include_background =</span> <span class="cn">FALSE</span>)),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">epochs  =</span> <span class="dv">12</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">linknet</span>(<span class="st">"linknet"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">160</span>),</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">loss    =</span> <span class="fu">loss_focal_tversky</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>),</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">metrics =</span> <span class="fu">list</span>(<span class="fu">metric_dice</span>(<span class="at">include_background =</span> <span class="cn">FALSE</span>)),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">epochs  =</span> <span class="dv">12</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(spec)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(fit)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     model architecture loss_function parameters epochs_run  loss  dice   iou</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    unet        u_net      cce_dice    1942594         12 0.096 0.878 0.797</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 linknet      linknet focal_tversky    1746754         12 0.071 0.881 0.797</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Read that <code>loss</code> column with care, which is why <code>loss_function</code> sits beside it: two models trained on different objectives are not on a common scale. The metrics are comparable, because they measure the mask rather than the objective.</p>
 <p>Then look at what it did, which is the part a score cannot do for you:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_masks</span>(images, <span class="at">prediction =</span> <span class="fu">predict</span>(fit, <span class="st">"unet"</span>), <span class="at">truth =</span> truth,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">colormap =</span> binary_colormap)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_masks</span>(images, <span class="at">prediction =</span> <span class="fu">predict</span>(fit, <span class="st">"unet"</span>), <span class="at">truth =</span> truth,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">colormap =</span> binary_colormap)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><img src="man/figures/README-masks.png" alt="" width="100%"></p>
 <p>Green is what was found, red what was missed, yellow what was invented. Here nearly all of the red is a thin rim around nuclei that were otherwise located correctly — the model draws them slightly too small. If the question is <em>how many nuclei</em>, that hardly matters; if it is <em>how large</em>, it is the whole answer. No single overlap score tells those apart.</p>
 <p>The full walk-through is in <code>vignette("data-science-bowl")</code>.</p>
 </section>
 <section id="the-same-thing-from-a-file" class="level2">
 <h2 class="anchored" data-anchor-id="the-same-thing-from-a-file">The same thing from a file</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(<span class="st">"experiment.yaml"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(<span class="st">"experiment.yaml"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Arguments and YAML produce the same object, and nothing downstream can tell which was used — so a configuration file and an R script describe the same experiment, and either can be handed to a colleague.</p>
 </section>
 <section id="what-is-in-it" class="level2">
@@ -893,51 +757,51 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>One channel per file.</strong> <code>channels_from = c("_t1\\.nii", "_t1ce\\.nii", "_t2\\.nii", "_flair\\.nii")</code> stacks four MRI sequences per patient in the order you name, which is how BraTS ships and how satellite bands arrive. The order is stated rather than inferred: sorted, those names come out flair, t1, t1ce, t2 — reproducible and anatomically meaningless, and a model trained with FLAIR in channel one answers plausibly on data where channel one is T1.</p>
 <p><strong>The mask comes back on the scan’s grid.</strong> <code>predict(fit, space = "source")</code> maps each prediction out of the model’s grid onto the one its scan arrived on, undoing the resampling and the crop, so <a href="man/save_volumes.html"><code>save_volumes()</code></a> can write a mask that opens on top of that scan in any viewer. It returns a list rather than an array, because scans differ in size and resizing them to match is how a mask ends up describing the wrong anatomy.</p>
 <p><strong>Volumes.</strong> NIfTI or a folder of DICOM slices in, 3D U-Net out, patches through the same tiling. <code>target_spacing = c(1, 1, 1)</code> resamples every scan to a common voxel size and then crops or pads to the model’s shape, rather than squeezing each one into the same box — forty slices of 1 mm is 40 mm of patient and forty of 2.5 mm is 100 mm, so resizing alone leaves the same organ a different size in each. <a href="man/series_report.html"><code>series_report()</code></a> checks a whole export before anything trains — reading no pixels, one row per folder — and says which series have a missing slice, duplicated files, or two series sitting in one directory. A gap matters more than it sounds: it does not shorten a volume, it moves everything past it, and no metric would show that. Masks are label maps (<code>labels = c(0, 1)</code>) rather than colours, because that is how volume formats store them. <code>save_volumes()</code> writes predictions as NIfTI carrying the geometry of the scan they came from — a mask without that affine cannot be laid over its scan by any viewer — and <a href="man/mask_volume.html"><code>mask_volume()</code></a> reports a segmented structure in millilitres, which is the number that goes in a report, not a voxel count that means nothing outside one scanner.</p>
-<p><strong>Splitting by patient, not by slice.</strong> <code>split_dataset()</code> divides one directory into training, validation and test sets and keeps every group whole; the result goes straight into <a href="man/segmentation_data.html"><code>segmentation_data()</code></a>. This is the most common way a segmentation result comes out several points too good: a scan is many slices of one patient, so splitting at random puts the same anatomy on both sides and validation ends up measuring memory. A <code>group_by</code> pattern that matches nothing is an error, never a quiet fallback.</p>
-<p><strong>A score per case, not one per dataset.</strong> <code>evaluate_cases()</code> reports each image — or each patient — and <code>summary()</code> gives the distribution and names the worst one. On the Data Science Bowl a model averaging Dice 0.855 turned out to score 0.006 on three images. The mean had no way of saying so.</p>
+<p><strong>Splitting by patient, not by slice.</strong> <a href="man/split_dataset.html"><code>split_dataset()</code></a> divides one directory into training, validation and test sets and keeps every group whole; the result goes straight into <a href="man/segmentation_data.html"><code>segmentation_data()</code></a>. This is the most common way a segmentation result comes out several points too good: a scan is many slices of one patient, so splitting at random puts the same anatomy on both sides and validation ends up measuring memory. A <code>group_by</code> pattern that matches nothing is an error, never a quiet fallback.</p>
+<p><strong>A score per case, not one per dataset.</strong> <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a> reports each image — or each patient — and <code>summary()</code> gives the distribution and names the worst one. On the Data Science Bowl a model averaging Dice 0.855 turned out to score 0.006 on three images. The mean had no way of saying so.</p>
 <p><strong>Augmentation in 3D</strong>, with <code>available_transforms(rank = 3)</code> to say what can be used on a volume — albumentations supports them unevenly, and a transform that cannot is refused by name when the run starts rather than raising <code>KeyError: 'images'</code> from inside the library an hour in.</p>
 <p><strong>The parts that make an analysis fast</strong>, which is what the package was always for: combining the per-object mask files that datasets like the Data Science Bowl ship, converting between class indices and colours, overlaying, and drawing the comparison above. These work on ordinary R arrays and need no Python at all.</p>
-<p><strong>Published weights, by name.</strong> <code>weights = "dsbowl-unet"</code> in an architecture loads a trained model instead of training one — <a href="man/available_weights.html"><code>available_weights()</code></a> lists what is published and what each one can and cannot do. A name is pinned to one commit of the repository holding it, so it means the same numbers next year. <code>export_weights()</code> writes your own the same way, with a sidecar recording what they were trained on, which is what makes them usable by anybody else.</p>
-<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <code>platypus_fit()</code> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>inspect_masks(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
+<p><strong>Published weights, by name.</strong> <code>weights = "dsbowl-unet"</code> in an architecture loads a trained model instead of training one — <a href="man/available_weights.html"><code>available_weights()</code></a> lists what is published and what each one can and cannot do. A name is pinned to one commit of the repository holding it, so it means the same numbers next year. <a href="man/export_weights.html"><code>export_weights()</code></a> writes your own the same way, with a sidecar recording what they were trained on, which is what makes them usable by anybody else.</p>
+<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <a href="man/platypus_fit.html"><code>platypus_fit()</code></a> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>inspect_masks(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
 <p><strong>A backbone where one helps.</strong> <code>encoder = "resnet34"</code> swaps the contracting path for a timm architecture and <code>pretrained = TRUE</code> loads its ImageNet weights, with <code>freeze_encoder</code> to keep them from being undone. Whether that is worth doing is a measured question rather than a rhetorical one — see below, and <code>?encoders</code> for the table.</p>
 </section>
 <section id="boxes-instead-of-masks" class="level2">
 <h2 class="anchored" data-anchor-id="boxes-instead-of-masks">Boxes instead of masks</h2>
-<p><code>task</code> is never typed. <code>detection_data()</code> and <code>yolo3()</code> carry it, and a specification that mixes a detection data block with a segmentation model is refused by name.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cells <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"RBC"</span>, <span class="st">"WBC"</span>, <span class="st">"Platelets"</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">detection_data</span>(<span class="st">"train.csv"</span>, <span class="st">"valid.csv"</span>, <span class="at">classes =</span> cells, <span class="at">mode =</span> <span class="st">"config_file"</span>),</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(<span class="fu">yolo3</span>(<span class="st">"cells"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">416</span>, <span class="dv">416</span>), <span class="at">epochs =</span> <span class="dv">150</span>,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">augmentation =</span> <span class="fu">list</span>(<span class="fu">augmentation_step</span>(<span class="st">"HorizontalFlip"</span>, <span class="at">p =</span> <span class="fl">0.5</span>)),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">callbacks =</span> <span class="fu">list</span>(<span class="fu">callback_cosine_annealing</span>())))</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>fit   <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(spec)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>found <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit, <span class="at">split =</span> <span class="st">"test"</span>)     <span class="co"># one data frame per image, in its own pixels</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_boxes</span>(<span class="fu">read_images</span>(files, <span class="at">size =</span> <span class="cn">NULL</span>), found, <span class="at">min_score =</span> <span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>task</code> is never typed. <a href="man/detection_data.html"><code>detection_data()</code></a> and <a href="man/yolo3.html"><code>yolo3()</code></a> carry it, and a specification that mixes a detection data block with a segmentation model is refused by name.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>cells <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"RBC"</span>, <span class="st">"WBC"</span>, <span class="st">"Platelets"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">detection_data</span>(<span class="st">"train.csv"</span>, <span class="st">"valid.csv"</span>, <span class="at">classes =</span> cells, <span class="at">mode =</span> <span class="st">"config_file"</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(<span class="fu">yolo3</span>(<span class="st">"cells"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">416</span>, <span class="dv">416</span>), <span class="at">epochs =</span> <span class="dv">150</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">augmentation =</span> <span class="fu">list</span>(<span class="fu">augmentation_step</span>(<span class="st">"HorizontalFlip"</span>, <span class="at">p =</span> <span class="fl">0.5</span>)),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">callbacks =</span> <span class="fu">list</span>(<span class="fu">callback_cosine_annealing</span>())))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>fit   <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(spec)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>found <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit, <span class="at">split =</span> <span class="st">"test"</span>)     <span class="co"># one data frame per image, in its own pixels</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_boxes</span>(<span class="fu">read_images</span>(files, <span class="at">size =</span> <span class="cn">NULL</span>), found, <span class="at">min_score =</span> <span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><img src="man/figures/README-boxes.png" alt="" width="100%"></p>
-<p>One frame of BCCD’s held-out split, drawn by <code>bccd-yolo3</code> — weights published with this package, so the picture above costs a download rather than an afternoon. Both rare classes are there: the white cell at 1.00 and the platelet at 0.77. Of the 17 red cells annotated in this frame, 11 clear a score of 0.5 — the honest shape of the result rather than a flattering crop. <code>min_score</code> is yours to move, and <code>evaluate_classes()</code> is where that trade-off stops being a judgement about one picture: the per-class rows are what say which class a threshold is costing you.</p>
+<p>One frame of BCCD’s held-out split, drawn by <code>bccd-yolo3</code> — weights published with this package, so the picture above costs a download rather than an afternoon. Both rare classes are there: the white cell at 1.00 and the platelet at 0.77. Of the 17 red cells annotated in this frame, 11 clear a score of 0.5 — the honest shape of the result rather than a flattering crop. <code>min_score</code> is yours to move, and <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> is where that trade-off stops being a judgement about one picture: the per-class rows are what say which class a threshold is costing you.</p>
 <p><code>classes</code> is in class order and is written down rather than read from the files, because position <strong>is</strong> the class index the model learns: sorted, BCCD’s three come out <code>Platelets, RBC, WBC</code>, which is reproducible and anatomically meaningless.</p>
 <p>Five things differ from the segmentation path and each is a decision rather than an omission:</p>
 <p><strong>Anchors are fitted to your boxes</strong> unless you name them. Measured on BCCD’s 2,805 training boxes, COCO’s nine borrowed for blood cells cover them at a mean overlap of 0.65 against 0.88 for fitted ones, which is the difference between a correction and a rewrite. They come back from <a href="man/detection_anchors.html"><code>detection_anchors()</code></a>, and they travel with exported weights — <strong>a detector cannot be reloaded without them</strong>, because read with other anchors the same weights decode every box scaled by a fixed factor, plausibly and in the wrong places.</p>
 <p><strong>No <code>loss</code> and no <code>metrics</code> on the model.</strong> YOLOv3’s objective is part of its architecture and mean average precision is not one option among several.</p>
 <p><strong><a href="man/plot_anchors.html"><code>plot_anchors()</code></a> shows the fit rather than scoring it.</strong> Every annotated box as a point - width against height, both fractions of the model’s input - coloured by class, with the anchors on top. It answers what a mean overlap cannot: a coverage of 0.65 is either “every class covered adequately” or “two covered well and the third not at all”, and those want different fixes. Draw it for a split the anchors were <em>not</em> fitted on and a gap between the halves of your data becomes visible, which no training curve shows.</p>
 <p><strong>A run can leave a record.</strong> Give <code>output_dir</code> and <code>platypus_fit()</code> writes the specification, the history, and anything the run worked out that the specification does not already say - a detector’s fitted anchors, which it cannot be reloaded without. Unset, which is the default, writes nothing: files appearing in your working directory because a default exists is not a thing this package does.</p>
-<p><strong>No overall precision or recall</strong> in <code>evaluate()</code>. Averaging them over classes needs a weighting and every weighting is a different claim: over BCCD’s 4,155 red cells, 372 white and 361 platelets, a single precision is a statement about red cells. <code>evaluate_classes()</code> gives the per-class rows, which is the form in which they mean something, and <code>evaluate_images()</code> gives one row per picture — not how well on average, but <em>which</em> frames it fails on. Order those by <code>missed</code> for the ones it cannot see and by <code>mean_matched_iou</code> for the ones it sees and places badly; they are usually different problems. There is deliberately no average precision per image: it is the area under a ranking’s curve, and one picture is not a ranking.</p>
+<p><strong>No overall precision or recall</strong> in <a href="man/evaluate.html"><code>evaluate()</code></a>. Averaging them over classes needs a weighting and every weighting is a different claim: over BCCD’s 4,155 red cells, 372 white and 361 platelets, a single precision is a statement about red cells. <code>evaluate_classes()</code> gives the per-class rows, which is the form in which they mean something, and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> gives one row per picture — not how well on average, but <em>which</em> frames it fails on. Order those by <code>missed</code> for the ones it cannot see and by <code>mean_matched_iou</code> for the ones it sees and places badly; they are usually different problems. There is deliberately no average precision per image: it is the area under a ranking’s curve, and one picture is not a ranking.</p>
 <p><strong>A published detector to start from</strong>, so boxes on an image need no GPU:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>borrowed <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(<span class="fu">platypus_spec</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">detection_data</span>(<span class="st">"images.csv"</span>, <span class="st">"images.csv"</span>, <span class="at">classes =</span> cells, <span class="at">mode =</span> <span class="st">"config_file"</span>),</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(<span class="fu">yolo3</span>(<span class="st">"cells"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">416</span>, <span class="dv">416</span>),</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">weights =</span> <span class="st">"bccd-yolo3"</span>, <span class="at">fit =</span> <span class="cn">FALSE</span>))</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>borrowed <span class="ot">&lt;-</span> <span class="fu">platypus_fit</span>(<span class="fu">platypus_spec</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">detection_data</span>(<span class="st">"images.csv"</span>, <span class="st">"images.csv"</span>, <span class="at">classes =</span> cells, <span class="at">mode =</span> <span class="st">"config_file"</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(<span class="fu">yolo3</span>(<span class="st">"cells"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">416</span>, <span class="dv">416</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">weights =</span> <span class="st">"bccd-yolo3"</span>, <span class="at">fit =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>bccd-yolo3</code> scores mAP@0.5 0.857 on BCCD’s own held-out split — the <strong>median of five seeds</strong>, not the best, because the spread across them is 0.016 and a single number would be whichever seed got reported. <code>available_weights()</code> lists what is published and what it is for; the description is the part to read, and for this one it says platelets are the unreliable class.</p>
 </section>
 <section id="a-backbone-instead-of-the-built-in-encoder" class="level2">
 <h2 class="anchored" data-anchor-id="a-backbone-instead-of-the-built-in-encoder">A backbone instead of the built-in encoder</h2>
 <p><code>encoder = "resnet34"</code> replaces the contracting path with a timm backbone, and <code>pretrained = TRUE</code> is a separate flag that loads its ImageNet weights — separate so that naming an architecture never reaches the network on a machine that has none.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">u_net</span>(<span class="st">"polyps"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">256</span>, <span class="dv">256</span>),</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">encoder =</span> <span class="st">"resnet34"</span>, <span class="at">pretrained =</span> <span class="cn">TRUE</span>, <span class="at">freeze_encoder =</span> <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">u_net</span>(<span class="st">"polyps"</span>, <span class="at">input_shape =</span> <span class="fu">c</span>(<span class="dv">256</span>, <span class="dv">256</span>),</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">encoder =</span> <span class="st">"resnet34"</span>, <span class="at">pretrained =</span> <span class="cn">TRUE</span>, <span class="at">freeze_encoder =</span> <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>What it is worth was measured rather than assumed</strong>, on three datasets, one per modality, three seeds each, every configuration judged at its best validation Dice:</p>
 <table class="caption-top table">
 <colgroup>
@@ -1011,11 +875,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Three things worth knowing.</p>
 <p><strong>The first call downloads about 5 GB</strong>, most of it CUDA libraries that PyTorch ships by default whether or not there is a GPU. It is cached afterwards, and everything works offline once it is — which is the install path for a machine without internet access: run it once somewhere with a connection and carry <code>~/.cache/uv</code> across.</p>
 <p><strong>On a GeForce GTX 10-series card or older</strong>, ask for the older PyTorch first:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">platypus_use_torch</span>(<span class="st">"pascal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">platypus_use_torch</span>(<span class="st">"pascal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>PyTorch 2.8 onwards ships CUDA 13 builds, and CUDA 13 dropped that whole generation of cards. Without this, everything runs on the processor instead — perhaps ten times slower, with nothing obviously wrong. <a href="man/platypus_device.html"><code>platypus_device()</code></a> will tell you which is happening.</p>
 <p><strong>If the engine will not start and the error says there is no such version of pyplatypus</strong>, the version does exist and uv is answering from a cached copy of the package index — likely because the engine was published minutes ago. Clear the index cache:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> <span class="st">"</span><span class="va">$(</span><span class="ex">uv</span> cache dir<span class="va">)</span><span class="st">"</span>/simple-v<span class="pp">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> <span class="st">"</span><span class="va">$(</span><span class="ex">uv</span> cache dir<span class="va">)</span><span class="st">"</span>/simple-v<span class="pp">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Only the index: that directory is tens of megabytes, while the wheels beside it are tens of gigabytes and include PyTorch. <code>uv cache clean pyplatypus</code> is <em>not</em> enough — it removes that package’s built artifacts and leaves behind the index response saying the version does not exist.</p>
 </section>
 <section id="licence" class="level2">

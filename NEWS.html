@@ -674,6 +674,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.0] - unreleased</a>
   <ul class="collapse">
+  <li><a href="#migrating-from-0.1.1" id="toc-migrating-from-0.1.1" class="nav-link" data-scroll-target="#migrating-from-0.1.1">Migrating from 0.1.1</a></li>
   <li><a href="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" id="toc-engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" class="nav-link" data-scroll-target="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1">2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1</a></li>
   <li><a href="#the-documentation-site" id="toc-the-documentation-site" class="nav-link" data-scroll-target="#the-documentation-site">2026-10-07 - the documentation site</a></li>
   <li><a href="#engine-0.5.0a1-through-0.6.0a1" id="toc-engine-0.5.0a1-through-0.6.0a1" class="nav-link" data-scroll-target="#engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</a></li>
@@ -702,7 +703,80 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">[0.2.0] - unreleased</h2>
-<p>A different package from 0.1.1 under the same name: that one built Keras models through the R <code>keras</code> package and handed them back, this one describes a whole run as a specification and computes it in PyTorch through pyplatypus. See <strong>Coming from platypus 0.1.1</strong> in the README for what moved and what is gone.</p>
+<p>A different package from 0.1.1 under the same name, and the section below says how different.</p>
+<section id="migrating-from-0.1.1" class="level3">
+<h3 class="anchored" data-anchor-id="migrating-from-0.1.1">Migrating from 0.1.1</h3>
+<p>This was in the README until 2026-10-07 - seventy lines between <code>## Installing</code> and the first example, about a version the reader does not have, before the one they do. It is here because this file is where R keeps what changed between versions, and because the renames table below was a second copy of one the README already carried; the fuller of the two survived.</p>
+<p><strong>Code written against the 2020 release will not run on this one.</strong> That version built Keras models through the R <code>keras</code> package and handed them back to you; this one describes a whole run as a specification and computes it in PyTorch. Of the 37 functions and objects the old version exported, <strong>30 are gone</strong> — including all of <a href="man/yolo3.html"><code>yolo3()</code></a>, <code>darknet53()</code>, <code>load_darknet_weights()</code>, <code>get_boxes()</code>, <code>non_max_suppression()</code>, <a href="man/plot_boxes.html"><code>plot_boxes()</code></a>, <code>segmentation_generator()</code> and the annotation readers.</p>
+<p>Seven names survive, and <strong>three of them are the ones to watch</strong>, because they are still exported, still callable, and mean something different:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>name</th>
+<th>0.1.1</th>
+<th>now</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="man/models.html"><code>u_net()</code></a></td>
+<td><code>u_net(net_h, net_w, grayscale, ...)</code> → a Keras model</td>
+<td><code>u_net(name, input_shape, ...)</code> → one model in a specification</td>
+</tr>
+<tr class="even">
+<td><a href="man/plot_masks.html"><code>plot_masks()</code></a></td>
+<td><code>plot_masks(images_paths, masks, labels, colormap)</code></td>
+<td><code>plot_masks(images, prediction, truth, ...)</code></td>
+</tr>
+<tr class="odd">
+<td><a href="man/losses.html"><code>loss_dice()</code></a></td>
+<td>no arguments, returns a Keras loss</td>
+<td><code>loss_dice(smooth = 1)</code>, returns a loss to name in a specification</td>
+</tr>
+</tbody>
+</table>
+<p>The other four — <code>binary_colormap</code>, <code>voc_colormap</code>, <code>binary_labels</code>, <code>voc_labels</code> — are the same data as before.</p>
+<p><strong>Object detection is back, and the names are different.</strong> The old package handed you a Keras YOLOv3; this one describes a detector in a specification like everything else. So those five names are gone rather than moved, and what replaces them is:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>0.1.1</th>
+<th>now</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>yolo3()</code>, <code>darknet53()</code></td>
+<td><code>yolo3()</code> as one entry in <a href="man/platypus_spec.html"><code>platypus_spec()</code></a> - same name, a specification rather than a model</td>
+</tr>
+<tr class="even">
+<td><code>load_darknet_weights()</code></td>
+<td><code>weights = "bccd-yolo3"</code>, or a path, or <code>hf://owner/repo/file@commit</code></td>
+</tr>
+<tr class="odd">
+<td><code>get_boxes()</code>, <code>non_max_suppression()</code></td>
+<td>done inside <code>predict()</code>, which returns boxes already suppressed and in each image’s own pixels</td>
+</tr>
+<tr class="even">
+<td><code>plot_boxes()</code></td>
+<td><code>plot_boxes()</code> - same name, takes what <code>predict()</code> returns</td>
+</tr>
+</tbody>
+</table>
+<p>The annotation readers are gone as functions and are now what <a href="man/detection_data.html"><code>detection_data()</code></a> reads for you: Pascal VOC XML or LabelMe JSON, named rather than guessed.</p>
+<p>The old release is still there and still installable, pinned:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
+</section>
 <section id="engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1">2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1</h3>
 <section id="changed-and-it-breaks-code" class="level4">
@@ -710,48 +784,63 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><p><strong>Eight functions were renamed.</strong> The engine and this package had grown two words for the same thing in eight places, and a reader moving between the halves paid for every one. One name per concept now, and where the two disagreed <strong>the engine’s name won</strong>, because it is the layer that cannot be renamed later without changing the configuration format and the schema. The exception is <a href="man/available_transforms.html"><code>available_transforms()</code></a>, where this package already had a family of <code>available_*</code> names and the engine followed instead.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>was</th>
 <th>is</th>
+<th>why</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><code>platypus_split()</code></td>
 <td><a href="man/split_dataset.html"><code>split_dataset()</code></a></td>
+<td>the engine’s name. The S3 <strong>class</strong> is still <code>platypus_split</code> - that is the object’s identity, and every class here is prefixed</td>
 </tr>
 <tr class="even">
 <td><code>split_files()</code></td>
 <td><a href="man/split_path.html"><code>split_path()</code></a></td>
+<td>it reads one split’s path; it does not split files. <code>split_samples()</code> in the engine is a different function, and the two names invited pairing them</td>
 </tr>
 <tr class="odd">
 <td><code>mask_report()</code></td>
 <td><a href="man/inspect_masks.html"><code>inspect_masks()</code></a></td>
+<td>the engine’s name, and the method it calls</td>
 </tr>
 <tr class="even">
 <td><code>mask_classes()</code></td>
 <td><a href="man/colours_to_classes.html"><code>colours_to_classes()</code></a></td>
+<td>the engine’s name, and it says which way the conversion goes</td>
 </tr>
 <tr class="odd">
 <td><code>mask_colours()</code></td>
 <td><a href="man/classes_to_colours.html"><code>classes_to_colours()</code></a></td>
+<td>likewise. Note the engine’s <code>onehot_to_colours()</code> is <strong>not</strong> this function - it takes probabilities and argmaxes them, this takes class indices</td>
 </tr>
 <tr class="even">
 <td><code>save_weights()</code></td>
 <td><a href="man/export_weights.html"><code>export_weights()</code></a></td>
+<td>the engine’s name; “export” says a sidecar is written beside the file</td>
 </tr>
 <tr class="odd">
 <td><code>available_augmentations()</code></td>
 <td><code>available_transforms()</code></td>
+<td>the engine’s name, and albumentations’ own word for them</td>
 </tr>
 <tr class="even">
 <td><code>augment()</code></td>
 <td><a href="man/augmentation_step.html"><code>augmentation_step()</code></a></td>
+<td><code>augment</code> is a generic in <strong>broom</strong> and means something else there. <code>augmentation</code> alone would have shadowed the <code>augmentation =</code> argument it builds a list for</td>
 </tr>
 </tbody>
 </table>
-<p>No aliases: two names for one thing is what this removes. The S3 <strong>class</strong> returned by <code>split_dataset()</code> is still <code>platypus_split</code> - that is the object’s identity, and every class in the package is prefixed.</p></li>
+<p>No aliases: two names for one thing is what this removes. The S3 <strong>class</strong> returned by <code>split_dataset()</code> is still <code>platypus_split</code> - that is the object’s identity, and every class in the package is prefixed.</p>
+<p><a href="man/evaluate.html"><code>evaluate()</code></a>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
@@ -798,14 +887,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="engine-0.3.0a15-then-0.4.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.3.0a15-then-0.4.0a1">2026-10-05 - engine 0.3.0a15, then 0.4.0a1</h3>
 <ul>
-<li><strong><a href="man/evaluate_images.html"><code>evaluate_images()</code></a></strong>: one row per image for a detector - <code>n_truth</code>, <code>n_predicted</code>, <code>matched</code>, <code>missed</code>, <code>spurious</code>, <code>mean_matched_iou</code>. Order by <code>missed</code> for the frames it cannot see, by <code>mean_matched_iou</code> for the ones where it finds everything and places it badly. No average precision per image: AP is the area under a ranking’s curve and on one picture it moves on a single box.</li>
-<li><strong><code>platypus_spec(task = )</code></strong> can be stated, and is checked rather than trusted - it can confirm or refuse, never override. Unset, it is still derived from the constructors. Required in YAML and optional here is not an inconsistency: <code>task</code> is needed exactly where the type is not already stated, and <a href="man/segmentation_data.html"><code>segmentation_data()</code></a> with <a href="man/models.html"><code>u_net()</code></a> can only mean one thing.</li>
+<li><strong><code>evaluate_images()</code></strong>: one row per image for a detector - <code>n_truth</code>, <code>n_predicted</code>, <code>matched</code>, <code>missed</code>, <code>spurious</code>, <code>mean_matched_iou</code>. Order by <code>missed</code> for the frames it cannot see, by <code>mean_matched_iou</code> for the ones where it finds everything and places it badly. No average precision per image: AP is the area under a ranking’s curve and on one picture it moves on a single box.</li>
+<li><strong><code>platypus_spec(task = )</code></strong> can be stated, and is checked rather than trusted - it can confirm or refuse, never override. Unset, it is still derived from the constructors. Required in YAML and optional here is not an inconsistency: <code>task</code> is needed exactly where the type is not already stated, and <a href="man/segmentation_data.html"><code>segmentation_data()</code></a> with <code>u_net()</code> can only mean one thing.</li>
 </ul>
 </section>
 <section id="engine-0.3.0a12-then-0.3.0a13" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.3.0a12-then-0.3.0a13">2026-10-04 - engine 0.3.0a12, then 0.3.0a13</h3>
 <ul>
-<li><strong>Object detection, from R.</strong> <a href="man/detection_data.html"><code>detection_data()</code></a>, <a href="man/yolo3.html"><code>yolo3()</code></a>, <a href="man/detection_anchors.html"><code>detection_anchors()</code></a>, <a href="man/plot_boxes.html"><code>plot_boxes()</code></a>, and <code>predict()</code> returning a list of boxes in each image’s own pixels - not an array, because images differ in size, so does the number of boxes, and a box in a letterboxed frame cannot be drawn on the photograph it came from.</li>
+<li><strong>Object detection, from R.</strong> <code>detection_data()</code>, <code>yolo3()</code>, <a href="man/detection_anchors.html"><code>detection_anchors()</code></a>, <code>plot_boxes()</code>, and <code>predict()</code> returning a list of boxes in each image’s own pixels - not an array, because images differ in size, so does the number of boxes, and a box in a letterboxed frame cannot be drawn on the photograph it came from.</li>
 <li><strong><a href="man/plot_anchors.html"><code>plot_anchors()</code></a></strong>: the fitted anchors against the boxes they were fitted to. It is in the vignette twice, on the split they were fitted on and the one they were not.</li>
 <li>A README figure for detection, drawn by the published <code>bccd-yolo3</code> with no training, and <code>tools/readme_figures.R</code> that reproduces it.</li>
 <li><strong>Corrected</strong>: the claim that COCO’s anchors cover BCCD’s boxes at 0.67 where fitted ones reach 0.92. Re-measured on the 2,805 real training boxes, the honest pair is <strong>0.65 against 0.88</strong>. The direction survives and is large; both numbers were wrong in opposite directions and the gap was right by coincidence.</li>
@@ -815,7 +904,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="engine-0.3.0a10-then-0.3.0a11">2026-10-03 - engine 0.3.0a10, then 0.3.0a11</h3>
 <ul>
 <li><strong><code>u_net(encoder = "resnet34", pretrained = TRUE)</code></strong>, with <code>freeze_encoder</code> and <code>encoder_learning_rate</code>. <code>pretrained</code> is a separate explicit flag so that naming a backbone never downloads anything nobody asked for. Measured on three datasets, pretraining never clearly beats the built-in encoder; what it buys is epochs, and what a swappable encoder buys is capacity where the target is thin. The help page carries the table.</li>
-<li><strong><code>inspect_masks()</code></strong> and <code>platypus_fit(check_masks = FALSE)</code>: a declared class appearing in no mask has a target channel that is zero everywhere, so the model is never shown what it is being asked to find, and <a href="man/platypus_fit.html"><code>platypus_fit()</code></a> now refuses on it. A threshold on the unmatched fraction cannot do this job - on a 0.6% lesion a wholly wrong colormap is quieter than JPEG artefacts in healthy data.</li>
+<li><strong><code>inspect_masks()</code></strong> and <code>platypus_fit(check_masks = FALSE)</code>: a declared class appearing in no mask has a target channel that is zero everywhere, so the model is never shown what it is being asked to find, and <code>platypus_fit()</code> now refuses on it. A threshold on the unmatched fraction cannot do this job - on a 0.6% lesion a wholly wrong colormap is quieter than JPEG artefacts in healthy data.</li>
 <li><strong>Every help page renders its markdown.</strong> <code>DESCRIPTION</code> had no <code>Roxygen: list(markdown = TRUE)</code> although every page had been written in markdown since the rewrite began, so not one cross-reference was a link: 0 to 42 links, 0 to 266 inline code spans, 36 of 40 pages changed. Nothing in the sources was wrong; nothing was converting them.</li>
 </ul>
 </section>
@@ -824,7 +913,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><strong><code>predict(space = "source")</code></strong>: map a prediction back out of the model’s grid onto the grid of the scan it came from, undoing the resampling and the crop. Returns a list, and the type change is the API being honest - scans differ in size, and quietly resizing them to match is how a mask ends up describing anatomy it was not computed from.</li>
 <li><strong>Named weights.</strong> <code>weights = "dsbowl-unet"</code> from the registry, <code>hf://owner/repo/file@commit</code>, or a local path, plus <code>export_weights()</code> for your own. A registry name carries a commit and the <code>hf://</code> form requires one, because weights that change under a stable name are the worst kind of irreproducibility.</li>
-<li>The Data Science Bowl vignette now opens with a mask in four lines - published weights, <code>fit = FALSE</code>, <a href="man/plot_masks.html"><code>plot_masks()</code></a> - before any mention of training. First contact should not need a GPU and an afternoon.</li>
+<li>The Data Science Bowl vignette now opens with a mask in four lines - published weights, <code>fit = FALSE</code>, <code>plot_masks()</code> - before any mention of training. First contact should not need a GPU and an afternoon.</li>
 <li><strong>Fixed, and found by writing that vignette:</strong> <code>weights = "dsbowl-unet"</code> could not work from R at all. The bridge asked for <code>pyplatypus</code> with no extras, so <code>huggingface_hub</code> was never in the environment reticulate builds. Nothing in either test suite could have caught it - the engine’s tests install the extra deliberately and the R tests ran where it was already present.</li>
 <li>The README says what changed since 0.1.1, written by diffing the two <code>NAMESPACE</code> files rather than from memory: of 0.1.1’s 37 exports, 30 are gone, and three of the seven survivors are worse than gone because they are still callable and mean something else.</li>
 </ul>
@@ -837,7 +926,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Continuous integration</strong>: five <code>R CMD check</code> jobs - Ubuntu on R devel, release and oldrel-1, plus macOS and Windows on release - and an <code>engine</code> job that installs the built package and runs the suite against the engine resolved from PyPI. That last one is the job that matters: <code>pkgload::load_all()</code> exposes a package’s internals, <code>library()</code> does not, and local work had been using the most permissive of the three ways a test can reach them.</li>
 <li><strong>Plotting and masks</strong>: <code>plot_masks()</code>, <code>plot_boxes()</code>, <a href="man/overlay_mask.html"><code>overlay_mask()</code></a>, <a href="man/overlay_agreement.html"><code>overlay_agreement()</code></a>, <a href="man/read_masks.html"><code>read_masks()</code></a>, <a href="man/unite_masks.html"><code>unite_masks()</code></a>, <a href="man/mask_coverage.html"><code>mask_coverage()</code></a>.</li>
 <li><strong>DICOM</strong>, properly: modality LUT, a fixed window, MONOCHROME1 inverted. Plus <a href="man/series_report.html"><code>series_report()</code></a> for a folder of slices, whose decision is that <strong>a problem is a column, not an exception</strong> - a hundred cases contain a few bad ones, and stopping at the first turns an afternoon into a week.</li>
-<li><strong>Splitting by patient</strong> (<code>split_dataset()</code>, <code>split_path()</code>) and <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>.</li>
+<li><strong>Splitting by patient</strong> (<code>split_dataset()</code>, <code>split_path()</code>) and <code>evaluate_cases()</code>.</li>
 <li><strong>Volumes.</strong> <code>input_shape = c(64, 64, 32)</code> had been building a 3D U-Net since the first release; what was missing was reading NIfTI, where orientation is the whole problem, and <code>labels</code> as a second way to describe a mask, because volumes label with integers. <a href="man/save_volumes.html"><code>save_volumes()</code></a> writes NIfTI <strong>carrying the affine of the scan the mask was predicted from</strong> - without it a mask cannot be laid over its scan by any viewer, and the file looks perfectly normal while being wrong. <a href="man/mask_volume.html"><code>mask_volume()</code></a> reports millilitres, because a voxel count is meaningless outside one scanner.</li>
 <li><strong><code>target_spacing</code></strong>: resample to a common voxel size. What makes it necessary is not slice thickness but field of view - forty slices of 1 mm is 40 mm of patient and forty of 2.5 mm is 100 mm, which is the ordinary state of clinical data.</li>
 <li><strong><code>channels_from</code></strong>: one channel per file, stating the order and never inferring it. A model trained with FLAIR in channel one and used where channel one is T1 answers plausibly, with the right shape and range, and nothing downstream can tell.</li>
@@ -851,16 +940,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The package exists.</p>
 <ul>
 <li><strong>The bridge.</strong> <code>py_require()</code> plus uv, resolving an isolated ephemeral environment at <code>library(platypus)</code> - deliberately not the shared-Python arrangement that broke this package’s Keras stack in 2020. <a href="man/platypus_status.html"><code>platypus_status()</code></a> says what it found rather than leaving a failed import to be guessed at, and <code>PLATYPUS_ENGINE_PATH</code> points the bridge at a source tree during development.</li>
-<li><strong><a href="man/platypus_spec.html"><code>platypus_spec()</code></a></strong>, built either from arguments or from a YAML file and producing the same thing. One pipeline, two constructors.</li>
-<li><strong><code>platypus_fit()</code></strong>, <a href="man/evaluate.html"><code>evaluate()</code></a>, <code>predict()</code>, <a href="man/training_history.html"><code>training_history()</code></a>, and the engine’s complaints translated into R conditions rather than passed through as Python tracebacks.</li>
+<li><strong><code>platypus_spec()</code></strong>, built either from arguments or from a YAML file and producing the same thing. One pipeline, two constructors.</li>
+<li><strong><code>platypus_fit()</code></strong>, <code>evaluate()</code>, <code>predict()</code>, <a href="man/training_history.html"><code>training_history()</code></a>, and the engine’s complaints translated into R conditions rather than passed through as Python tracebacks.</li>
 </ul>
 </section>
 </section>
 <section id="section" class="level2">
 <h2 class="anchored" data-anchor-id="section">[0.1.1] - 2020-10-17</h2>
-<p>The last release of the TensorFlow package, kept here for the record rather than as an ancestor of the entries above. It built Keras models through the R <code>keras</code> package: <code>yolo3()</code> and <code>darknet53()</code> with <code>load_darknet_weights()</code> for the original Darknet weights, a plain <code>u_net()</code>, <code>segmentation_generator()</code>, <a href="man/losses.html"><code>loss_dice()</code></a>, the COCO and VOC colormaps, and readers for LabelMe JSON and Pascal VOC XML.</p>
+<p>The last release of the TensorFlow package, kept here for the record rather than as an ancestor of the entries above. It built Keras models through the R <code>keras</code> package: <code>yolo3()</code> and <code>darknet53()</code> with <code>load_darknet_weights()</code> for the original Darknet weights, a plain <code>u_net()</code>, <code>segmentation_generator()</code>, <code>loss_dice()</code>, the COCO and VOC colormaps, and readers for LabelMe JSON and Pascal VOC XML.</p>
 <p>It is still installable and still pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch and the issues filed against it stay open. What has aged is its dependencies rather than its code - the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 
 
