@@ -5,16 +5,22 @@
 #
 # TWO PROBLEMS, both measured on this package's 58 pages.
 #
-# 1. 186 LINKS ON 50 PAGES POINT AT THE OLD PKGDOWN SITE.
+# 1. 186 LINKS ON 50 PAGES ARE ABSOLUTE URLS INTO THIS SITE.
 #    Quarto's `code-link: true` resolves function names through downlit, which reads the
-#    package's published pkgdown index - so `platypus_fit()` in a code block became
-#    `https://maju116.github.io/platypus/reference/platypus_fit.html`. That path is served
-#    today and will not be once this site replaces it: the reference lives at `/man/` here.
-#    Every one of those 186 would have become a 404 on the day of the switch, with a green
-#    build and nothing to say so.
+#    package's *published* index - so `platypus_fit()` in a code block comes out as
+#    `https://maju116.github.io/platypus/<somewhere>/platypus_fit.html`, and `<somewhere>`
+#    is whatever the published index currently says.
 #
-#    They are rewritten to site-relative paths, which also means the site works when opened
-#    from disk or served anywhere - the absolute URL was a second thing to get wrong.
+#    That is not a stable thing to depend on, measured twice on the same day: while pkgdown
+#    was published it was `/reference/`, a path this site does not serve, so all 186 would
+#    have 404'd at the switch. After the first Quarto deploy the published index said
+#    `/man/` and the same 186 links pointed there instead - correct, by luck of ordering.
+#
+#    So the rule is not "rewrite /reference/" - that pattern was fitted to the state of the
+#    world at one moment and reported 0 the next day while leaving 186 absolute links in
+#    place. The rule is that **no page may link to this site by absolute URL**: relative
+#    links are correct whatever is published, and they also make the site work opened from
+#    disk or served anywhere else.
 #
 # 2. 81 MENTIONS IN PROSE ARE NOT LINKS AT ALL.
 #    `[platypus_fit()]` in roxygen survives Rd as `\code{\link{}}` but altdoc's conversion
@@ -46,15 +52,17 @@ for (page in pages) {
   depth <- length(strsplit(sub("^docs/", "", page), "/")[[1]]) - 1L
   up <- if (depth > 0) strrep("../", depth) else ""
 
-  # --- 1. absolute pkgdown URLs -> site-relative
-  hits <- gregexpr('href="https://maju116\\.github\\.io/platypus/reference/[a-zA-Z0-9._]+\\.html"', html)
+  # --- 1. any absolute URL into this site -> site-relative
+  pattern <- 'href="https://maju116\\.github\\.io/platypus/([^"]*)"'
+  hits <- gregexpr(pattern, html)
   n <- if (hits[[1]][1] == -1L) 0L else length(hits[[1]])
   if (n) {
-    html <- gsub(
-      'href="https://maju116\\.github\\.io/platypus/reference/([a-zA-Z0-9._]+)\\.html"',
-      sprintf('href="%sman/\\1.html"', up),
-      html
-    )
+    # `/reference/` and `/articles/` are what pkgdown served; this site puts the same
+    # material under `/man/` and `/vignettes/`, so a link written against the old index is
+    # redirected here rather than left to the stub files.
+    html <- gsub(pattern, sprintf('href="%s\\1"', up), html)
+    html <- gsub(sprintf('href="%sreference/', up), sprintf('href="%sman/', up), html, fixed = TRUE)
+    html <- gsub(sprintf('href="%sarticles/', up), sprintf('href="%svignettes/', up), html, fixed = TRUE)
     rewritten <- rewritten + n
   }
 
@@ -80,15 +88,16 @@ for (page in pages) {
   if (!identical(html, original)) writeLines(html, page)
 }
 
-cat(sprintf("polished %d pages: %d absolute pkgdown links rewritten, %d prose mentions linked\n",
+cat(sprintf("polished %d pages: %d absolute links made relative, %d prose mentions linked\n",
             length(pages), rewritten, linked))
 
-# The check that matters, run here rather than left to a reader: nothing may still point at
-# the site this one replaces.
+# The check that matters, run here rather than left to a reader: no page may link to this
+# site by absolute URL, whatever the published index happens to say today.
 left <- 0L
 for (page in pages) {
   html <- paste(readLines(page, warn = FALSE), collapse = "\n")
-  left <- left + length(grep("maju116\\.github\\.io/platypus/reference/", html))
+  found <- gregexpr('href="https://maju116\\.github\\.io/platypus/', html)[[1]]
+  if (found[1] != -1L) left <- left + length(found)
 }
-if (left) stop(sprintf("%d links still point at the old pkgdown paths", left))
-cat("no link points at the old pkgdown reference paths\n")
+if (left) stop(sprintf("%d links into this site are still absolute", left))
+cat("no page links into this site by absolute URL\n")

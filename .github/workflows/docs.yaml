@@ -89,12 +89,27 @@ jobs:
       - name: Fix the links
         run: Rscript tools/polish-docs.R
 
+      # This site was pkgdown until 2026-10-07, which served 99 pages from /reference/ and
+      # three articles from /articles/. Those addresses are in other people's issue
+      # comments - the repository has 134 stars and 28 open issues - so they redirect
+      # rather than 404. Also writes `.nojekyll`, which pkgdown produced and altdoc does
+      # not: without it the clean deploy below removes it and GitHub Pages starts running
+      # Jekyll over the output.
+      - name: Redirects for the addresses pkgdown served
+        run: Rscript tools/legacy-redirects.R
+
       - name: Deploy to GitHub pages
         if: github.event_name != 'pull_request'
         # Third-party, so pinned by commit rather than by tag - the pin r-lib's own
         # reference workflow ships.
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
-          clean: false
+          # `clean: true`, against the `false` r-lib's pkgdown workflow ships. That default
+          # exists so a development build does not wipe a released one; with a single site
+          # it only accumulates - and it had, leaving both the pkgdown and the Quarto
+          # documentation published at once, 99 pages of one of them never to be updated
+          # again. Two copies of the truth is worse than one, because only one of them is
+          # still true. The step above keeps the old addresses working.
+          clean: true
           branch: gh-pages
           folder: docs
