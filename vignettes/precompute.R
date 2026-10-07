@@ -1,4 +1,9 @@
-# Vignettes here are precomputed.
+# The vignettes that run something are precomputed.
+#
+# `configuration.Rmd` is not among them and has no `.Rmd.orig`: it is prose, YAML and R chunks
+# with `eval = FALSE`, so there is nothing to run and nothing to keep in step. Its claims are
+# checked by tests/testthat/test-guide.R instead, which validates every configuration it shows
+# through the engine and asserts every function it names exists.
 #
 # R CMD check builds vignettes, and one of these trains two models on 5.6 GB of images that a
 # CRAN machine does not have and would not want. So the real documents are the .Rmd.orig files,

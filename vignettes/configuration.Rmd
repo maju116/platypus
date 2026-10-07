@@ -1,0 +1,292 @@
+---
+title: "Writing a configuration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Writing a configuration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE, error = FALSE)
+```
+
+One YAML file describes a whole run, and `platypus_spec()` reads it. This is the walk
+through that file; the exhaustive list of fields lives on the engine's site, because the
+file is the engine's format and keeping a second copy here would mean two of them going
+out of step:
+[every configuration field](https://maju116.github.io/pyplatypus/config.html).
+
+**The same file works in both packages.** R reads it with `platypus_spec()`, Python with
+`from_yaml()`, and both hand it to the same validator. Nothing below is R-specific except
+the lines that run it.
+
+Arguments and YAML produce the same object and nothing downstream can tell which was used,
+so a configuration file and an R script describe the same experiment - and either can be
+handed to a colleague.
+
+## One file, one run
+
+The shortest thing that trains:
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/train
+  validation_path: data/validation
+  colormap: [[0, 0, 0], [255, 255, 255]]
+models:
+  - name: first_try
+    input_shape: [256, 256]
+```
+
+```{r}
+spec <- platypus_spec("run.yaml")
+fit <- platypus_fit(spec)
+evaluate(fit)
+```
+
+Four things are required and the rest have defaults: `task`, `data.train_path`, and a
+`name` and `input_shape` for each model. Everything else - the architecture, the loss, the
+optimiser, how many epochs - has a default that lives in the engine, so **a short
+configuration is a complete one** rather than an incomplete one. `?u_net` has a *Where the
+defaults live* section saying why they are not written into the R signatures.
+
+`colormap` says which colour in a mask means which class, darkest first. Masks stored as
+label maps rather than pictures use `labels: [0, 1]` instead, and giving both is an error:
+exactly one says how a mask is encoded.
+
+## Several models at once
+
+`models:` is a list, and that is the reason this file format exists rather than only the
+code path. Each entry trains on the same data and lands in the same table, so comparing
+variants is one run rather than a loop somebody has to write.
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/train
+  validation_path: data/validation
+  colormap: [[0, 0, 0], [255, 255, 255]]
+models:
+  - name: shallow
+    input_shape: [256, 256]
+    blocks: 3
+    filters: 16
+  - name: deep
+    input_shape: [256, 256]
+    blocks: 5
+    filters: 32
+    architecture: u_net_plus_plus
+```
+
+```{r}
+fit <- platypus_fit(platypus_spec("run.yaml"))
+evaluate(fit)            # one row per model
+training_history(fit)    # one row per model per epoch
+```
+
+`name` has to be unique, because it is how a model is identified in every score table, in
+every record and in `predict(fit, model = ...)`. Two models called the same thing is
+refused rather than resolved, by name:
+`model names must be unique; repeated: shallow`.
+
+Two entries differing only in `blocks` is a legitimate configuration and a common one: this
+is for comparing variants, not only architectures.
+
+## Dividing one folder
+
+With no `validation_path`, say how to divide `train_path`:
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/all
+  split:
+    fractions: [0.7, 0.15, 0.15]
+    group_by: "^(patient\\d+)_"
+  colormap: [[0, 0, 0], [255, 255, 255]]
+models:
+  - name: by_patient
+    input_shape: [256, 256]
+```
+
+Two fractions give train and validation, three add a test set. Nothing is written to disk -
+the samples are divided after they are discovered, so there are no new folders and no CSV.
+`split_dataset()` is still the tool when the CSVs themselves are the point.
+
+**`group_by` is required and may be `NULL`.** It is a regular expression whose first group
+is the thing that must not appear on both sides - a patient, a scan, a slide. The mistake it
+prevents leaves no trace: slices of one patient in both sets make validation measure memory
+rather than generalisation, and every number in the output still looks reasonable. An
+omitted key would be that choice made silently; `null` is the same choice made on purpose,
+for data where every sample is independent.
+
+Exactly one of `split` and `validation_path`. If a run genuinely has no validation set - a
+final fit on everything - say `validation: false`, which is the third answer rather than an
+absence, because "I have no validation set" and "I forgot" look identical otherwise.
+
+The same from R, where the argument answers the same question three ways:
+
+```{r}
+segmentation_data("data/all", split = list(fractions = c(0.8, 0.2), group_by = NULL))
+segmentation_data("data/train", validation = "data/validation")
+segmentation_data("data/all", validation = FALSE)
+```
+
+## Augmentation, callbacks, and the rest of a model
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/train
+  validation_path: data/validation
+  colormap: [[0, 0, 0], [255, 255, 255]]
+models:
+  - name: augmented
+    input_shape: [256, 256]
+    epochs: 40
+    loss: {name: dice}
+    metrics: [{name: iou}, {name: dice}]
+    optimizer: {name: adam, learning_rate: 0.001}
+    callbacks:
+      - {name: early_stopping, monitor: val_loss, patience: 10}
+      - {name: model_checkpoint, monitor: val_iou, path: runs/best.safetensors}
+    augmentation:
+      - {name: HorizontalFlip, params: {p: 0.5}}
+      - {name: RandomBrightnessContrast, params: {p: 0.3}}
+```
+
+Every one of those blocks has an R constructor that builds the same thing, and the help
+pages for them are where the measurements are: `?losses`, `?metrics`, `?optimizers`,
+`?callbacks`.
+
+```{r}
+u_net(
+  "augmented",
+  input_shape = c(256, 256),
+  epochs = 40,
+  loss = loss_dice(),
+  metrics = list(metric_iou(), metric_dice()),
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  callbacks = list(
+    callback_early_stopping(monitor = "val_loss", patience = 10),
+    callback_model_checkpoint(monitor = "val_iou", path = "runs/best.safetensors")
+  ),
+  augmentation = list(
+    augmentation_step("HorizontalFlip", p = 0.5),
+    augmentation_step("RandomBrightnessContrast", p = 0.3)
+  )
+)
+```
+
+**There is no `mode` on a callback that watches a number.** The direction is taken from the
+name: anything ending in `loss` is better lower, anything else better higher. So
+`monitor = "val_iou"` maximises and `monitor = "val_loss"` minimises, and there is nothing
+to set inconsistently.
+
+**Augmentation applies to the training data only** - never to validation, where the point is
+to measure the same thing every epoch. The names are albumentations' own, and
+`available_transforms()` lists what the installed version offers; at `rank = 3` the list is
+shorter, because support for volumes is uneven. Each step is probed at the model's own input
+size while the pipeline is built, so a transform that cannot do the job says so before the
+first epoch rather than during it.
+
+## Detection instead of segmentation
+
+`task: object_detection` changes which fields the file accepts. Boxes rather than masks, so
+`classes` and an annotation format rather than a colormap:
+
+```yaml
+task: object_detection
+data:
+  train_path: data/train
+  validation_path: data/validation
+  annotation_format: pascal_voc
+  classes: [rbc, wbc, platelets]
+models:
+  - name: cells
+    input_shape: [416, 416]
+```
+
+**Leave `anchors` out and they are fitted to your own boxes** by k-means on an IoU distance,
+`anchors_per_grid` of them per grid. That is worth about 0.23 of mean overlap against COCO's
+nine on blood cells - measured, 0.65 against 0.88 - so the default is the useful one and
+naming anchors by hand is for reproducing a published model. `detection_anchors()` reports
+them and `plot_anchors()` draws them against the boxes they were fitted to.
+
+## Not training at all
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/images
+  validation_path: data/images
+  colormap: [[0, 0, 0], [255, 255, 255]]
+models:
+  - name: published
+    input_shape: [256, 256]
+    weights: dsbowl-unet
+    fit: false
+```
+
+`weights` takes a registry name, a local path, or `hf://owner/repo/file@commit` - and the
+`hf://` form requires the commit, because weights that change under a stable name are the
+worst kind of irreproducibility. A registry name carries one already;
+`available_weights()` lists them.
+
+With `fit: false` nothing trains and `predict(fit)` works immediately. The weights are
+checked against the model they are being loaded into *before* torch is touched: a shape, a
+channel count or a class count that does not match is a refusal naming the field, not a
+tensor-size error from inside a loss.
+
+## What is checked, and when
+
+Validation happens in this order, and the first two cost no epochs:
+
+1. **The file, against the schema.** Unknown fields, missing required ones, a `name:` that no
+   block has, a callback watching a number nothing will produce. Before any path is read -
+   and before Python starts, for the checks R can make itself.
+2. **The data on disk**, when the run begins: that the folders exist, that images and masks
+   correspond, and that every class in `colormap` or `labels` actually appears in the masks,
+   because a declared class appearing in none has a target channel of zeros, so the model is
+   never shown what it is being asked to find. `inspect_masks()` runs that check on its own,
+   and `platypus_fit(check_masks = FALSE)` skips it.
+3. **Everything else**, during the run.
+
+A refusal names the field and says what to do. The engine's own messages are translated into
+R conditions rather than passed through as Python tracebacks, so
+`tryCatch(platypus_spec("run.yaml"), error = function(e) conditionMessage(e))` gives a
+sentence rather than a stack.
+
+## The same run from code
+
+The file is not a second implementation. These describe the same experiment:
+
+```{r}
+spec <- platypus_spec("run.yaml")
+
+spec <- platypus_spec(
+  data = segmentation_data(
+    "data/train",
+    validation = "data/validation",
+    colormap = list(c(0, 0, 0), c(255, 255, 255))
+  ),
+  models = list(u_net("first_try", input_shape = c(256, 256)))
+)
+```
+
+And `as.list(spec)` is the file, so a run built from arguments can be written out and kept:
+
+```{r}
+yaml::write_yaml(as.list(spec), "run.yaml")
+```
+
+Which to use is a question about how many models and how often, not about what is possible.
+A file is better when there are several models, when the run is going to be repeated, or
+when somebody else has to see what was done; the arguments are better inside a loop over
+something the file cannot express, like a vector of datasets.
+
+Note that `as.list()` is also how the fields are reached: the object returned by
+`platypus_spec()` carries the specification on the Python side, so `spec$task` is `NULL`
+while `as.list(spec)$task` is what you want.
