@@ -64,9 +64,7 @@ jobs:
           # only produces failures that say nothing.
           args: 'c("--no-manual")'
 
-  # The bridge, exercised for real. This is the part most likely to break in a way local
-  # work would not reveal: it downloads the engine into a fresh managed environment, the
-  # same way a user's first call does.
+  # Style and the defects a linter finds, in both languages the package is written in.
   lint:
     runs-on: ubuntu-latest
     name: lint
@@ -91,12 +89,30 @@ jobs:
           extra-packages: any::lintr, local::.
           needs: lint
 
-      - name: Lint
+      - name: Lint the R sources
         run: lintr::lint_package()
         shell: Rscript {0}
         env:
           LINTR_ERROR_ON_LINT: true
 
+      # `inst/python/platypus_shim.py` is the one Python file here and it had never been
+      # linted or formatted by anything: the engine's ruff covers the engine's repository,
+      # and this one had no Python tooling at all. Two real findings came out of switching
+      # it on - a `subprocess.run` with no `check=` argument and an unsorted import block.
+      #
+      # Pinned to the version pyproject.toml pins over in pyplatypus, so a contributor's
+      # machine, that repository and this one cannot disagree about the rules. ruff.toml
+      # carries the one setting that is not a default.
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - run: uvx ruff@0.16.10 check inst/python
+      - run: uvx ruff@0.16.10 format --check --diff inst/python
+
+  # The bridge, exercised for real. This is the part most likely to break in a way local
+  # work would not reveal: it downloads the engine into a fresh managed environment, the
+  # same way a user's first call does.
   engine:
     runs-on: ubuntu-latest
     name: engine (bridge to pyplatypus)
