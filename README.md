@@ -327,30 +327,6 @@ not the best, because the spread across them is 0.016 and a single number would 
 seed got reported. `available_weights()` lists what is published and what it is for; the
 description is the part to read, and for this one it says platelets are the unreliable class.
 
-## Learning it
-
-Three vignettes, all precomputed from real runs — every number and figure in them came out of
-running the code shown.
-
-**Read them at [maju116.github.io/platypus](https://maju116.github.io/platypus/)**, which also
-carries the reference for every function. Browsing them here on GitHub does not work: GitHub has
-no renderer for `.Rmd` and serves the source, figures and all, as plain text. From R,
-`vignette("blood-cells")` opens the same document locally.
-
-`vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
-mask per nucleus, from a folder of images to a figure.
-
-`vignette("blood-cells")` is detection: BCCD, boxes rather than masks, opening with a
-published detector before any training. It ends on the finding that made the measurement
-honest — across five seeds the overlap of the matched boxes varies six times less than the
-average precision does, so on a dataset that size a point of mAP is not a result.
-
-`vignette("volumes")` is CT, and generates its own synthetic data so it can be run without
-downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a
-slice to look at, and the size of a finding in millilitres. It ends on something worth knowing —
-a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and
-is the reason to report both.
-
 ## A backbone instead of the built-in encoder
 
 `encoder = "resnet34"` replaces the contracting path with a timm backbone, and `pretrained =
@@ -388,6 +364,30 @@ The short version, and `?encoders` has the long one:
 
 Measure on your own images before trusting any of this. The regime where transfer helps is
 narrow, and three public datasets are three public datasets.
+
+## Learning it
+
+Three vignettes, all precomputed from real runs — every number and figure in them came out of
+running the code shown.
+
+**Read them at [maju116.github.io/platypus](https://maju116.github.io/platypus/)**, which also
+carries the reference for every function. Browsing them here on GitHub does not work: GitHub has
+no renderer for `.Rmd` and serves the source, figures and all, as plain text. From R,
+`vignette("blood-cells")` opens the same document locally.
+
+`vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
+mask per nucleus, from a folder of images to a figure.
+
+`vignette("blood-cells")` is detection: BCCD, boxes rather than masks, opening with a
+published detector before any training. It ends on the finding that made the measurement
+honest — across five seeds the overlap of the matched boxes varies six times less than the
+average precision does, so on a dataset that size a point of mAP is not a result.
+
+`vignette("volumes")` is CT, and generates its own synthetic data so it can be run without
+downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a
+slice to look at, and the size of a finding in millilitres. It ends on something worth knowing —
+a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and
+is the reason to report both.
 
 ## What is not in it yet
 
