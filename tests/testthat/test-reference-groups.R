@@ -81,3 +81,48 @@ test_that("the generated sidebar matches the grouping it was generated from", {
   expect_identical(from_sidebar, from_groups,
                    info = "run tools/build-reference.R - the sidebar is stale")
 })
+
+# The About section is four links and was uncovered until 2026-10-07: swapping two of them
+# left every assertion above passing, because they only read the Reference section. Two
+# things are pinned here, and both have already gone wrong once.
+#
+#  - The order, which matches pyplatypus's sidebar so that a reader moving between the two
+#    sites finds the same four things in the same places. That cannot be asserted from here
+#    - this repository cannot see the other one - so the order is written out, and the
+#    comment in tools/build-reference.R says where it came from.
+#  - The pairing of each entry with a file that exists. altdoc builds the placeholder from
+#    the basename of whichever file it found, so NEWS.md is $ALTDOC_NEWS; name a placeholder
+#    whose file is absent and altdoc deletes the `file:` line and leaves the `text:` line,
+#    which is a sidebar entry that cannot be clicked. That is what happened to Licence and
+#    Changelog before this test existed.
+test_that("the About section is in the agreed order and every entry has a file", {
+  root <- NULL
+  for (candidate in c(".", "..", file.path("..", ".."))) {
+    if (file.exists(file.path(candidate, "altdoc", "quarto_website.yml"))) {
+      root <- candidate
+      break
+    }
+  }
+  skip_if(is.null(root), "altdoc/quarto_website.yml not reachable from here")
+
+  generated <- yaml::read_yaml(file.path(root, "altdoc", "quarto_website.yml"))
+  sections <- generated$website$sidebar$contents
+  about <- Filter(function(entry) identical(entry$section, "About"), sections)[[1]]
+
+  expect_identical(
+    vapply(about$contents, `[[`, character(1), "text"),
+    c("Changelog", "Code of conduct", "Licence", "Citation"),
+    info = "run tools/build-reference.R - and keep the order pyplatypus uses"
+  )
+
+  for (entry in about$contents) {
+    name <- sub("^[$]ALTDOC_", "", entry$file)
+    # altdoc writes the citation page from DESCRIPTION, so it is the one with no file.
+    if (identical(name, "CITATION")) next
+    expect_true(
+      any(file.exists(file.path(root, paste0(name, c(".md", ""))))),
+      info = paste0(entry$text, " points at $ALTDOC_", name,
+                    ", so altdoc needs ", name, ".md at the package root")
+    )
+  }
+})

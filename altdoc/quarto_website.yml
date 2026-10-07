@@ -108,10 +108,12 @@ website:
               - man/save_volumes.qmd
       - section: "About"
         contents:
-          - text: Licence
-            file: $ALTDOC_LICENSE
+          - text: Changelog
+            file: $ALTDOC_NEWS
           - text: Code of conduct
             file: $ALTDOC_CODE_OF_CONDUCT
+          - text: Licence
+            file: $ALTDOC_LICENSE
           - text: Citation
             file: $ALTDOC_CITATION
 

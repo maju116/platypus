@@ -30,22 +30,34 @@ reference <- unlist(lapply(groups, function(group) {
 # reason and I kept one of them.
 #
 # Deriving it means the entry cannot outlive the file.
+# The placeholder is NOT ours to choose: altdoc builds it from the basename of whichever
+# file it found, so NEWS.md is $ALTDOC_NEWS and CHANGELOG.md is $ALTDOC_CHANGELOG. Naming
+# one while shipping the other is the same broken entry by a longer route, so the
+# placeholder is derived here by altdoc's own rule rather than written out beside the file.
+#
+# The order is the one pyplatypus's sidebar uses, so a reader moving between the two sites
+# finds the same four things in the same places.
 candidates <- list(
-  list(text = "Changelog", placeholder = "$ALTDOC_CHANGELOG", files = c("CHANGELOG.md", "NEWS.md")),
-  list(text = "Licence", placeholder = "$ALTDOC_LICENSE", files = c("LICENSE.md", "LICENSE")),
-  list(text = "Code of conduct", placeholder = "$ALTDOC_CODE_OF_CONDUCT",
-       files = "CODE_OF_CONDUCT.md"),
+  list(text = "Changelog", files = c("CHANGELOG.md", "NEWS.md")),
+  list(text = "Code of conduct", files = "CODE_OF_CONDUCT.md"),
+  list(text = "Licence", files = c("LICENSE.md", "LICENSE")),
   # altdoc writes a citation page from DESCRIPTION, so this one needs no file of its own.
   list(text = "Citation", placeholder = "$ALTDOC_CITATION", files = NULL)
 )
 
 about <- unlist(lapply(candidates, function(entry) {
-  if (!is.null(entry$files) && !any(file.exists(entry$files))) {
+  found <- if (is.null(entry$files)) NULL else entry$files[file.exists(entry$files)]
+  if (!is.null(entry$files) && length(found) == 0L) {
     cat("About: skipping", entry$text, "- no", paste(entry$files, collapse = " or "), "\n")
     return(NULL)
   }
+  placeholder <- entry$placeholder
+  if (is.null(placeholder)) {
+    placeholder <- sprintf("$ALTDOC_%s", toupper(tools::file_path_sans_ext(found[1])))
+  }
+  cat("About:", entry$text, "->", placeholder, "\n")
   c(sprintf("          - text: %s", entry$text),
-    sprintf("            file: %s", entry$placeholder))
+    sprintf("            file: %s", placeholder))
 }))
 
 template <- c(
