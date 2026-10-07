@@ -103,7 +103,7 @@
     "text": "Writes safetensors plus a .json sidecar recording what the weights are for: architecture, input shape, channels, classes, and whatever else you pass. Loading refuses a model they do not belong to, which is what the sidecar is for - weights trained on a different colormap with the same number of classes load cleanly and predict nonsense.\n\nexport_weights(object, path, model = NULL, ...)\n\n\n\n\n\nobject\n\n\nA platypus_fit().\n\n\n\n\npath\n\n\nWhere to write, with or without the .safetensors extension.\n\n\n\n\nmodel\n\n\nWhich model, by the name in the specification. Defaults to the first.\n\n\n\n\n…\n\n\nExtra fields for the sidecar, for instance data = “BBBC038v1”, licence = “CC0 1.0”.\n\n\n\nAnything in … joins the sidecar. The data they were trained on and its licence belong there: weights whose provenance lives in somebody’s memory cannot be used by anybody else, including you in a year.\n\nThe path written, invisibly, with the sidecar’s contents attached as the recorded attribute - so you can see what was put beside the weights without opening the file.\n\n\nlibrary(\"platypus\")\n\nexport_weights(fit, \"weights/my-run\",\n             data = \"our 2026 cohort\", licence = \"internal use only\")",
     "crumbs": [
       "Reference",
-      "Training",
+      "Weights",
       "Save a trained model's weights"
     ]
   },
@@ -115,7 +115,7 @@
     "text": "Writes safetensors plus a .json sidecar recording what the weights are for: architecture, input shape, channels, classes, and whatever else you pass. Loading refuses a model they do not belong to, which is what the sidecar is for - weights trained on a different colormap with the same number of classes load cleanly and predict nonsense.\n\nexport_weights(object, path, model = NULL, ...)\n\n\n\n\n\nobject\n\n\nA platypus_fit().\n\n\n\n\npath\n\n\nWhere to write, with or without the .safetensors extension.\n\n\n\n\nmodel\n\n\nWhich model, by the name in the specification. Defaults to the first.\n\n\n\n\n…\n\n\nExtra fields for the sidecar, for instance data = “BBBC038v1”, licence = “CC0 1.0”.\n\n\n\nAnything in … joins the sidecar. The data they were trained on and its licence belong there: weights whose provenance lives in somebody’s memory cannot be used by anybody else, including you in a year.\n\nThe path written, invisibly, with the sidecar’s contents attached as the recorded attribute - so you can see what was put beside the weights without opening the file.\n\n\nlibrary(\"platypus\")\n\nexport_weights(fit, \"weights/my-run\",\n             data = \"our 2026 cohort\", licence = \"internal use only\")",
     "crumbs": [
       "Reference",
-      "Training",
+      "Weights",
       "Save a trained model's weights"
     ]
   },
@@ -1407,7 +1407,7 @@
     "text": "Weights are named rather than downloaded by hand, and a name is pinned to one commit of the repository holding it - so “dsbowl-unet” means one set of numbers today and the same set next year. This lists what is published, with the commit each name resolves to.\n\navailable_weights()\n\n\nRead the descriptions rather than only the names. A model’s limitations decide whether it answers your question: the nuclei weights are semantic, so touching nuclei come back as one region and a count taken from them would be wrong.\n\nA data frame with name, repo, filename, revision and description.\n\nu_net() and the other architectures, whose weights argument takes a name from here, a hf://owner/repo/file.safetensors@commit reference, or a path to a local file.\n\n\nlibrary(\"platypus\")\n\navailable_weights()\n\nspec &lt;- platypus_spec(\n  data = segmentation_data(\"images/\", \"images/\", colormap = binary_colormap),\n  models = list(u_net(\"nuclei\", input_shape = c(256, 256), blocks = 4, filters = 16,\n                      weights = \"dsbowl-unet\", fit = FALSE))\n)\nmasks &lt;- predict(platypus_fit(spec), split = \"validation\")",
     "crumbs": [
       "Reference",
-      "Training",
+      "Weights",
       "The published weights, and what they are"
     ]
   },
@@ -1419,7 +1419,7 @@
     "text": "Weights are named rather than downloaded by hand, and a name is pinned to one commit of the repository holding it - so “dsbowl-unet” means one set of numbers today and the same set next year. This lists what is published, with the commit each name resolves to.\n\navailable_weights()\n\n\nRead the descriptions rather than only the names. A model’s limitations decide whether it answers your question: the nuclei weights are semantic, so touching nuclei come back as one region and a count taken from them would be wrong.\n\nA data frame with name, repo, filename, revision and description.\n\nu_net() and the other architectures, whose weights argument takes a name from here, a hf://owner/repo/file.safetensors@commit reference, or a path to a local file.\n\n\nlibrary(\"platypus\")\n\navailable_weights()\n\nspec &lt;- platypus_spec(\n  data = segmentation_data(\"images/\", \"images/\", colormap = binary_colormap),\n  models = list(u_net(\"nuclei\", input_shape = c(256, 256), blocks = 4, filters = 16,\n                      weights = \"dsbowl-unet\", fit = FALSE))\n)\nmasks &lt;- predict(platypus_fit(spec), split = \"validation\")",
     "crumbs": [
       "Reference",
-      "Training",
+      "Weights",
       "The published weights, and what they are"
     ]
   },
