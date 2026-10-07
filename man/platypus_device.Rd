@@ -13,6 +13,13 @@ A list, printed readably.
 Reports the PyTorch build in use and the device it can see. Starts the engine if it is
 not running.
 }
+\section{Why this page shows no output}{
+
+What this prints is a property of the machine it runs on, so an example output here
+would describe whichever machine built this page rather than yours. Run it and read
+your own.
+}
+
 \examples{
 \dontrun{
 platypus_device()

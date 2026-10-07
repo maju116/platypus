@@ -188,6 +188,12 @@ shim <- function() {
 #'
 #' @return A list with the engine version, the interpreter in use and where its
 #'   environment lives, or `NULL` fields when Python has not been started yet.
+#'
+#' @section Why this page shows no output:
+#' What this prints is a property of the machine it runs on, so an example output here
+#' would describe whichever machine built this page rather than yours. Run it and read
+#' your own.
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -245,6 +251,12 @@ print.platypus_status <- function(x, ...) {
 #' @param build `"pascal"` for the last PyTorch built against CUDA 12, or `NULL` for the
 #'   default.
 #' @return The requirement string now in force, invisibly.
+#'
+#' @section Why this page shows no output:
+#' What this prints is a property of the machine it runs on, so an example output here
+#' would describe whichever machine built this page rather than yours. Run it and read
+#' your own.
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -272,6 +284,12 @@ platypus_use_torch <- function(build = c("pascal", "default")) {
 #' not running.
 #'
 #' @return A list, printed readably.
+#'
+#' @section Why this page shows no output:
+#' What this prints is a property of the machine it runs on, so an example output here
+#' would describe whichever machine built this page rather than yours. Run it and read
+#' your own.
+#'
 #' @export
 #' @examples
 #' \dontrun{

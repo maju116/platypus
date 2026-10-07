@@ -63,6 +63,10 @@ when the specification is built rather than waited on forever.
 \details{
 Whether the watched quantity should rise or fall is worked out from its name: anything
 ending in \code{loss} is minimised, everything else maximised.
+
+There is a seventh, documented separately because it needs a page of its own:
+\code{\link[=callback_swa]{callback_swa()}} averages the weights over the last part of the run. It watches
+nothing and changes how reproducible a run is rather than how well it scores.
 }
 \section{Cosine annealing}{
 

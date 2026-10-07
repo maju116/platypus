@@ -16,6 +16,10 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' The objective the model is trained against. Every one of these works unchanged on
 #' volumes as well as images.
 #'
+#' There is a tenth, documented separately because it needs a page of its own:
+#' [loss_boundary()] adds the signed distance to the truth's boundary on top of any of
+#' these, which removes the systematic volume bias at some cost in per-case accuracy.
+#'
 #' @param smooth Added to numerator and denominator to keep an empty class finite.
 #' @param gamma For focal losses, how hard to discount the pixels already classified well.
 #' @param alpha For Tversky, the weight on false negatives; raising it buys recall.
@@ -259,6 +263,10 @@ optimizer_nadam <- function(learning_rate = 1e-3, beta_1 = 0.9, beta_2 = 0.999,
 #' Whether the watched quantity should rise or fall is worked out from its name: anything
 #' ending in `loss` is minimised, everything else maximised.
 #'
+#' There is a seventh, documented separately because it needs a page of its own:
+#' [callback_swa()] averages the weights over the last part of the run. It watches
+#' nothing and changes how reproducible a run is rather than how well it scores.
+#'
 #' @section Cosine annealing:
 #'
 #' `callback_cosine_annealing()` decays the learning rate from its initial value to `min_lr`
@@ -427,9 +435,20 @@ augmentation_step <- function(name, ...) {
 #' @examples
 #' \dontrun{
 #' available_transforms()                       # everything, for images
+#' #> 130 names, with albumentations 2.0.8
+#'
 #' available_transforms(rank = 3)               # what volumes can take
+#' #> 97 - the other 33 raise from inside albumentations when handed a volume
+#'
 #' available_transforms(rank = 3, pattern = "Flip|Crop")
-#' setdiff(available_transforms(), available_transforms(rank = 3))   # the gap
+#' #> [1] "AtLeastOneBBoxRandomCrop" "CenterCrop"   "CenterCrop3D"
+#' #> [4] "CropAndPad"   "CropNonEmptyMaskIfExists"  "HorizontalFlip"
+#' #> [7] "RandomCrop"   "RandomCrop3D"              "RandomCropFromBorders"
+#' #> [10] "RandomResizedCrop"  "RandomSizedBBoxSafeCrop"  "RandomSizedCrop"
+#' #> [13] "VerticalFlip"
+#'
+#' length(setdiff(available_transforms(), available_transforms(rank = 3)))
+#' #> [1] 33
 #' }
 #' @export
 available_transforms <- function(rank = 2, pattern = NULL) {

@@ -27,6 +27,13 @@ nothing obviously wrong.
 On anything from Turing - the RTX 20-series onwards - the default is correct and this
 is unnecessary.
 }
+\section{Why this page shows no output}{
+
+What this prints is a property of the machine it runs on, so an example output here
+would describe whichever machine built this page rather than yours. Run it and read
+your own.
+}
+
 \examples{
 \dontrun{
 library(platypus)

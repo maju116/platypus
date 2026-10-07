@@ -48,6 +48,11 @@ A loss specification, to be passed to a model constructor.
 The objective the model is trained against. Every one of these works unchanged on
 volumes as well as images.
 }
+\details{
+There is a tenth, documented separately because it needs a page of its own:
+\code{\link[=loss_boundary]{loss_boundary()}} adds the signed distance to the truth's boundary on top of any of
+these, which removes the systematic volume bias at some cost in per-case accuracy.
+}
 \examples{
 loss_focal(gamma = 2)
 loss_tversky(alpha = 0.7)
