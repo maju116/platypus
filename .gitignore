@@ -36,3 +36,9 @@ __pycache__/
 /docs/
 altdoc/freeze.rds
 _quarto/
+
+# altdoc regenerates this on every render - verified by deleting it and rendering - and it
+# records the machine that did: `last_built` moved from 12:36 to 15:18 between two commits
+# an afternoon apart, and the copy a runner published says `pandoc: 3.8.3` where this one
+# says 2.9.2.1. Generated, machine-specific, and it would dirty the tree after every build.
+altdoc/pkgdown.yml
