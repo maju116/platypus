@@ -138,7 +138,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Reference</li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/save_volumes.html">Save predicted volumes as NIfTI</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/save_volumes.html">Save predicted volumes as NIfTI</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -196,7 +196,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           </a> 
       </div>
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item sidebar-item-section">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../overview.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
  <span class="menu-text">Setting up</span></a>
@@ -661,7 +667,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul><div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Reference</li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/save_volumes.html">Save predicted volumes as NIfTI</a></li></ol></nav></header><section id="save-predicted-volumes-as-nifti" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="save-predicted-volumes-as-nifti">Save predicted volumes as NIfTI</h2>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/save_volumes.html">Save predicted volumes as NIfTI</a></li></ol></nav></header><section id="save-predicted-volumes-as-nifti" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="save-predicted-volumes-as-nifti">Save predicted volumes as NIfTI</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
 <p>Writes each mask as a label-map NIfTI carrying the geometry of the scan it was predicted from. That is the whole reason this is not <code><a href="../man/save_masks.html">save_masks()</a></code> with a different extension: a mask array without an affine cannot be laid over its scan by any viewer, any registration tool or any volume calculation - it either lands in the wrong place or is refused.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>

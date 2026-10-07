@@ -212,6 +212,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           </a> 
       </div>
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./overview.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
@@ -675,8 +681,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#the-same-thing-from-a-file" id="toc-the-same-thing-from-a-file" class="nav-link" data-scroll-target="#the-same-thing-from-a-file">The same thing from a file</a></li>
   <li><a href="#what-is-in-it" id="toc-what-is-in-it" class="nav-link" data-scroll-target="#what-is-in-it">What is in it</a></li>
   <li><a href="#boxes-instead-of-masks" id="toc-boxes-instead-of-masks" class="nav-link" data-scroll-target="#boxes-instead-of-masks">Boxes instead of masks</a></li>
-  <li><a href="#learning-it" id="toc-learning-it" class="nav-link" data-scroll-target="#learning-it">Learning it</a></li>
   <li><a href="#a-backbone-instead-of-the-built-in-encoder" id="toc-a-backbone-instead-of-the-built-in-encoder" class="nav-link" data-scroll-target="#a-backbone-instead-of-the-built-in-encoder">A backbone instead of the built-in encoder</a></li>
+  <li><a href="#learning-it" id="toc-learning-it" class="nav-link" data-scroll-target="#learning-it">Learning it</a></li>
   <li><a href="#what-is-not-in-it-yet" id="toc-what-is-not-in-it-yet" class="nav-link" data-scroll-target="#what-is-not-in-it-yet">What is not in it yet</a></li>
   <li><a href="#about-the-engine" id="toc-about-the-engine" class="nav-link" data-scroll-target="#about-the-engine">About the engine</a></li>
   <li><a href="#licence" id="toc-licence" class="nav-link" data-scroll-target="#licence">Licence</a></li>
@@ -927,14 +933,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>bccd-yolo3</code> scores mAP@0.5 0.857 on BCCD’s own held-out split — the <strong>median of five seeds</strong>, not the best, because the spread across them is 0.016 and a single number would be whichever seed got reported. <code>available_weights()</code> lists what is published and what it is for; the description is the part to read, and for this one it says platelets are the unreliable class.</p>
 </section>
-<section id="learning-it" class="level2">
-<h2 class="anchored" data-anchor-id="learning-it">Learning it</h2>
-<p>Three vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.</p>
-<p><strong>Read them at <a href="">maju116.github.io/platypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
-<p><code>vignette("data-science-bowl")</code> is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.</p>
-<p><code>vignette("blood-cells")</code> is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.</p>
-<p><code>vignette("volumes")</code> is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.</p>
-</section>
 <section id="a-backbone-instead-of-the-built-in-encoder" class="level2">
 <h2 class="anchored" data-anchor-id="a-backbone-instead-of-the-built-in-encoder">A backbone instead of the built-in encoder</h2>
 <p><code>encoder = "resnet34"</code> replaces the contracting path with a timm backbone, and <code>pretrained = TRUE</code> is a separate flag that loads its ImageNet weights — separate so that naming an architecture never reaches the network on a machine that has none.</p>
@@ -991,6 +989,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>And the part worth saying plainly: <strong>platypus’s own 1.9M-parameter encoder beats ResNet-34’s 9.0M on two of the three.</strong></li>
 </ul>
 <p>Measure on your own images before trusting any of this. The regime where transfer helps is narrow, and three public datasets are three public datasets.</p>
+</section>
+<section id="learning-it" class="level2">
+<h2 class="anchored" data-anchor-id="learning-it">Learning it</h2>
+<p>Three vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.</p>
+<p><strong>Read them at <a href="">maju116.github.io/platypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
+<p><code>vignette("data-science-bowl")</code> is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.</p>
+<p><code>vignette("blood-cells")</code> is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.</p>
+<p><code>vignette("volumes")</code> is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.</p>
 </section>
 <section id="what-is-not-in-it-yet" class="level2">
 <h2 class="anchored" data-anchor-id="what-is-not-in-it-yet">What is not in it yet</h2>

@@ -883,21 +883,21 @@
     ]
   },
   {
-    "objectID": "index.html#learning-it",
-    "href": "index.html#learning-it",
-    "title": "platypus",
-    "section": "Learning it",
-    "text": "Learning it\nThree vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.\nRead them at maju116.github.io/platypus, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for .Rmd and serves the source, figures and all, as plain text. From R, vignette(\"blood-cells\") opens the same document locally.\nvignette(\"data-science-bowl\") is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.\nvignette(\"blood-cells\") is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.\nvignette(\"volumes\") is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
     "objectID": "index.html#a-backbone-instead-of-the-built-in-encoder",
     "href": "index.html#a-backbone-instead-of-the-built-in-encoder",
     "title": "platypus",
     "section": "A backbone instead of the built-in encoder",
     "text": "A backbone instead of the built-in encoder\nencoder = \"resnet34\" replaces the contracting path with a timm backbone, and pretrained = TRUE is a separate flag that loads its ImageNet weights — separate so that naming an architecture never reaches the network on a machine that has none.\nu_net(\"polyps\", input_shape = c(256, 256),\n      encoder = \"resnet34\", pretrained = TRUE, freeze_encoder = 5)\nWhat it is worth was measured rather than assumed, on three datasets, one per modality, three seeds each, every configuration judged at its best validation Dice:\n\n\n\n\n\n\n\n\n\n\nDS Bowl, microscopy\nSIIM-ACR, chest X-ray\nKvasir-SEG, endoscopy\n\n\n\n\nbuilt-in encoder, 1.9M\n0.8460\n0.0531\n0.5830\n\n\nencoder = \"resnet34\", 9.0M\n0.7891\n0.1073\n0.5670\n\n\nthe same, pretrained, freeze_encoder = 5\n0.8333\n0.1203\n0.5932\n\n\nthe same, encoder_learning_rate = lr/10\n0.8326\n0.1011\n0.5329\n\n\n\nThe short version, and ?encoders has the long one:\n\nUse freeze_encoder, not encoder_learning_rate alone. Freezing was better on all three; on Kvasir a tenth of the rate is the worst row in the table, below even the same backbone trained from nothing.\nDo not expect a better score. Expect to reach it sooner. On Kvasir the built-in encoder needed 150, 110 and 83 epochs across its seeds; pretrained and frozen needed 64, 82 and 83.\nA bigger encoder earns its place where the target is thin. On chest X-ray, where a pneumothorax covers a median 0.59% of the frame, every backbone roughly doubles the built-in encoder — whose spread between seeds there is larger than its own mean, two of three seeds never learning at all.\nAnd the part worth saying plainly: platypus’s own 1.9M-parameter encoder beats ResNet-34’s 9.0M on two of the three.\n\nMeasure on your own images before trusting any of this. The regime where transfer helps is narrow, and three public datasets are three public datasets.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#learning-it",
+    "href": "index.html#learning-it",
+    "title": "platypus",
+    "section": "Learning it",
+    "text": "Learning it\nThree vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.\nRead them at maju116.github.io/platypus, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for .Rmd and serves the source, figures and all, as plain text. From R, vignette(\"blood-cells\") opens the same document locally.\nvignette(\"data-science-bowl\") is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.\nvignette(\"blood-cells\") is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.\nvignette(\"volumes\") is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.",
     "crumbs": [
       "Home"
     ]

@@ -39,6 +39,8 @@ website:
       - section: $ALTDOC_VIGNETTE_BLOCK
       - section: "Reference"
         contents:
+          - text: Overview
+            file: overview.qmd
           - section: "Setting up"
             contents:
               - man/platypus_status.qmd
