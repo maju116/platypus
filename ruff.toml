@@ -1,0 +1,12 @@
+# This package is R. `inst/python/platypus_shim.py` is the one Python file in it: the
+# module reticulate executes on the other side of the bridge, and every exported function
+# that reaches the engine goes through it.
+#
+# The settings match pyplatypus's own `[tool.ruff]`, so the shim is formatted and linted
+# the way the engine it talks to is, and the two halves of one feature cannot be written
+# to two standards. Everything else is ruff's default, which is also what the engine uses.
+#
+# The ruff *version* is pinned where it is invoked, in
+# `.github/workflows/R-CMD-check.yaml` (`uvx ruff@...`), because ruff has no field for it
+# here - and an unpinned linter is a check whose rules change without anybody deciding.
+line-length = 100

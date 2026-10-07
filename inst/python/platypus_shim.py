@@ -32,7 +32,10 @@ def build_spec(config: dict, check_paths: bool = True) -> dict:
     import pyplatypus
 
     try:
-        return {"ok": True, "spec": pyplatypus.from_dict(config, check_paths=check_paths)}
+        return {
+            "ok": True,
+            "spec": pyplatypus.from_dict(config, check_paths=check_paths),
+        }
     except pyplatypus.PlatypusError as error:
         return _failure(error)
 
@@ -70,8 +73,13 @@ def _engine_failure(error: Any) -> dict:
     }
 
 
-def build_engine(spec: Any, device: str | None = None, num_workers: int = 0,
-                 strict_data: bool = True, check_masks: bool = True) -> dict:
+def build_engine(
+    spec: Any,
+    device: str | None = None,
+    num_workers: int = 0,
+    strict_data: bool = True,
+    check_masks: bool = True,
+) -> dict:
     import pyplatypus
 
     options = {}
@@ -95,7 +103,10 @@ def build_engine(spec: Any, device: str | None = None, num_workers: int = 0,
 
     try:
         engine = maker(
-            spec, device=device, num_workers=int(num_workers), strict_data=strict_data,
+            spec,
+            device=device,
+            num_workers=int(num_workers),
+            strict_data=strict_data,
             **options,
         )
     except TypeError as error:
@@ -157,8 +168,12 @@ def run_fit(engine: Any, verbose: bool = False) -> dict:
             rows.append({"model": name, **record})
         if history.stop_reason:
             reasons[name] = history.stop_reason
-    return {"ok": True, "history": rows, "stop_reasons": reasons,
-            "models": list(histories)}
+    return {
+        "ok": True,
+        "history": rows,
+        "stop_reasons": reasons,
+        "models": list(histories),
+    }
 
 
 def evaluation_table(engine: Any, split: str = "validation") -> dict:
@@ -172,8 +187,13 @@ def evaluation_table(engine: Any, split: str = "validation") -> dict:
         return _engine_failure(error)
 
 
-def predictions(engine: Any, model_name: str, split: str = "test",
-                as_class: bool = True, space: str = "model") -> dict:
+def predictions(
+    engine: Any,
+    model_name: str,
+    split: str = "test",
+    as_class: bool = True,
+    space: str = "model",
+) -> dict:
     """Masks for a split.
 
     `as_class` collapses the channel axis to the class index, which is the mask someone
@@ -203,12 +223,20 @@ def predictions(engine: Any, model_name: str, split: str = "test",
         # array and R receives a list. Keeping the shapes apart is the point - see
         # `?predict.platypus_fit`.
         masks = [to_class(one) if as_class else one for one in probabilities]
-        return {"ok": True, "masks": masks, "type": "class" if as_class else "probability",
-                "space": "source"}
+        return {
+            "ok": True,
+            "masks": masks,
+            "type": "class" if as_class else "probability",
+            "space": "source",
+        }
 
     masks = to_class(probabilities) if as_class else probabilities
-    return {"ok": True, "masks": masks, "type": "class" if as_class else "probability",
-            "space": "model"}
+    return {
+        "ok": True,
+        "masks": masks,
+        "type": "class" if as_class else "probability",
+        "space": "model",
+    }
 
 
 # ---------------------------------------------------------------------- detection
@@ -238,13 +266,15 @@ def detections(engine: Any, model_name: str, split: str = "test") -> dict:
 
     out = []
     for entry in found:
-        out.append({
-            "key": entry["key"],
-            "boxes": np.asarray(entry["boxes"], dtype=float).reshape(-1, 4),
-            "scores": np.asarray(entry["scores"], dtype=float).reshape(-1),
-            "labels": (np.asarray(entry["labels"], dtype=np.int32) + 1).reshape(-1),
-            "names": list(entry["names"]),
-        })
+        out.append(
+            {
+                "key": entry["key"],
+                "boxes": np.asarray(entry["boxes"], dtype=float).reshape(-1, 4),
+                "scores": np.asarray(entry["scores"], dtype=float).reshape(-1),
+                "labels": (np.asarray(entry["labels"], dtype=np.int32) + 1).reshape(-1),
+                "names": list(entry["names"]),
+            }
+        )
     return {"ok": True, "detections": out}
 
 
@@ -260,8 +290,7 @@ def detection_table(engine: Any, split: str = "validation") -> dict:
         return _engine_failure(error)
 
 
-def detection_classes(engine: Any, model_name: str,
-                      split: str = "validation") -> dict:
+def detection_classes(engine: Any, model_name: str, split: str = "validation") -> dict:
     """One row per class, which is the row that matters on unbalanced data."""
     import pyplatypus
 
@@ -273,24 +302,32 @@ def detection_classes(engine: Any, model_name: str,
         return _engine_failure(error)
 
 
-def detection_images(engine: Any, model_name: str, split: str = "validation",
-                     score_threshold: Any = None) -> dict:
+def detection_images(
+    engine: Any, model_name: str, split: str = "validation", score_threshold: Any = None
+) -> dict:
     """One row per image: which pictures it fails on, rather than how well on average."""
     import pyplatypus
 
     try:
-        return {"ok": True,
-                "rows": engine.evaluate_images(model_name, split,
-                                               score_threshold=score_threshold)}
+        return {
+            "ok": True,
+            "rows": engine.evaluate_images(model_name, split, score_threshold=score_threshold),
+        }
     except pyplatypus.PlatypusError as error:
         return _failure(error)
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
 
 
-def detection_crops(engine: Any, model_name: str, split: str = "test",
-                    score_threshold: Any = None, context: float = 0.0,
-                    size: Any = None, fit: str = "letterbox") -> dict:
+def detection_crops(
+    engine: Any,
+    model_name: str,
+    split: str = "test",
+    score_threshold: Any = None,
+    context: float = 0.0,
+    size: Any = None,
+    fit: str = "letterbox",
+) -> dict:
     """Every detection cut out of the image it was found in, one record per image.
 
     The arrays cross the bridge as they are: reticulate turns each into an R array with the
@@ -308,8 +345,12 @@ def detection_crops(engine: Any, model_name: str, split: str = "test",
 
     try:
         records = engine.crops(
-            model_name, split, score_threshold=score_threshold, context=context,
-            size=None if size is None else (int(size[0]), int(size[1])), fit=fit,
+            model_name,
+            split,
+            score_threshold=score_threshold,
+            context=context,
+            size=None if size is None else (int(size[0]), int(size[1])),
+            fit=fit,
         )
     except pyplatypus.PlatypusError as error:
         return _failure(error)
@@ -449,15 +490,19 @@ def _nvidia_smi_sees_a_gpu() -> bool:
     try:
         out = subprocess.run(
             ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
     except Exception:  # noqa: BLE001
         return False
     return out.returncode == 0 and bool(out.stdout.strip())
 
 
-def read_images(paths: list, channels: int = 3, size: list | None = None,
-                nearest: bool = False) -> dict:
+def read_images(
+    paths: list, channels: int = 3, size: list | None = None, nearest: bool = False
+) -> dict:
     """Read images exactly as the data pipeline would.
 
     Not a convenience: a picture plotted from a differently resized copy is a picture of
@@ -468,9 +513,12 @@ def read_images(paths: list, channels: int = 3, size: list | None = None,
 
     try:
         arrays = [
-            read_image(p, channels=int(channels),
-                       size=tuple(int(s) for s in size) if size else None,
-                       nearest=bool(nearest))
+            read_image(
+                p,
+                channels=int(channels),
+                size=tuple(int(s) for s in size) if size else None,
+                nearest=bool(nearest),
+            )
             for p in paths
         ]
     except Exception as error:  # noqa: BLE001
@@ -479,7 +527,9 @@ def read_images(paths: list, channels: int = 3, size: list | None = None,
     shapes = {a.shape for a in arrays}
     if len(shapes) > 1 and size is None:
         return {
-            "ok": False, "kind": "image_error", "problems": [],
+            "ok": False,
+            "kind": "image_error",
+            "problems": [],
             "message": (
                 "these images are not all the same size "
                 f"({', '.join('x'.join(map(str, s)) for s in sorted(shapes))}), so they "
@@ -496,8 +546,9 @@ def write_masks(masks, paths: list) -> dict:
     reading: one decoder, one set of conventions, and no extra dependency on the R side
     for something the engine can already do.
     """
-    import numpy as np
     import pathlib
+
+    import numpy as np
     from PIL import Image
 
     try:
@@ -506,7 +557,9 @@ def write_masks(masks, paths: list) -> dict:
             arrays = arrays[None]
         if len(arrays) != len(paths):
             return {
-                "ok": False, "kind": "image_error", "problems": [],
+                "ok": False,
+                "kind": "image_error",
+                "problems": [],
                 "message": f"{len(arrays)} masks but {len(paths)} paths",
             }
         for array, path in zip(arrays, paths):
@@ -525,10 +578,18 @@ def window_presets() -> dict:
     return {name: list(pair) for name, pair in WINDOWS.items()}
 
 
-def split_data(root: str, out_dir: str, mode: str = "nested_dirs",
-               subdirs: list | None = None, column_sep: str = ";",
-               fractions: list | None = None, group_by: str | None = None,
-               seed: int = 0, strict: bool = True, relative: bool = True) -> dict:
+def split_data(
+    root: str,
+    out_dir: str,
+    mode: str = "nested_dirs",
+    subdirs: list | None = None,
+    column_sep: str = ";",
+    fractions: list | None = None,
+    group_by: str | None = None,
+    seed: int = 0,
+    strict: bool = True,
+    relative: bool = True,
+) -> dict:
     """Divide one directory into train/validation/test CSVs.
 
     `group_by` crosses over as written, on purpose. It is a Python regular expression, and
@@ -540,7 +601,8 @@ def split_data(root: str, out_dir: str, mode: str = "nested_dirs",
 
     try:
         report = pyplatypus.split_dataset(
-            root, out_dir,
+            root,
+            out_dir,
             mode=mode,
             subdirs=tuple(subdirs) if subdirs else ("images", "masks"),
             column_sep=column_sep,
@@ -557,8 +619,9 @@ def split_data(root: str, out_dir: str, mode: str = "nested_dirs",
     return {"ok": True, **report}
 
 
-def case_table(engine: Any, model_name: str, split: str = "validation",
-               group_by: str | None = None) -> dict:
+def case_table(
+    engine: Any, model_name: str, split: str = "validation", group_by: str | None = None
+) -> dict:
     """One row per case - or per group, with `group_by` - instead of one per model."""
     import pyplatypus
 
@@ -611,12 +674,14 @@ def volume_info(paths: list) -> dict:
         for path in paths:
             spacing = volume_spacing(path)
             shape = read_volume(path, nearest=True).shape
-            rows.append({
-                "path": str(path),
-                "spacing": list(spacing),
-                "shape": list(shape[:3]),
-                "voxel_ml": float(spacing[0] * spacing[1] * spacing[2] / 1000.0),
-            })
+            rows.append(
+                {
+                    "path": str(path),
+                    "spacing": list(spacing),
+                    "shape": list(shape[:3]),
+                    "voxel_ml": float(spacing[0] * spacing[1] * spacing[2] / 1000.0),
+                }
+            )
     except VolumeError as error:
         return _failure(error)
     except Exception as error:  # noqa: BLE001
@@ -648,12 +713,22 @@ def write_volumes(masks, paths: list, reference: list) -> dict:
         if arrays.ndim == 3:
             arrays = arrays[None]
         if len(arrays) != len(paths):
-            return {"ok": False, "kind": "volume_error", "problems": [],
-                    "message": f"{len(arrays)} masks but {len(paths)} paths"}
+            return {
+                "ok": False,
+                "kind": "volume_error",
+                "problems": [],
+                "message": f"{len(arrays)} masks but {len(paths)} paths",
+            }
         if len(reference) != len(paths):
-            return {"ok": False, "kind": "volume_error", "problems": [],
-                    "message": (f"{len(reference)} reference volumes but {len(paths)} "
-                                "masks; each mask needs the scan it was predicted from")}
+            return {
+                "ok": False,
+                "kind": "volume_error",
+                "problems": [],
+                "message": (
+                    f"{len(reference)} reference volumes but {len(paths)} "
+                    "masks; each mask needs the scan it was predicted from"
+                ),
+            }
 
         written = []
         for array, path, source in zip(arrays, paths, reference):
@@ -664,15 +739,16 @@ def write_volumes(masks, paths: list, reference: list) -> dict:
             labels = np.asarray(array)
             if labels.shape != source_image.shape[:3]:
                 return {
-                    "ok": False, "kind": "volume_error", "problems": [],
+                    "ok": False,
+                    "kind": "volume_error",
+                    "problems": [],
                     "message": (
                         f"mask {labels.shape} does not match '{source}' "
                         f"{tuple(source_image.shape[:3])}. A mask written with the wrong "
                         "geometry lands in the wrong place, which is worse than failing."
                     ),
                 }
-            image = nib.Nifti1Image(labels.astype(np.int16), source_image.affine,
-                                    dtype=np.int16)
+            image = nib.Nifti1Image(labels.astype(np.int16), source_image.affine, dtype=np.int16)
             nib.save(image, str(target))
             written.append(str(target))
     except Exception as error:  # noqa: BLE001
@@ -697,8 +773,13 @@ def series_report(paths: list) -> dict:
     rows = []
     for path in paths:
         row = {
-            "path": str(path), "ok": False, "slices": 0, "sorted_by": None,
-            "spacing": None, "series_uid": None, "problem": None,
+            "path": str(path),
+            "ok": False,
+            "slices": 0,
+            "sorted_by": None,
+            "spacing": None,
+            "series_uid": None,
+            "problem": None,
         }
         try:
             series = describe_series(path)
@@ -707,14 +788,16 @@ def series_report(paths: list) -> dict:
         except Exception as error:  # noqa: BLE001
             row["problem"] = f"{type(error).__name__}: {error}"
         else:
-            row.update({
-                "ok": True,
-                "slices": len(series),
-                "sorted_by": series.sorted_by,
-                "spacing": list(series.spacing),
-                "series_uid": series.series_uid,
-                "shape": list(series.shape),
-            })
+            row.update(
+                {
+                    "ok": True,
+                    "slices": len(series),
+                    "sorted_by": series.sorted_by,
+                    "spacing": list(series.spacing),
+                    "series_uid": series.series_uid,
+                    "shape": list(series.shape),
+                }
+            )
         rows.append(row)
     return {"ok": True, "series": rows}
 
@@ -761,8 +844,13 @@ def weights_listing() -> dict:
 
     try:
         rows = [
-            {"name": name, "repo": entry.repo, "filename": entry.filename,
-             "revision": entry.revision, "description": entry.description}
+            {
+                "name": name,
+                "repo": entry.repo,
+                "filename": entry.filename,
+                "revision": entry.revision,
+                "description": entry.description,
+            }
             for name, entry in sorted(REGISTRY.items())
         ]
     except pyplatypus.PlatypusError as error:
@@ -786,5 +874,9 @@ def save_weights(engine: Any, model_name: str, path: str, extra: dict | None = N
     # The contents as well as the path. R has no JSON reader of its own here, and adding a
     # dependency so that a caller can see what was recorded would be a poor trade: the engine
     # already has the data in hand.
-    return {"ok": True, "path": str(written), "sidecar": str(sidecar),
-            "recorded": json.loads(sidecar.read_text())}
+    return {
+        "ok": True,
+        "path": str(written),
+        "sidecar": str(sidecar),
+        "recorded": json.loads(sidecar.read_text()),
+    }
