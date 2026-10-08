@@ -664,6 +664,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
@@ -680,6 +681,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 metric_dice(smooth = 1, include_background = TRUE)
 
 metric_tversky(alpha = 0.5, smooth = 1, include_background = TRUE)
+
+metric_cldice(iterations = 5, smooth = 1, include_background = FALSE)
 </code></pre>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
 <table role="presentation">
@@ -707,7 +710,19 @@ Average over the background class as well. In medical images the background is u
 For Tversky, the weight on false negatives.
 </td>
 </tr>
-</tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="iterations">iterations</code>
+</td>
+<td>
+For clDice, how many times the skeleton is peeled. It has to reach the half-width of the thickest structure, or its core is never reduced to a centreline and the score is refused rather than reported - an empty skeleton otherwise reads as a perfect 1.
+</td>
+</tr>
+</tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>Three of these ask the same question - how much of the mask coincides - and differ in how they weigh the ways of being wrong. <code><a href="../man/metrics.html">metric_cldice()</a></code> asks a different one: whether the <em>structure</em> coincides. For something thin and connected that is the question worth asking, and the two disagree in a way worth knowing. Measured on a nine-pixel vessel: one drawn two pixels thin scores Dice 0.875, and the same vessel severed in the middle scores 0.947 - <strong>Dice prefers the severed one</strong>. clDice gives them 1.000 and 0.943.</p>
+<p>Its limit, also measured: at one pixel wide a displacement of one pixel leaves no overlap at all, and every overlap-based metric reads 0, this one included.</p>
+<p><code>include_background</code> defaults to <code>FALSE</code> for clDice alone. The background’s skeleton lies inside the background by construction, so that class scores 1 whatever the model did - averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel.</p>
+</section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A metric specification.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
@@ -717,6 +732,21 @@ For Tversky, the weight on false negatives.
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "dice"
+
+$smooth
+[1] 1
+
+$include_background
+[1] FALSE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Vessels, airways, neurons, cracks: thin and connected, where Dice asks the wrong thing.</span></span>
+<span><span class="fu"><a href="../man/metrics.html">metric_cldice</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$name
+[1] "cldice"
+
+$iterations
+[1] 5
 
 $smooth
 [1] 1
