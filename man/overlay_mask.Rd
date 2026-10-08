@@ -4,7 +4,7 @@
 \alias{overlay_mask}
 \title{Lay a mask over the image it belongs to}
 \usage{
-overlay_mask(image, mask, colormap, alpha = 0.55)
+overlay_mask(image, mask, colormap, alpha = drawing_style()$overlay_alpha)
 }
 \arguments{
 \item{image}{A \verb{height x width x channels} array. Values in 0-1 or 0-255; greyscale is

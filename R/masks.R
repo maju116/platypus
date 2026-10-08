@@ -151,7 +151,7 @@ label_classes <- function(values, labels) {
 #' mask <- matrix(1L, 8, 8); mask[2:4, 2:4] <- 2L
 #' tinted <- overlay_mask(image, mask, colormap = list(c(0, 0, 0), c(255, 0, 0)))
 #' dim(tinted)
-overlay_mask <- function(image, mask, colormap, alpha = 0.55) {
+overlay_mask <- function(image, mask, colormap, alpha = drawing_style()$overlay_alpha) {
   image <- as_rgb(image)
   if (!identical(dim(image)[1:2], dim(mask)[1:2])) {
     stop("image is ", paste(dim(image)[1:2], collapse = "x"), " but mask is ",
@@ -191,9 +191,9 @@ overlay_mask <- function(image, mask, colormap, alpha = 0.55) {
 #'
 #' # Three colours, not one: a missed lesion and a false alarm cost different things,
 #' # and a single overlap score hides which one you have.
-overlay_agreement <- function(image, prediction, truth, alpha = 0.55,
-                              colours = c(hit = "#3CDC5A", missed = "#E63C3C",
-                                          false_alarm = "#F0C83C")) {
+overlay_agreement <- function(image, prediction, truth,
+                              alpha = drawing_style()$overlay_alpha,
+                              colours = drawing_style()$agreement_colours) {
   image <- as_rgb(image)
   predicted <- as.vector(prediction) > 1L
   actual <- as.vector(truth) > 1L

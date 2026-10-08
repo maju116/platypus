@@ -57,7 +57,8 @@ groups:
 
   - title: Looking at the results
     desc: A figure is the point. These are the ones you put in a paper.
-    contents: [plot_masks, plot_boxes, plot_anchors, overlay_mask, overlay_agreement]
+    contents: [plot_masks, plot_boxes, plot_anchors, overlay_mask, overlay_agreement,
+               drawing_style]
 
   - title: Masks and volumes
     desc: >-

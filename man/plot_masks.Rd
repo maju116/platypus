@@ -10,7 +10,7 @@ plot_masks(
   truth = NULL,
   colormap = binary_colormap,
   which = NULL,
-  alpha = 0.55,
+  alpha = drawing_style()$overlay_alpha,
   labels = NULL,
   slice = NULL
 )
