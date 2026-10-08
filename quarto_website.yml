@@ -99,6 +99,7 @@ website:
               - man/plot_anchors.qmd
               - man/overlay_mask.qmd
               - man/overlay_agreement.qmd
+              - man/drawing_style.qmd
           - section: "Masks and volumes"
             contents:
               - man/colours_to_classes.qmd

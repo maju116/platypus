@@ -540,6 +540,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Where a prediction and the truth disagree</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The decisions a drawing makes</span></a>
+  </div>
+</li>
       </ul>
 </li>
           <li class="sidebar-item sidebar-item-section">
@@ -723,8 +729,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu">yolo3</span><span class="op">(</span><span class="st">"cells"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">416</span>, <span class="fl">416</span><span class="op">)</span>,</span>
 <span>                      weights <span class="op">=</span> <span class="st">"bccd-yolo3"</span>, fit <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Some Python package requirements declared via `py_require()` are not installed in the selected Python environment: (/home/maju116/.cache/uv/archive-v0/wjRRjivfnRhbB-9U8b51r/bin/python)</span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="va">borrowed</span> <span class="op">&lt;-</span> <span class="fu">platypus_fit</span><span class="op">(</span><span class="va">published</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">found</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">borrowed</span>, split <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">found</span><span class="op">)</span></span>
@@ -821,30 +825,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">history</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"epoch"</span>, <span class="st">"train_loss"</span>, <span class="st">"train_coordinates"</span>, <span class="st">"train_objectness"</span>,</span>
 <span>                     <span class="st">"val_loss"</span><span class="op">)</span><span class="op">]</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     epoch train_loss train_coordinates train_objectness val_loss</span></span>
-<span><span class="co">#&gt; 148   148   5.922305          5.918050     0.0006400742 9.771855</span></span>
-<span><span class="co">#&gt; 149   149   5.925872          5.921553     0.0006455596 9.768552</span></span>
-<span><span class="co">#&gt; 150   150   5.946499          5.942215     0.0006420772 9.850832</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>The total does not reach zero and that is not a stall.</strong> Cross-entropy against a soft target bottoms out at the target’s own entropy, so the coordinate term has a floor above zero that depends on the data. Which is exactly why the four parts are reported separately: a total of 5.95 means nothing alone, while <code>coordinates 5.94</code> beside <code>objectness 6.4 &amp;times; 10&lt;sup&gt;-4&lt;/sup&gt;</code> says the model has learned what is where and is still refining the boxes.</p>
+<span><span class="co">#&gt; 148   148   5.922336          5.917977     0.0006621822 9.890312</span></span>
+<span><span class="co">#&gt; 149   149   5.926137          5.921691     0.0006329013 9.905824</span></span>
+<span><span class="co">#&gt; 150   150   5.946839          5.942373     0.0006673209 9.966823</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>The total does not reach zero and that is not a stall.</strong> Cross-entropy against a soft target bottoms out at the target’s own entropy, so the coordinate term has a floor above zero that depends on the data. Which is exactly why the four parts are reported separately: a total of 5.95 means nothing alone, while <code>coordinates 5.94</code> beside <code>objectness 6.7 &amp;times; 10&lt;sup&gt;-4&lt;/sup&gt;</code> says the model has learned what is where and is still refining the boxes.</p>
 </section><section id="scoring-and-the-number-that-is-missing-on-purpose" class="level2"><h2 class="anchored" data-anchor-id="scoring-and-the-number-that-is-missing-on-purpose">Scoring, and the number that is missing on purpose</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">evaluate</span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   model architecture parameters epochs_run    map_50 map_50_95 mean_matched_iou</span></span>
-<span><span class="co">#&gt; 1 cells        yolo3   61534504        150 0.8661176  0.513187        0.8064532</span></span>
+<span><span class="co">#&gt; 1 cells        yolo3   61534504        150 0.8517078 0.5052384        0.8046374</span></span>
 <span><span class="co">#&gt;   n_truth n_predicted classes_without_truth</span></span>
-<span><span class="co">#&gt; 1     945        2817                     0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>This run’s <code>map_50</code> of 0.8661 sits inside the range of the five in the table further down (0.853 to 0.887), and that is the point of the table rather than a problem with it.</strong> A seed pins which random numbers are drawn; it does not pin the order they are consumed in, and the number of loader workers - <code>num_workers = "auto"</code> here, four in the script that produced the published weights - changes that order. So “the same seed” means the same recipe on one machine with one worker count, and not a guarantee of the same number. Knits of this very document at the same seed have differed by more than a point of <code>map_50</code>, which is how the paragraph you are reading came to be written: the first version of it quoted a number, and the next knit disagreed with it.</p>
-<p>Which is the argument for reading <code>mean_matched_iou</code> first, and it holds here: the overlap came out at 0.8065 against the five-run mean of 0.8040, a difference of 0.0024.</p>
+<span><span class="co">#&gt; 1     945        2740                     0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>This run’s <code>map_50</code> of 0.8517 sits below the range of the five in the table further down (0.853 to 0.887), and that is the point of the table rather than a problem with it.</strong> A seed pins which random numbers are drawn; it does not pin the order they are consumed in, and the number of loader workers - <code>num_workers = "auto"</code> here, four in the script that produced the published weights - changes that order. So “the same seed” means the same recipe on one machine with one worker count, and not a guarantee of the same number. Knits of this very document at the same seed have differed by more than a point of <code>map_50</code>, which is how the paragraph you are reading came to be written: the first version of it quoted a number, and the next knit disagreed with it.</p>
+<p>Which is the argument for reading <code>mean_matched_iou</code> first, and it holds here: the overlap came out at 0.8046 against the five-run mean of 0.8040, a difference of 0.0006.</p>
 <p>There is no overall precision and no overall recall in that table, and the absence is deliberate. Averaging them over classes needs a weighting, and every choice of weighting is a different claim: over BCCD’s 4,155 red cells, 372 white and 361 platelets, a single precision is a statement about red cells wearing the costume of a statement about the model.</p>
 <p>Per class is the form in which they mean something:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">evaluate_classes</span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       class average_precision mean_matched_iou n_truth n_predicted precision</span></span>
-<span><span class="co">#&gt; 1       RBC         0.7971192        0.8089451     805         904 0.7168142</span></span>
-<span><span class="co">#&gt; 2       WBC         0.9634323        0.8523577      71          77 0.9220779</span></span>
-<span><span class="co">#&gt; 3 Platelets         0.8378013        0.7311496      69         111 0.5855856</span></span>
+<span><span class="co">#&gt; 1       RBC         0.8061110        0.8075923     805         906 0.7152318</span></span>
+<span><span class="co">#&gt; 2       WBC         0.9585804        0.8469938      71          77 0.9220779</span></span>
+<span><span class="co">#&gt; 3 Platelets         0.7904320        0.7264113      69         111 0.5585586</span></span>
 <span><span class="co">#&gt;      recall</span></span>
 <span><span class="co">#&gt; 1 0.8049689</span></span>
 <span><span class="co">#&gt; 2 1.0000000</span></span>
-<span><span class="co">#&gt; 3 0.9420290</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Read that table rather than the mean. White cells are nearly perfect - there is one per image and it is large. Platelets come back at a precision of 0.59 at this confidence, meaning 41% of the platelets reported are not there, and their boxes fit worst of the three at an overlap of 0.73.</p>
+<span><span class="co">#&gt; 3 0.8985507</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Read that table rather than the mean. White cells are nearly perfect - there is one per image and it is large. Platelets come back at a precision of 0.56 at this confidence, meaning 44% of the platelets reported are not there, and their boxes fit worst of the three at an overlap of 0.73.</p>
 <section id="map0.5-map.50.95-and-which-to-believe" class="level3"><h3 class="anchored" data-anchor-id="map0.5-map.50.95-and-which-to-believe">mAP@0.5, mAP@[.50:.95], and which to believe</h3>
 <p>Two averages and they answer different questions. The first asks whether an object was found; the second averages over ten overlap thresholds and so also asks how well the box fits. The gap between them is localisation, and <code>mean_matched_iou</code> says that in one number instead of through a difference.</p>
 <p>On this dataset, <strong>the overlap is far steadier than the average precision</strong>. Five runs of the recipe above, differing only in the seed - and measured with the engine on its own, four loader workers, rather than through this vignette:</p>
@@ -902,7 +906,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>A detector that found the right number of objects in the wrong places and one that found the wrong number in the right places score similarly and look nothing alike, which is why this picture is worth more than either average.</p>
 </section><section id="what-this-does-not-do" class="level2"><h2 class="anchored" data-anchor-id="what-this-does-not-do">What this does not do</h2>
-<p><strong>It is not a cell count.</strong> A precision of 0.59 on platelets means a count taken from these boxes is too high by about 71%. Counting needs either a better model for the small class or a threshold chosen for counting rather than for a figure, and either way it needs measuring against truth on your own data.</p>
+<p><strong>It is not a cell count.</strong> A precision of 0.56 on platelets means a count taken from these boxes is too high by about 79%. Counting needs either a better model for the small class or a threshold chosen for counting rather than for a figure, and either way it needs measuring against truth on your own data.</p>
 <p><strong>It is one small collection.</strong> 205 training images at one magnification, stained one way. BCCD is a demonstration dataset.</p>
 <p><strong>It is not a diagnostic tool</strong>, and a result from it is not a laboratory result.</p>
 </section><section id="notes-on-the-machine" class="level2"><h2 class="anchored" data-anchor-id="notes-on-the-machine">Notes on the machine</h2>

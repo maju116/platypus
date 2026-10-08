@@ -540,6 +540,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Where a prediction and the truth disagree</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The decisions a drawing makes</span></a>
+  </div>
+</li>
       </ul>
 </li>
           <li class="sidebar-item sidebar-item-section">
@@ -673,8 +679,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   image,
   prediction,
   truth,
-  alpha = 0.55,
-  colours = c(hit = "#3CDC5A", missed = "#E63C3C", false_alarm = "#F0C83C")
+  alpha = drawing_style()\$overlay_alpha,
+  colours = drawing_style()\$agreement_colours
 )
 </code></pre>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>evaluate_cases – platypus</title>
+<title>drawing_style – platypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -138,7 +138,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/predict.platypus_fit.html">Predicting and scoring</a></li><li class="breadcrumb-item"><a href="../man/evaluate_cases.html">Score every case separately</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/plot_masks.html">Looking at the results</a></li><li class="breadcrumb-item"><a href="../man/drawing_style.html">The decisions a drawing makes</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -427,13 +427,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
  <span class="menu-text">Predicting and scoring</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 show">
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/predict.platypus_fit.html" class="sidebar-item-text sidebar-link">
@@ -448,7 +448,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/evaluate_cases.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/evaluate_cases.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Score every case separately</span></a>
   </div>
 </li>
@@ -503,13 +503,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true">
  <span class="menu-text">Looking at the results</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/plot_masks.html" class="sidebar-item-text sidebar-link">
@@ -542,7 +542,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">The decisions a drawing makes</span></a>
   </div>
 </li>
@@ -659,11 +659,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
 <li>
-<a href="#score-every-case-separately" id="toc-score-every-case-separately" class="nav-link active" data-scroll-target="#score-every-case-separately">Score every case separately</a>
+<a href="#the-decisions-a-drawing-makes" id="toc-the-decisions-a-drawing-makes" class="nav-link active" data-scroll-target="#the-decisions-a-drawing-makes">The decisions a drawing makes</a>
   <ul class="collapse">
 <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
-  <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
@@ -673,82 +672,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul><div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/predict.platypus_fit.html">Predicting and scoring</a></li><li class="breadcrumb-item"><a href="../man/evaluate_cases.html">Score every case separately</a></li></ol></nav></header><section id="score-every-case-separately" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="score-every-case-separately">Score every case separately</h2>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/plot_masks.html">Looking at the results</a></li><li class="breadcrumb-item"><a href="../man/drawing_style.html">The decisions a drawing makes</a></li></ol></nav></header><section id="the-decisions-a-drawing-makes" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="the-decisions-a-drawing-makes">The decisions a drawing makes</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p><code><a href="../man/evaluate.html">evaluate()</a></code> gives one row per model: one number for a whole set. This gives one row per case - each image, or each patient when <code>group_by</code> is set - because one number hides the distribution, and the distribution is usually the finding. A model averaging Dice 0.86 that scores 0.1 on three patients has a failure mode, and the mean is where it hides.</p>
+<p>Every value <code><a href="../man/plot_masks.html">plot_masks()</a></code>, <code><a href="../man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="../man/overlay_mask.html">overlay_mask()</a></code> and <code><a href="../man/overlay_agreement.html">overlay_agreement()</a></code> use when you do not give them one: which colours mean found, missed and invented, one colour per class for <code><a href="../man/plot_anchors.html">plot_anchors()</a></code>, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing at all.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">evaluate_cases(object, ...)
-
-## S3 method for class 'platypus_fit'
-evaluate_cases(
-  object,
-  model = NULL,
-  split = "validation",
-  group_by = NULL,
-  ...
-)
-
-## S3 method for class 'platypus_cases'
-summary(object, ...)
-</code></pre>
-</section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
-<table role="presentation">
-<tbody><tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="object">object</code>
-</td>
-<td>
-A <code>platypus_cases</code> from <code><a href="../man/evaluate_cases.html">evaluate_cases()</a></code>.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
-</td>
-<td>
-Unused.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="model">model</code>
-</td>
-<td>
-Which model, by the name in the specification. Defaults to the first.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="split">split</code>
-</td>
-<td>
-Which data to score on.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="group_by">group_by</code>
-</td>
-<td>
-A pattern picking a group out of each case’s name, as in <code><a href="../man/split_dataset.html">split_dataset()</a></code>. With it, the rows are patients rather than slices: a patient’s slices are pooled into one score, the way a volume would be.
-</td>
-</tr>
-</tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p><code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> on the result gives the distribution: mean, standard deviation, median, range, and which case scored worst.</p>
-<p>Tiled models are scored on the whole image, not on tiles. Overlaps are accumulated across a case’s tiles and the metric applied once, which is that image’s score exactly; averaging the tiles’ scores would be a different number, and unkind to any case whose object happens to straddle a boundary.</p>
+<pre><code class="language-R"><a href="../man/drawing_style.html">drawing_style()
+</a></code></pre>
+</section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>They belong to the engine - <code>pyplatypus.style</code> - and are mirrored here so that drawing needs no Python. A test holds the two together, so the same call draws the same picture from either package.</p>
+<p>Reach for this when you want to match a figure rather than restate it: passing <code>colours = drawing_style()$box_colours</code> to something else keeps one source, and typing the hex codes starts a second.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A data frame with one row per case, of class <code>platypus_cases</code>.</p>
+<p>A named list: <code>agreement_colours</code>, <code>box_colours</code>, <code>class_colours</code>, <code>overlay_alpha</code>, <code>box_label_format</code> and <code>box_min_score</code>.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/split_dataset.html">split_dataset()</a></code> for keeping a patient out of two sets in the first place.</p>
+<p><code><a href="../man/plot_masks.html">plot_masks()</a></code>, <code><a href="../man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="../man/overlay_agreement.html">overlay_agreement()</a></code></p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/evaluate_cases.html">evaluate_cases</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">cases</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">cases</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">cases</span><span class="op">$</span><span class="va">dice</span><span class="op">)</span>, <span class="op">]</span><span class="op">)</span>          <span class="co"># the ones worth looking at</span></span>
-<span></span>
-<span><span class="fu"><a href="../man/evaluate_cases.html">evaluate_cases</a></span><span class="op">(</span><span class="va">fit</span>, group_by <span class="op">=</span> <span class="st">"^(patient\\\\d+)_"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="../man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">agreement_colours</span><span class="op">[[</span><span class="st">"missed"</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "#E63C3C"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The same list the engine returns, which is what keeps the two drawings the same.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="fu"><a href="../man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>List of 6
+ $ agreement_colours: Named chr [1:3] "#3CDC5A" "#E63C3C" "#F0C83C"
+  ..- attr(*, "names")= chr [1:3] "hit" "missed" "false_alarm"
+ $ box_colours      : Named chr [1:2] "#d95f02" "#1b9e77"
+  ..- attr(*, "names")= chr [1:2] "prediction" "truth"
+ $ overlay_alpha    : num 0.55
+ $ box_label_format : chr "%s %.2f"
+ $ class_colours    : chr [1:8] "#1b9e77" "#d95f02" "#7570b3" "#e7298a" ...
+ $ box_min_score    : num 0.5</code></pre>
+</div>
 </div>
 
 

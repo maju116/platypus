@@ -540,6 +540,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Where a prediction and the truth disagree</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The decisions a drawing makes</span></a>
+  </div>
+</li>
       </ul>
 </li>
           <li class="sidebar-item sidebar-item-section">
@@ -669,7 +675,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
 <p>The picture that answers "where is it looking". Background - class 1 - is left alone, so only the classes that were found are tinted.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">overlay_mask(image, mask, colormap, alpha = 0.55)
+<pre><code class="language-R">overlay_mask(image, mask, colormap, alpha = drawing_style()\$overlay_alpha)
 </code></pre>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
 <table role="presentation">

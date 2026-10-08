@@ -556,6 +556,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Where a prediction and the truth disagree</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/drawing_style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The decisions a drawing makes</span></a>
+  </div>
+</li>
       </ul>
   </li>
           <li class="sidebar-item sidebar-item-section">
@@ -675,6 +681,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.0] - unreleased</a>
   <ul class="collapse">
   <li><a href="#migrating-from-0.1.1" id="toc-migrating-from-0.1.1" class="nav-link" data-scroll-target="#migrating-from-0.1.1">Migrating from 0.1.1</a></li>
+  <li><a href="#engine-0.8.0a1" id="toc-engine-0.8.0a1" class="nav-link" data-scroll-target="#engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</a></li>
   <li><a href="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" id="toc-engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" class="nav-link" data-scroll-target="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1">2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1</a></li>
   <li><a href="#the-documentation-site" id="toc-the-documentation-site" class="nav-link" data-scroll-target="#the-documentation-site">2026-10-07 - the documentation site</a></li>
   <li><a href="#engine-0.5.0a1-through-0.6.0a1" id="toc-engine-0.5.0a1-through-0.6.0a1" class="nav-link" data-scroll-target="#engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</a></li>
@@ -777,6 +784,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 </section>
+<section id="engine-0.8.0a1" class="level3">
+<h3 class="anchored" data-anchor-id="engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</h3>
+<section id="added" class="level4">
+<h4 class="anchored" data-anchor-id="added">Added</h4>
+<ul>
+<li><strong><a href="man/drawing_style.html"><code>drawing_style()</code></a></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
+</ul>
+</section>
+<section id="changed" class="level4">
+<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<ul>
+<li><p><strong>The drawing decisions now come from the engine.</strong> They were written out in ten places across <code>R/plot.R</code> and <code>R/masks.R</code>, and <code>pyplatypus.style</code> held the same five values - which is two copies that happened to agree, not one source. They agreed because five differences between the two packages’ figures had been found by laying them side by side and fixing them by hand.</p>
+<p>Nothing changes in any picture: the values are identical, and a test compares every one of them against the engine’s, so a change on that side now fails this package’s CI instead of being noticed by eye.</p>
+<p><strong>Drawing still needs no Python.</strong> That is why the values are mirrored in <code>R/style.R</code> rather than fetched: <code>plot_masks()</code>, <code>plot_boxes()</code> and <a href="man/overlay_agreement.html"><code>overlay_agreement()</code></a> return without touching the bridge, and a default colour that called the engine would mean a five-gigabyte download to draw a mask.</p></li>
+</ul>
+</section>
+</section>
 <section id="engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1">2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1</h3>
 <section id="changed-and-it-breaks-code" class="level4">
@@ -844,8 +868,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
-<section id="added" class="level4">
-<h4 class="anchored" data-anchor-id="added">Added</h4>
+<section id="added-1" class="level4">
+<h4 class="anchored" data-anchor-id="added-1">Added</h4>
 <ul>
 <li><p><strong><a href="man/callback_swa.html"><code>callback_swa()</code></a></strong>: average the weights over the last part of the run. What it is worth is not in the score column - Dice and per-case error do not move - it is in the spread. Measured over three seeds, the volume bias went from <code>+4.5% / +12.2% / -11.6%</code> to <code>-0.1% / +4.2% / +2.1%</code>, 5.7 times tighter. The help page says so in those words, because somebody reading “weight averaging” will look at Dice, find nothing, and conclude wrongly. Refused beside <a href="man/callbacks.html"><code>callback_cosine_annealing()</code></a>: a cosine has decayed to its floor by the time averaging begins, so the average is the last epoch.</p></li>
 <li><p><strong><code>segmentation_data(validation = FALSE)</code></strong>: say a run has no validation set. The third answer to the question a path and a split already answered, and it had to be a stated value rather than an absence, because “I have no validation set” and “I forgot” look identical and only one of them is a decision. It went in the same argument rather than a new one, so nothing can contradict it.</p></li>
@@ -867,8 +891,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.5.0a1-through-0.6.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</h3>
-<section id="added-1" class="level4">
-<h4 class="anchored" data-anchor-id="added-1">Added</h4>
+<section id="added-2" class="level4">
+<h4 class="anchored" data-anchor-id="added-2">Added</h4>
 <ul>
 <li><strong><code>segmentation_data(split = )</code></strong> and <code>detection_data(split = )</code>: divide one training folder into splits without writing any files. The argument is a list of <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is a <strong>required key that may be <code>NULL</code></strong>. The mistake it prevents leaves no trace: slices of one patient on both sides make validation measure memory rather than generalisation, and nothing in the output says so. An omitted key would be that choice made silently; <code>NULL</code> is the same choice made on purpose. For detection this is the only way to divide one folder, because <code>split_dataset()</code> writes a <code>masks</code> column.</li>
 <li><strong><a href="man/detection_crops.html"><code>detection_crops()</code></a></strong>: cut the detected objects out of the images they were found in, at a fixed size, for handing to a classifier. Crops come from the source image through the same reader the dataset uses, are rounded outward so the whole box survives, and letterbox rather than stretch.</li>
@@ -924,7 +948,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><strong>A worked vignette</strong> on the Data Science Bowl, precomputed so that reading it needs no GPU, and a README.</li>
 <li><strong>Continuous integration</strong>: five <code>R CMD check</code> jobs - Ubuntu on R devel, release and oldrel-1, plus macOS and Windows on release - and an <code>engine</code> job that installs the built package and runs the suite against the engine resolved from PyPI. That last one is the job that matters: <code>pkgload::load_all()</code> exposes a package’s internals, <code>library()</code> does not, and local work had been using the most permissive of the three ways a test can reach them.</li>
-<li><strong>Plotting and masks</strong>: <code>plot_masks()</code>, <code>plot_boxes()</code>, <a href="man/overlay_mask.html"><code>overlay_mask()</code></a>, <a href="man/overlay_agreement.html"><code>overlay_agreement()</code></a>, <a href="man/read_masks.html"><code>read_masks()</code></a>, <a href="man/unite_masks.html"><code>unite_masks()</code></a>, <a href="man/mask_coverage.html"><code>mask_coverage()</code></a>.</li>
+<li><strong>Plotting and masks</strong>: <code>plot_masks()</code>, <code>plot_boxes()</code>, <a href="man/overlay_mask.html"><code>overlay_mask()</code></a>, <code>overlay_agreement()</code>, <a href="man/read_masks.html"><code>read_masks()</code></a>, <a href="man/unite_masks.html"><code>unite_masks()</code></a>, <a href="man/mask_coverage.html"><code>mask_coverage()</code></a>.</li>
 <li><strong>DICOM</strong>, properly: modality LUT, a fixed window, MONOCHROME1 inverted. Plus <a href="man/series_report.html"><code>series_report()</code></a> for a folder of slices, whose decision is that <strong>a problem is a column, not an exception</strong> - a hundred cases contain a few bad ones, and stopping at the first turns an afternoon into a week.</li>
 <li><strong>Splitting by patient</strong> (<code>split_dataset()</code>, <code>split_path()</code>) and <code>evaluate_cases()</code>.</li>
 <li><strong>Volumes.</strong> <code>input_shape = c(64, 64, 32)</code> had been building a 3D U-Net since the first release; what was missing was reading NIfTI, where orientation is the whole problem, and <code>labels</code> as a second way to describe a mask, because volumes label with integers. <a href="man/save_volumes.html"><code>save_volumes()</code></a> writes NIfTI <strong>carrying the affine of the scan the mask was predicted from</strong> - without it a mask cannot be laid over its scan by any viewer, and the file looks perfectly normal while being wrong. <a href="man/mask_volume.html"><code>mask_volume()</code></a> reports millilitres, because a voxel count is meaningless outside one scanner.</li>
