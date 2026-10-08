@@ -70,6 +70,28 @@ Its source is on the `master` branch, and the issues filed against it stay open.
 is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
 Python, which is the reason for a rewrite rather than a consequence of one.
 
+### 2026-10-08 - engine 0.8.0a2
+
+#### Added
+
+- **`metric_cldice()`**, for structures where Dice asks the wrong question. It scores each
+  mask against the other's skeleton, so it measures whether a vessel is *connected* rather
+  than whether its pixels coincide. Vessels, airways, neurons, cracks, catheters.
+
+  The two disagree in a way worth knowing, measured on a nine-pixel vessel: one drawn two
+  pixels thin scores Dice **0.875**, and the same vessel severed in the middle scores
+  **0.947** - Dice prefers the severed one. clDice gives them 1.000 and 0.943. Its limit is
+  measured too: at one pixel wide, a one-pixel displacement leaves no overlap at all and
+  every overlap-based metric reads 0, this one included.
+
+  `include_background` defaults to `FALSE` here and `TRUE` for the other three. The
+  background's skeleton lies inside the background by construction, so that class scores 1
+  whatever the model did.
+
+#### Changed
+
+- Engine pinned to `0.8.0a2`.
+
 ### 2026-10-08 - engine 0.8.0a1
 
 #### Added
