@@ -5,6 +5,7 @@
 \alias{metric_iou}
 \alias{metric_dice}
 \alias{metric_tversky}
+\alias{metric_cldice}
 \title{Metrics}
 \usage{
 metric_iou(smooth = 1, include_background = TRUE)
@@ -12,6 +13,8 @@ metric_iou(smooth = 1, include_background = TRUE)
 metric_dice(smooth = 1, include_background = TRUE)
 
 metric_tversky(alpha = 0.5, smooth = 1, include_background = TRUE)
+
+metric_cldice(iterations = 5, smooth = 1, include_background = FALSE)
 }
 \arguments{
 \item{smooth}{Smoothing. Zero is allowed and is the honest choice for a reported
@@ -22,6 +25,11 @@ the background is usually most of the picture, so leaving it in can turn a model
 found nothing into one that looks respectable. Papers report foreground only.}
 
 \item{alpha}{For Tversky, the weight on false negatives.}
+
+\item{iterations}{For clDice, how many times the skeleton is peeled. It has to reach the
+half-width of the thickest structure, or its core is never reduced to a centreline and
+the score is refused rather than reported - an empty skeleton otherwise reads as a
+perfect 1.}
 }
 \value{
 A metric specification.
@@ -31,6 +39,24 @@ What gets reported. Unlike the losses these are computed on the hard prediction 
 mask you will actually be handed - because a metric taken on probabilities reads higher
 than the model deserves.
 }
+\details{
+Three of these ask the same question - how much of the mask coincides - and differ in
+how they weigh the ways of being wrong. \code{metric_cldice()} asks a different one: whether
+the \emph{structure} coincides. For something thin and connected that is the question worth
+asking, and the two disagree in a way worth knowing. Measured on a nine-pixel vessel: one
+drawn two pixels thin scores Dice 0.875, and the same vessel severed in the middle scores
+0.947 - \strong{Dice prefers the severed one}. clDice gives them 1.000 and 0.943.
+
+Its limit, also measured: at one pixel wide a displacement of one pixel leaves no overlap
+at all, and every overlap-based metric reads 0, this one included.
+
+\code{include_background} defaults to \code{FALSE} for clDice alone. The background's skeleton lies
+inside the background by construction, so that class scores 1 whatever the model did -
+averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel.
+}
 \examples{
 metric_dice(include_background = FALSE)
+
+# Vessels, airways, neurons, cracks: thin and connected, where Dice asks the wrong thing.
+metric_cldice()
 }
