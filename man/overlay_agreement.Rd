@@ -8,8 +8,8 @@ overlay_agreement(
   image,
   prediction,
   truth,
-  alpha = 0.55,
-  colours = c(hit = "#3CDC5A", missed = "#E63C3C", false_alarm = "#F0C83C")
+  alpha = drawing_style()$overlay_alpha,
+  colours = drawing_style()$agreement_colours
 )
 }
 \arguments{

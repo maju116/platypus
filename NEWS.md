@@ -70,6 +70,34 @@ Its source is on the `master` branch, and the issues filed against it stay open.
 is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
 Python, which is the reason for a rewrite rather than a consequence of one.
 
+### 2026-10-08 - engine 0.8.0a1
+
+#### Added
+
+- **`drawing_style()`**, the five decisions every figure in this package makes when you do
+  not give it one: which colours mean found, missed and invented, how much of the image an
+  overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for
+  it when you want to match a figure rather than restate it -
+  `colours = drawing_style()$box_colours` keeps one source where typing the hex codes
+  starts a second.
+
+#### Changed
+
+- **The drawing decisions now come from the engine.** They were written out in ten places
+  across `R/plot.R` and `R/masks.R`, and `pyplatypus.style` held the same five values -
+  which is two copies that happened to agree, not one source. They agreed because five
+  differences between the two packages' figures had been found by laying them side by side
+  and fixing them by hand.
+
+  Nothing changes in any picture: the values are identical, and a test compares every one
+  of them against the engine's, so a change on that side now fails this package's CI
+  instead of being noticed by eye.
+
+  **Drawing still needs no Python.** That is why the values are mirrored in `R/style.R`
+  rather than fetched: `plot_masks()`, `plot_boxes()` and `overlay_agreement()` return
+  without touching the bridge, and a default colour that called the engine would mean a
+  five-gigabyte download to draw a mask.
+
 ### 2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1
 
 #### Changed, and it breaks code

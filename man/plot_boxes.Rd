@@ -9,9 +9,9 @@ plot_boxes(
   boxes,
   truth = NULL,
   which = NULL,
-  min_score = 0.5,
+  min_score = drawing_style()$box_min_score,
   labels = NULL,
-  colours = c(prediction = "#d95f02", truth = "#1b9e77"),
+  colours = drawing_style()$box_colours,
   size = 0.6,
   text_size = 3
 )

@@ -62,7 +62,8 @@ read_images <- function(paths, size = NULL, channels = 3, nearest = FALSE) {
 #' }
 plot_masks <- function(images, prediction = NULL, truth = NULL,
                        colormap = binary_colormap, which = NULL,
-                       alpha = 0.55, labels = NULL, slice = NULL) {
+                       alpha = drawing_style()$overlay_alpha, labels = NULL,
+                       slice = NULL) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("plot_masks() needs the ggplot2 package.", call. = FALSE)
   }
@@ -304,9 +305,9 @@ take_slice <- function(x, slice, channels) {
 #' found <- predict(fit, split = "test")
 #' plot_boxes(read_images(files, size = NULL), found, min_score = 0.5)
 #' }
-plot_boxes <- function(images, boxes, truth = NULL, which = NULL, min_score = 0.5,
-                       labels = NULL, colours = c(prediction = "#d95f02",
-                                                  truth = "#1b9e77"),
+plot_boxes <- function(images, boxes, truth = NULL, which = NULL,
+                       min_score = drawing_style()$box_min_score,
+                       labels = NULL, colours = drawing_style()$box_colours,
                        size = 0.6, text_size = 3) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("plot_boxes() needs the ggplot2 package.", call. = FALSE)
@@ -436,7 +437,7 @@ box_rows <- function(frame, kind, offset, tile_h, min_score) {
 
   label <- if ("name" %in% names(frame)) as.character(frame$name) else rep("", nrow(frame))
   if (!is.null(min_score) && "score" %in% names(frame) && nzchar(label[[1]])) {
-    label <- sprintf("%s %.2f", label, frame$score)
+    label <- sprintf(drawing_style()$box_label_format, label, frame$score)
   }
 
   data.frame(
@@ -507,12 +508,24 @@ plot_anchors <- function(object, model = NULL, split = "train", log = FALSE,
   anchors <- matrix(unlist(result$anchors), ncol = 2, byrow = TRUE)
   anchors <- data.frame(width = anchors[, 1], height = anchors[, 2])
 
+  # One colour per class, from the engine's palette rather than ggplot2's default hue scale:
+  # the default is not colourblind-safe, which is the same reason the box colours are what
+  # they are. Cycled, because beyond eight classes no palette is readable.
+  # Keyed on the specification's class order, not on which classes this split happens to
+  # contain. Keyed on what is present, a class missing from validation would shift every
+  # class after it to another colour, so the same cell would be green in one figure and
+  # purple in the next - from one model, with nothing to say so.
+  palette <- drawing_style()$class_colours
+  known <- unlist(result$classes) %||% unique(boxes$name)
+  values <- stats::setNames(palette[(seq_along(known) - 1L) %% length(palette) + 1L], known)
+
   plot <- ggplot2::ggplot() +
     ggplot2::geom_point(
       data = boxes,
       ggplot2::aes(x = .data$width, y = .data$height, colour = .data$name),
       alpha = 0.55, size = size
     ) +
+    ggplot2::scale_colour_manual(values = values) +
     # Diamonds, hollow, drawn last so they sit on top of the cloud rather than under it.
     ggplot2::geom_point(
       data = anchors,

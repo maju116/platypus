@@ -193,7 +193,10 @@ shared_placement <- c(
   available_transforms = "What a model is made of",
   split_dataset = "The data on disk",
   export_weights = "Weights",
-  available_weights = "Weights"
+  available_weights = "Weights",
+  # Shared from pyplatypus 0.8.0a1, when this package stopped restating the engine's
+  # drawing decisions and started mirroring them.
+  drawing_style = "Looking at the results"
 )
 
 test_that("the shared names are filed where pyplatypus files them", {

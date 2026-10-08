@@ -448,6 +448,23 @@ def target_survey(engine: Any, model_name: str) -> dict:
     return {"ok": True, "survey": run.survey.to_dict()}
 
 
+def drawing_style() -> dict:
+    """The engine's drawing decisions, for the test that holds R's copy to them.
+
+    Not used when drawing: R mirrors these values so that `plot_masks()` and the rest need
+    no Python at all. This is what makes the mirror a mirror - if the engine changes a
+    colour and R does not, the comparison in `test-drawing-style.R` fails.
+    """
+    import pyplatypus
+
+    if not hasattr(pyplatypus, "drawing_style"):
+        return _failure_message(
+            "This engine predates the shared drawing style. Update platypus, or point "
+            "PLATYPUS_ENGINE_PATH at a newer source tree."
+        )
+    return {"ok": True, "style": pyplatypus.drawing_style()}
+
+
 def model_names(engine: Any) -> list:
     return list(engine.runs)
 
