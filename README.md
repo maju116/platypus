@@ -333,6 +333,14 @@ slice to look at, and the size of a finding in millilitres. It ends on something
 a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and
 is the reason to report both.
 
+`vignette("retinal-vessels")` is the one that cannot resize its images: FIVES fundus
+photographs at 2048 x 2048, where the vessel to find is about nine pixels wide and a resize to
+256 leaves it at one — the width at which a displacement of a single pixel overlaps the truth
+nowhere at all. So the images are tiled at full resolution, and scored on clDice, which asks
+whether a structure is connected rather than whether its pixels coincide. It reports per
+disease group, and ends on a warning rather than a score: the group that looks hardest is the
+group whose photographs are worst, and the dataset's own quality grading says so.
+
 ## What is not in it yet
 
 Ensembling. Classification. Boxes in three dimensions - `yolo3()` is 2D and says so rather
