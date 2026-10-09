@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>overlay_mask – platypus</title>
+<title>Retinal vessels: tiling, and a metric Dice cannot replace – platypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -138,7 +138,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/plot_masks.html">Looking at the results</a></li><li class="breadcrumb-item"><a href="../man/overlay_mask.html">Lay a mask over the image it belongs to</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/blood-cells.html">Articles</a></li><li class="breadcrumb-item"><a href="../vignettes/retinal-vessels.html">Retinal vessels: tiling, and a metric Dice cannot replace</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -181,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../vignettes/retinal-vessels.html" class="sidebar-item-text sidebar-link">
+  <a href="../vignettes/retinal-vessels.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Retinal vessels: tiling, and a metric Dice cannot replace</span></a>
   </div>
 </li>
@@ -509,13 +509,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
  <span class="menu-text">Looking at the results</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/plot_masks.html" class="sidebar-item-text sidebar-link">
@@ -536,7 +536,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/overlay_mask.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/overlay_mask.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Lay a mask over the image it belongs to</span></a>
   </div>
 </li>
@@ -664,76 +664,188 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li>
-<a href="#lay-a-mask-over-the-image-it-belongs-to" id="toc-lay-a-mask-over-the-image-it-belongs-to" class="nav-link active" data-scroll-target="#lay-a-mask-over-the-image-it-belongs-to">Lay a mask over the image it belongs to</a>
-  <ul class="collapse">
-<li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
-  <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
-  <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
-  <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
-  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  </ul>
-</li>
+<li><a href="#why-a-vessel-cannot-be-resized" id="toc-why-a-vessel-cannot-be-resized" class="nav-link active" data-scroll-target="#why-a-vessel-cannot-be-resized">Why a vessel cannot be resized</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">The data</a></li>
+  <li><a href="#the-configuration" id="toc-the-configuration" class="nav-link" data-scroll-target="#the-configuration">The configuration</a></li>
+  <li><a href="#training" id="toc-training" class="nav-link" data-scroll-target="#training">Training</a></li>
+  <li><a href="#one-number-hides-the-finding" id="toc-one-number-hides-the-finding" class="nav-link" data-scroll-target="#one-number-hides-the-finding">One number hides the finding</a></li>
+  <li><a href="#cldice-beside-dice" id="toc-cldice-beside-dice" class="nav-link" data-scroll-target="#cldice-beside-dice">clDice beside Dice</a></li>
+  <li><a href="#what-this-vignette-cannot-show-yet" id="toc-what-this-vignette-cannot-show-yet" class="nav-link" data-scroll-target="#what-this-vignette-cannot-show-yet">What this vignette cannot show yet</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   </ul><div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/plot_masks.html">Looking at the results</a></li><li class="breadcrumb-item"><a href="../man/overlay_mask.html">Lay a mask over the image it belongs to</a></li></ol></nav></header><section id="lay-a-mask-over-the-image-it-belongs-to" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="lay-a-mask-over-the-image-it-belongs-to">Lay a mask over the image it belongs to</h2>
-<section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>The picture that answers "where is it looking". Background - class 1 - is left alone, so only the classes that were found are tinted.</p>
-</section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">overlay_mask(image, mask, colormap, alpha = drawing_style()\$overlay_alpha)
-</code></pre>
-</section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
-<table role="presentation">
-<tbody><tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="image">image</code>
-</td>
-<td>
-A <code style="white-space: pre;">height x width x channels</code> array. Values in 0-1 or 0-255; greyscale is repeated across three channels.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="mask">mask</code>
-</td>
-<td>
-Class indices, counted from 1, matching the image’s height and width.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="colormap">colormap</code>
-</td>
-<td>
-A list of RGB triples, one per class.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="alpha">alpha</code>
-</td>
-<td>
-How strongly to tint, 0 to 1.
-</td>
-</tr>
-</tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code style="white-space: pre;">height x width x 3</code> array of 0-255 integers.</p>
-</section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/blood-cells.html">Articles</a></li><li class="breadcrumb-item"><a href="../vignettes/retinal-vessels.html">Retinal vessels: tiling, and a metric Dice cannot replace</a></li></ol></nav><div class="quarto-title">
+<h1 class="title">Retinal vessels: tiling, and a metric Dice cannot replace</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><p>The other vignettes work on images small enough to hand a network whole. This one does not, and that is the point: a retinal fundus photograph is 2048 x 2048, the thing to find in it is about nine pixels wide, and resizing to fit the model destroys the measurement before the model ever sees it.</p>
+<p>Three things here appear in no other vignette, and each is the reason this dataset was chosen.</p>
+<p><strong>It tiles.</strong> <code>splits</code> reads each image at full resolution and cuts it into a grid of inputs.</p>
+<p><strong>It is scored on a metric Dice cannot stand in for.</strong> clDice asks whether a structure is <em>connected</em> rather than whether its pixels coincide - and a skeleton is a property of a whole mask, so it is measured on the reassembled image rather than on the tiles.</p>
+<p><strong>It reports per disease rather than as one mean</strong>, which is how the interesting thing about this dataset was found - and the interesting thing turns out not to be about the disease.</p>
+<section id="why-a-vessel-cannot-be-resized" class="level2"><h2 class="anchored" data-anchor-id="why-a-vessel-cannot-be-resized">Why a vessel cannot be resized</h2>
+<p>FIVES images are 2048 x 2048, and the obvious move is to resize them to something a U-Net is comfortable with. It is the wrong move here, and the reason is a measurement rather than a preference.</p>
+<p>A FIVES vessel is <strong>about nine pixels wide</strong> - measured as mask area over skeleton length, over six random masks, on the engine side where the skeleton lives. Resized to 256 the same vessels are about 1.2 pixels. That matters because of what happens at one pixel: shift a one-pixel structure by a single pixel and it overlaps the truth <em>nowhere at all</em>, so Dice, IoU and clDice alike read zero and none of them can tell a near miss from a total failure. Tiling keeps the data out of that regime, which is what <code>splits</code> is for.</p>
+<p>(The nine-pixel figure corrects the one-to-five this dataset is usually described with. One to five is what remains after a resize - a property of the preprocessing, not of the retina.)</p>
+</section><section id="the-data" class="level2"><h2 class="anchored" data-anchor-id="the-data">The data</h2>
+<p>One 1.7 GB download from <a href="https://doi.org/10.6084/m9.figshare.19688169.v1">figshare 19688169</a>, CC BY 4.0. The authors’ own split is already balanced across the four groups - 150 train and 50 test of each - so it is used rather than replaced. Point <code>PLATYPUS_FIVES</code> at the unpacked directory.</p>
+<p>The dataset is laid out as <code>Original/</code> and <code>Ground truth/</code> with matching file names, which is not a layout <code>platypus</code> discovers on its own, so the pairs are written into a CSV:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html">Sys.getenv</a></span><span class="op">(</span><span class="st">"PLATYPUS_FIVES"</span><span class="op">)</span>,</span>
+<span>  <span class="st">"FIVES A Fundus Image Dataset for AI-based Vessel Segmentation"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.exists</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">image</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="fl">8</span> <span class="op">*</span> <span class="fl">3</span>, <span class="fl">0.2</span>, <span class="fl">0.6</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">8</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>; <span class="va">mask</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span>
-<span><span class="va">tinted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/overlay_mask.html">overlay_mask</a></span><span class="op">(</span><span class="va">image</span>, <span class="va">mask</span>, colormap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">255</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">tinted</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 8 8 3</code></pre>
+<span><span class="va">write_split</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">split</span>, <span class="va">path</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># `pattern` rather than everything in the directory: the archive ships a `Thumbs.db`</span></span>
+<span>  <span class="co"># beside the 600 training images, and a Windows thumbnail cache is not a fundus</span></span>
+<span>  <span class="co"># photograph. Filtering by extension is also what keeps the pairing below honest.</span></span>
+<span>  <span class="va">images</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">root</span>, <span class="va">split</span>, <span class="st">"Original"</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="st">"\\.png$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">frame</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    <span class="co"># The key is what `evaluate_cases()` reports and what `group_by` reads. Without it a</span></span>
+<span>    <span class="co"># case is called `row 55`, which names nothing on disk and cannot be grouped.</span></span>
+<span>    key <span class="op">=</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/fileutils.html">file_path_sans_ext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">images</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    images <span class="op">=</span> <span class="va">images</span>,</span>
+<span>    masks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">root</span>, <span class="va">split</span>, <span class="st">"Ground truth"</span>, <span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">images</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="va">frame</span><span class="op">$</span><span class="va">masks</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.csv</a></span><span class="op">(</span><span class="va">frame</span>, <span class="va">path</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">splits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>train <span class="op">=</span> <span class="st">"train.csv"</span>, test <span class="op">=</span> <span class="st">"test.csv"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">splits</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"train"</span>, <span class="st">"test"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>train <span class="op">=</span> <span class="fu">write_split</span><span class="op">(</span><span class="st">"train"</span>, <span class="va">splits</span><span class="op">[[</span><span class="st">"train"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, test <span class="op">=</span> <span class="fu">write_split</span><span class="op">(</span><span class="st">"test"</span>, <span class="va">splits</span><span class="op">[[</span><span class="st">"test"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; train  test </span></span>
+<span><span class="co">#&gt;   600   200</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The disease is in the file name - <code>_N</code>, <code>_A</code>, <code>_D</code>, <code>_G</code> for normal, AMD, diabetic retinopathy and glaucoma - which is what the grouping below reads.</p>
+<p>Two things that cost time if taken on trust rather than checked: the archive ships a <code>Thumbs.db</code> beside the training images, so the listing is filtered by extension; and the masks are paired by name, which <code>stopifnot</code> above asserts rather than assumes.</p>
+</section><section id="the-configuration" class="level2"><h2 class="anchored" data-anchor-id="the-configuration">The configuration</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu">platypus_spec</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="st">"semantic_segmentation"</span>,</span>
+<span>  data <span class="op">=</span> <span class="fu">segmentation_data</span><span class="op">(</span></span>
+<span>    train <span class="op">=</span> <span class="va">splits</span><span class="op">[[</span><span class="st">"train"</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    validation <span class="op">=</span> <span class="va">splits</span><span class="op">[[</span><span class="st">"test"</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    colormap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">255</span>, <span class="fl">255</span>, <span class="fl">255</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    mode <span class="op">=</span> <span class="st">"config_file"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    <span class="fu">u_net</span><span class="op">(</span></span>
+<span>      name <span class="op">=</span> <span class="st">"vessels"</span>,</span>
+<span>      input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">512</span>, <span class="fl">512</span><span class="op">)</span>,</span>
+<span>      <span class="co"># 2048 read whole and cut 4 x 4. This is the field the vignette exists for.</span></span>
+<span>      splits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>      blocks <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>      filters <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>      batch_size <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>      epochs <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>      loss <span class="op">=</span> <span class="fu">loss_cce_dice</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>      metrics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>        <span class="fu">metric_dice</span><span class="op">(</span>include_background <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu">metric_iou</span><span class="op">(</span>include_background <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="co"># Measured on the reassembled image by `evaluate_cases()`, not per tile.</span></span>
+<span>        <span class="fu">metric_cldice</span><span class="op">(</span>include_background <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>      <span class="op">)</span>,</span>
+<span>      optimizer <span class="op">=</span> <span class="fu">optimizer_adam</span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">1e-3</span><span class="op">)</span>,</span>
+<span>      augmentation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>        <span class="fu">augmentation_step</span><span class="op">(</span><span class="st">"HorizontalFlip"</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>        <span class="fu">augmentation_step</span><span class="op">(</span><span class="st">"VerticalFlip"</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">spec</span></span>
+<span><span class="co">#&gt; platypus specification</span></span>
+<span><span class="co">#&gt;   data        : /tmp/RtmpVB2D1P/train.csv </span></span>
+<span><span class="co">#&gt;   classes     : 2 </span></span>
+<span><span class="co">#&gt;   models      : 1 </span></span>
+<span><span class="co">#&gt;     vessels        u_net            512x512, tiled 4x4, cce_dice, 15 epochs</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Two things about that worth saying out loud.</p>
+<p><a href="../man/metrics.html"><code>metric_cldice()</code></a> sits beside <a href="../man/metrics.html"><code>metric_dice()</code></a> even though the run is tiled, and the engine reassembles each case before measuring it. <strong>It will not appear in the epoch log</strong>, and that is deliberate rather than an omission: an epoch averages its metrics over batches, which is exact for Dice - a ratio of sums - and meaningless for a skeleton, because a tile severs every vessel crossing its edge. So there is no <code>val_cldice</code> to watch, and a callback that tried would be refused when the specification is read.</p>
+<p>Fifteen epochs rather than the forty this model wants, because a vignette that takes seven hours to rebuild is a vignette nobody rebuilds. The shape of the result is the same; the numbers are a little worse than the model can do.</p>
+</section><section id="training" class="level2"><h2 class="anchored" data-anchor-id="training">Training</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">platypus_fit</span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
+<span><span class="va">fit</span></span>
+<span><span class="co">#&gt; platypus fit</span></span>
+<span><span class="co">#&gt;   models   : vessels </span></span>
+<span><span class="co">#&gt;   device   : NVIDIA GeForce GTX 1070 (torch 2.7.1+cu126) </span></span>
+<span><span class="co">#&gt;   epochs   : vessels=15 </span></span>
+<span><span class="co">#&gt;   next     : evaluate(fit), predict(fit, "vessels")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="figure">
+<img src="figures/retinal-vessels-history-1.png" alt="Dice and loss per epoch, training and validation"><p class="caption">
+plot of chunk history
+</p>
 </div>
-</div>
+</section><section id="one-number-hides-the-finding" class="level2"><h2 class="anchored" data-anchor-id="one-number-hides-the-finding">One number hides the finding</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">evaluate</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     model architecture loss_function parameters epochs_run best_epoch</span></span>
+<span><span class="co">#&gt; 1 vessels        u_net      cce_dice    1942594         15         14</span></span>
+<span><span class="co">#&gt;         loss      dice       iou</span></span>
+<span><span class="co">#&gt; 1 0.08298772 0.8245449 0.7444261</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That is the whole test set as one row, and it is the least informative view of it. The distribution is the finding, and <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> gives it - including which case is the worst, because the first thing anyone does with a low score is go and look at that image:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">per_case</span> <span class="op">&lt;-</span> <span class="fu">evaluate_cases</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">per_case</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   metric   n      mean        sd    median         min       max worst_case</span></span>
+<span><span class="co">#&gt; 1   dice 200 0.8627708 0.1306916 0.8993968 0.003530593 0.9585154      122_G</span></span>
+<span><span class="co">#&gt; 2    iou 200 0.7757107 0.1521915 0.8171857 0.001784613 0.9203358      122_G</span></span>
+<span><span class="co">#&gt; 3 cldice 200 0.8121221 0.1541454 0.8553965 0.001392360 0.9600197      122_G</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Now by the disease in the file name. <code>group_by</code> pools a group’s cases into one score, the way a patient’s slices would be pooled:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">evaluate_cases</span><span class="op">(</span><span class="va">fit</span>, group_by <span class="op">=</span> <span class="st">"_([NADG])$"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; platypus scores by group (4 rows)</span></span>
+<span><span class="co">#&gt;  group      dice       iou    cldice</span></span>
+<span><span class="co">#&gt;      A 0.9117221 0.8377660 0.8601317</span></span>
+<span><span class="co">#&gt;      D 0.8848882 0.7935422 0.8072511</span></span>
+<span><span class="co">#&gt;      G 0.8835303 0.7913608 0.7376148</span></span>
+<span><span class="co">#&gt;      N 0.8893173 0.8006943 0.8434907</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Pooling answers “how good is it on this group”. It does not show the spread, and the spread is where this dataset is interesting, so that comes off the per-case rows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diseases</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>N <span class="op">=</span> <span class="st">"normal"</span>, A <span class="op">=</span> <span class="st">"AMD"</span>, D <span class="op">=</span> <span class="st">"diabetic retinopathy"</span>, G <span class="op">=</span> <span class="st">"glaucoma"</span><span class="op">)</span></span>
+<span><span class="va">per_case</span><span class="op">$</span><span class="va">disease</span> <span class="op">&lt;-</span> <span class="va">diseases</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">sub</a></span><span class="op">(</span><span class="st">".*_([NADG])$"</span>, <span class="st">"\\1"</span>, <span class="va">per_case</span><span class="op">$</span><span class="va">case</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">spread</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, worst <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">per_case</span><span class="op">$</span><span class="va">dice</span>, <span class="va">per_case</span><span class="op">$</span><span class="va">disease</span><span class="op">)</span>, <span class="va">spread</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                       n   mean     sd  worst</span></span>
+<span><span class="co">#&gt; AMD                  50 0.9024 0.0633 0.6808</span></span>
+<span><span class="co">#&gt; diabetic retinopathy 50 0.8650 0.0951 0.4884</span></span>
+<span><span class="co">#&gt; glaucoma             50 0.7992 0.2162 0.0035</span></span>
+<span><span class="co">#&gt; normal               50 0.8845 0.0581 0.6506</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Compare that table with the pooled one above and the reason for having both becomes concrete. Pooled, glaucoma and diabetic retinopathy are within a few thousandths of each other. Per case, glaucoma’s mean is five points lower and its spread is more than twice as wide, with a worst case near zero. Pooling hid it because Dice is a ratio of sums: fifty images’ counts added together are dominated by the ones with the most vessel to find, and a photograph the model failed on contributes little to the numerator <em>and</em> little to the denominator.</p>
+<p><strong>Before concluding that the model is worse at the disease whose row is worst, check whether it is the group whose photographs are worse.</strong> FIVES ships a <code>Quality Assessment.xlsx</code> grading every image for illumination, blur and contrast; nothing in this pipeline reads it, and when it is joined to these scores the ordering above changes substantially. The engine’s measurement of that is in <code>measurements/fives/quality.py</code> in the project’s workbench.</p>
+<p>That is the general lesson rather than a fact about retinas: a per-group table is worth having precisely because it invites the question <em>why is this group different</em>, and the first answer is rarely the right one.</p>
+</section><section id="cldice-beside-dice" class="level2"><h2 class="anchored" data-anchor-id="cldice-beside-dice">clDice beside Dice</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>  correlation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">per_case</span><span class="op">$</span><span class="va">dice</span>, <span class="va">per_case</span><span class="op">$</span><span class="va">cldice</span><span class="op">)</span>,</span>
+<span>  mean_difference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">per_case</span><span class="op">$</span><span class="va">cldice</span> <span class="op">-</span> <span class="va">per_case</span><span class="op">$</span><span class="va">dice</span><span class="op">)</span>,</span>
+<span>  sd_of_difference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">per_case</span><span class="op">$</span><span class="va">cldice</span> <span class="op">-</span> <span class="va">per_case</span><span class="op">$</span><span class="va">dice</span><span class="op">)</span></span>
+<span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      correlation  mean_difference sd_of_difference </span></span>
+<span><span class="co">#&gt;           0.9414          -0.0506           0.0540</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Read those two numbers together, because they say different things. The <strong>correlation</strong> is high: the two metrics rank the cases much the same way, so clDice is not finding a different set of bad images. The <strong>mean difference</strong> is negative and not small: clDice sits about five points <em>below</em> Dice, which says the vessels this model draws are less connected than their pixel overlap suggests. It is getting the right pixels and breaking the lines.</p>
+<p>That gap is a property of the model rather than of the metric, and the engine’s own run of the same configuration is the evidence: at forty epochs instead of fifteen the two agree to a correlation of 0.978 and a mean difference of +0.004. <strong>The better-trained model closes the gap.</strong> So a large negative gap here is not clDice being pessimistic - it is clDice measuring the thing that fifteen epochs had not finished learning, and Dice not noticing.</p>
+</section><section id="what-this-vignette-cannot-show-yet" class="level2"><h2 class="anchored" data-anchor-id="what-this-vignette-cannot-show-yet">What this vignette cannot show yet</h2>
+<p>The obvious next panel is the worst case drawn - image, truth and prediction side by side, which is how the quality finding above was noticed in the first place. It is not here because <code><a href="https://rdrr.io/r/stats/predict.html">predict()</a></code> returns the whole split as one array, and this split is 200 images of 2048 x 2048: several gigabytes before anything is drawn. The engine grew a streaming form for exactly this (<code>pyplatypus#178</code>), and the R surface for it has not been built yet - so for now the figure belongs to the engine’s own example rather than to this document.</p>
+<p>Worth stating rather than quietly omitting: it is the one thing on this page that the Python half can do and this half cannot.</p>
+</section><section id="notes" class="level2"><h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p><strong>The card.</strong> This was precomputed on a GTX 1070, which is a Pascal-generation GPU and needs the last PyTorch built against CUDA 12. <code>platypus_use_torch("pascal")</code> asks for it, and it has to be called before anything starts the engine. Without it this machine trains on the processor and says so. <a href="../man/platypus_device.html"><code>platypus_device()</code></a> reports what yours can see.</p>
+<p><strong>The cost.</strong> Fifteen epochs over 600 retinas at 2048, cut sixteen ways, takes a few hours on that card; scoring the 200 test images - including reassembling each one for clDice - takes about two minutes. Tiling is what makes the first number bearable: a tiled run reuses each decoded image for all of its tiles, which is worth roughly a factor of two.</p>
 
 
-</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
