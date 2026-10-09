@@ -176,6 +176,19 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #' examined*, not *nothing there*. Give the model an `input_shape` that covers the anatomy if
 #' that distinction matters.
 #'
+#' @section One at a time, when the split will not fit:
+#'
+#' The default returns everything together, which for a tiled run is the whole split at full
+#' resolution: 200 fundus photographs at 2048 x 2048 is about 6.7 GB before anything is drawn,
+#' and the engine's own `predict` was killed by exactly that. Two arguments avoid it.
+#'
+#' `cases` names the ones wanted. `each` hands them over one at a time and keeps only what the
+#' function gives back. They compose: `cases` says which, `each` says what to do with them.
+#'
+#' The saving is in memory and not in time. The engine's stream is sequential, so asking for
+#' two cases out of two hundred still runs the model over two hundred - it simply never holds
+#' more than one answer at once.
+#'
 #' @param object A [platypus_fit()].
 #' @param model Which model, by the name given in the specification. Defaults to the
 #'   first one trained.
@@ -184,6 +197,13 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #'   `"probability"` keeps the per-class channel.
 #' @param space `"model"` or `"source"`; see above. Note that the two return different
 #'   shapes of thing, an array and a list, because they are different things.
+#' @param cases Case names to predict, as [evaluate_cases()] reports them. With this the
+#'   result is a **named list** of just those, in the order asked for. A name that is not in
+#'   the split is an error rather than a missing entry.
+#' @param each A function called as `each(case, mask)` once per image, instead of the
+#'   predictions being returned together. Whatever it returns is collected under the case's
+#'   name; return `NULL` from it and nothing accumulates. This is the form that does not
+#'   need the split to fit in memory.
 #' @param ... Unused.
 #' @return With `space = "model"`: for `"class"`, an integer array of
 #'   `image x height x width`, classes numbered from 1 to match the colormap; for
@@ -197,13 +217,22 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #' masks <- predict(fit, "unet")                     # an array, on the model's grid
 #' masks <- predict(fit, "unet", space = "source")   # a list, on each scan's own grid
 #'
+#' # The two worst cases, without holding the other 198.
+#' cases <- evaluate_cases(fit, split = "validation")
+#' worst <- cases$case[order(cases$dice)][1:2]
+#' two <- predict(fit, split = "validation", cases = worst)
+#'
+#' # Or walk the split, keeping one number per image and none of the masks.
+#' coverage <- predict(fit, split = "validation", each = function(case, mask) mean(mask > 1))
+#'
 #' # `space = "source"` returns a list and not an array, which is the API being
 #' # honest: scans differ in size, a stacked array needs one shape, and resizing
 #' # them to match is how a mask ends up describing anatomy it was not computed from.
 #' }
 predict.platypus_fit <- function(object, model = NULL, split = "test",
                                  type = c("class", "probability"),
-                                 space = c("model", "source"), ...) {
+                                 space = c("model", "source"),
+                                 cases = NULL, each = NULL, ...) {
   # Asked before `match.arg` assigns to them: in R, `missing()` on a formal argument stops
   # being true once the argument has been assigned to, so reading it after the two lines
   # below reports "the caller passed this" for every caller. The first version did exactly
@@ -228,10 +257,53 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
     return(as_box_frames(found$detections))
   }
 
-  result <- shim()$predictions(object$engine, model, split = split,
-                               as_class = identical(type, "class"), space = space)
+  if (is.null(cases) && is.null(each)) {
+    result <- shim()$predictions(object$engine, model, split = split,
+                                 as_class = identical(type, "class"), space = space)
+    if (!isTRUE(result$ok)) abort_engine(result)
+    return(result$masks)
+  }
+
+  if (!is.null(each) && !is.function(each)) {
+    stop("`each` has to be a function called as each(case, mask)", call. = FALSE)
+  }
+  if (!is.null(cases)) {
+    cases <- as.character(cases)
+    if (!length(cases)) {
+      stop("`cases` is empty, so there is nothing to predict", call. = FALSE)
+    }
+  }
+
+  # Collected into an environment rather than with `<<-`: the callback is handed to Python
+  # and called from there, and a closure reaching back into its parent's binding across
+  # that boundary is a thing that works until it does not. An environment says which frame
+  # is being written to.
+  kept <- new.env(parent = emptyenv())
+  visit <- function(case, mask) {
+    value <- if (is.null(each)) mask else each(case, mask)
+    # NULL means the caller wants the side effect and none of the masks, which is the point
+    # of `each` for a split that does not fit. Assigning NULL to a list entry deletes it
+    # anyway, so it is skipped rather than stored.
+    if (!is.null(value)) assign(case, value, envir = kept)
+    invisible(NULL)
+  }
+
+  result <- shim()$predictions_each(
+    object$engine, model, visit, split = split,
+    as_class = identical(type, "class"), space = space,
+    cases = if (is.null(cases)) NULL else as.list(cases)
+  )
   if (!isTRUE(result$ok)) abort_engine(result)
-  result$masks
+
+  # In the order asked for, not the order the stream served them: a caller naming two cases
+  # is comparing them, and reordering silently is how the labels on a figure stop describing
+  # the panels above them.
+  order_of <- if (is.null(cases)) as.character(unlist(result$cases)) else cases
+  out <- lapply(order_of, function(case) {
+    if (exists(case, envir = kept)) get(case, envir = kept)
+  })
+  names(out) <- order_of
+  out[!vapply(out, is.null, logical(1))]
 }
 
 #' One data frame of boxes per image, named by the sample key

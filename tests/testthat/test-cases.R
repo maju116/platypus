@@ -84,3 +84,109 @@ test_that("printing shows the first rows and says how to get the distribution", 
   expect_output(print(evaluate_cases(fit_on_patients())), "scores by case")
   expect_output(print(evaluate_cases(fit_on_patients())), "summary\\(\\)")
 })
+
+# --- one prediction at a time ---------------------------------------------------------------
+#
+# `predict()` returns the whole split, which for a tiled run is the whole split at full
+# resolution. The engine grew a streaming form for that (pyplatypus#178, released in
+# 0.8.0a5) and R could not reach it until now, which is the gap platypus#126 names.
+
+test_that("cases= returns just those, named, in the order asked for", {
+  skip_if_no_splits()
+  fit <- fit_on_patients()
+  all_cases <- evaluate_cases(fit, split = "validation")$case
+  wanted <- rev(all_cases[1:2])
+
+  some <- predict(fit, split = "validation", cases = wanted)
+
+  expect_type(some, "list")
+  # The order asked for, not the order the stream served them: a caller naming two cases is
+  # comparing them, and `rev()` here is what makes that assertion mean something.
+  expect_identical(names(some), wanted)
+  expect_length(some, 2L)
+})
+
+test_that("a streamed prediction is the same mask predict() returns for it", {
+  skip_if_no_splits()
+  fit <- fit_on_patients()
+  everything <- predict(fit, split = "validation")
+  all_cases <- evaluate_cases(fit, split = "validation")$case
+  which_one <- 2L
+
+  one <- predict(fit, split = "validation", cases = all_cases[which_one])
+
+  # Element for element. A test that only checked the shape would pass on a stream that
+  # served the wrong image, which is the failure worth catching here.
+  expect_equal(one[[all_cases[which_one]]], everything[which_one, , ])
+})
+
+test_that("each= is called once per case and keeps only what it returns", {
+  skip_if_no_splits()
+  fit <- fit_on_patients()
+  all_cases <- evaluate_cases(fit, split = "validation")$case
+
+  seen <- character()
+  sizes <- predict(fit, split = "validation", each = function(case, mask) {
+    seen <<- c(seen, case)
+    length(mask)
+  })
+
+  expect_setequal(seen, all_cases)
+  expect_setequal(names(sizes), all_cases)
+  expect_true(all(vapply(sizes, is.integer, logical(1))))
+
+  # Returning NULL is how a caller walks a split it cannot hold: the side effect happens
+  # and nothing accumulates.
+  counted <- 0L
+  nothing <- predict(fit, split = "validation", each = function(case, mask) {
+    counted <<- counted + 1L
+    NULL
+  })
+  expect_length(nothing, 0L)
+  expect_identical(counted, length(all_cases))
+})
+
+test_that("a case that is not in the split is an error, not an empty answer", {
+  skip_if_no_splits()
+  fit <- fit_on_patients()
+  # Silently returning nothing is the trap: the caller would draw an empty figure and
+  # believe the model had failed.
+  expect_error(
+    predict(fit, split = "validation", cases = "patient99_slice999"),
+    "patient99_slice999"
+  )
+})
+
+test_that("each= has to be a function", {
+  skip_if_no_splits()
+  expect_error(
+    predict(fit_on_patients(), split = "validation", each = "mean"),
+    "has to be a function"
+  )
+})
+
+test_that("a streamed prediction composes with plot_masks the way the vignette draws it", {
+  # The composition, not the pieces: `cases =` gives a named list of matrices, and
+  # `plot_masks()` wants image x height x width. `simplify2array` returns height x width x
+  # image, so the `aperm` is load-bearing and silently wrong without this test. Checked on a
+  # toy fixture because the document that uses it costs two and a half hours to rebuild, and
+  # a figure that fails at the end of one is how the last attempt was lost.
+  skip_if_no_splits()
+  skip_if_not_installed("ggplot2")
+  fit <- fit_on_patients()
+  cases <- evaluate_cases(fit, split = "validation")$case[1:2]
+  masks <- predict(fit, split = "validation", cases = cases)
+
+  stacked <- aperm(simplify2array(masks), c(3, 1, 2))
+  expect_identical(dim(stacked)[1], 2L)
+  expect_identical(dim(stacked)[-1], dim(masks[[1]]))
+  expect_identical(stacked[1, , ], masks[[1]])
+
+  figure <- plot_masks(
+    images = array(stats::runif(2 * dim(stacked)[2] * dim(stacked)[3] * 3),
+                   dim = c(2, dim(stacked)[2], dim(stacked)[3], 3)),
+    prediction = stacked,
+    labels = cases
+  )
+  expect_s3_class(figure, "ggplot")
+})

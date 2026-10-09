@@ -239,6 +239,78 @@ def predictions(
     }
 
 
+def predictions_each(
+    engine: Any,
+    model_name: str,
+    visit: Any,
+    split: str = "test",
+    as_class: bool = True,
+    space: str = "model",
+    cases: Any = None,
+) -> dict:
+    """One mask at a time, handed to `visit`, instead of a whole split at once.
+
+    `predictions` above returns the lot, which for a tiled run is the whole split at full
+    resolution - 6.7 GB for 200 retinas at 2048, and the engine's own `predict` was killed
+    by exactly that. This walks `predict_stream` and calls `visit(case, mask)` per image, so
+    nothing is held but the one being looked at and whatever the caller decides to keep.
+
+    `cases` names the ones wanted; everything else is decoded, predicted and dropped. The
+    stream is sequential, so asking for two of two hundred still runs the model over two
+    hundred - the saving is in memory, not in time. Said here because a caller who wanted
+    the other saving would need the engine to skip, which it cannot yet.
+
+    `visit` is called **outside** the guard below on purpose. It is the caller's own
+    function, and an error in it is theirs: wrapping it would report an R bug as an engine
+    failure, which is the kind of mislabelling that costs an afternoon.
+    """
+    import numpy as np
+    import pyplatypus
+
+    wanted = None if cases is None else {str(case) for case in cases}
+
+    def to_class(array):
+        # +1 for the same reason as in `predictions`: R indexes from one.
+        return (array.argmax(axis=-1) + 1).astype(np.int32)
+
+    try:
+        stream = engine.predict_stream(model_name, split=split, space=space)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    delivered: list[str] = []
+    while True:
+        try:
+            case, probabilities = next(stream)
+        except StopIteration:
+            break
+        except pyplatypus.PlatypusError as error:
+            return _failure(error)
+        except Exception as error:  # noqa: BLE001
+            return _engine_failure(error)
+
+        if wanted is not None and case not in wanted:
+            continue
+        visit(case, to_class(probabilities) if as_class else probabilities)
+        delivered.append(case)
+
+    missing = sorted(wanted - set(delivered)) if wanted is not None else []
+    if missing:
+        return _failure_message(
+            f"no case called {', '.join(repr(name) for name in missing)} in '{split}'; "
+            "a name that is not there would otherwise come back as an empty result",
+            kind="unknown_case",
+        )
+    return {
+        "ok": True,
+        "cases": delivered,
+        "type": "class" if as_class else "probability",
+        "space": space,
+    }
+
+
 # ---------------------------------------------------------------------- detection
 
 

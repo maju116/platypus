@@ -206,8 +206,9 @@ round(t(vapply(split(per_case$dice, per_case$disease), spread, numeric(4))), 4)
 
 Compare that table with the pooled one above and the reason for having both becomes concrete.
 Pooled, glaucoma and diabetic retinopathy are within a few thousandths of each other. Per
-case, glaucoma's mean is five points lower and its spread is more than twice as wide, with a
-worst case near zero. Pooling hid it because Dice is a ratio of sums: fifty images' counts
+case, glaucoma's mean is several points lower and its spread more than twice as wide, with a
+worst case near zero. (No figure is quoted here on purpose: the table is directly above, and a
+number repeated in prose is a number that goes stale the next time this is rebuilt.) Pooling hid it because Dice is a ratio of sums: fifty images' counts
 added together are dominated by the ones with the most vessel to find, and a photograph the
 model failed on contributes little to the numerator *and* little to the denominator.
 
@@ -243,17 +244,30 @@ correlation of 0.978 and a mean difference of +0.004. **The better-trained model
 gap.** So a large negative gap here is not clDice being pessimistic - it is clDice measuring
 the thing that fifteen epochs had not finished learning, and Dice not noticing.
 
-## What this vignette cannot show yet
+## The worst case, drawn
 
-The obvious next panel is the worst case drawn - image, truth and prediction side by side,
-which is how the quality finding above was noticed in the first place. It is not here because
-`predict()` returns the whole split as one array, and this split is 200 images of 2048 x 2048:
-several gigabytes before anything is drawn. The engine grew a streaming form for exactly this
-(`pyplatypus#178`), and the R surface for it has not been built yet - so for now the figure
-belongs to the engine's own example rather than to this document.
+A table says a case scored near zero. A picture says why — and this is the panel that found
+the quality finding above, because the worst glaucoma photograph turns out to be nearly black.
 
-Worth stating rather than quietly omitting: it is the one thing on this page that the Python
-half can do and this half cannot.
+Drawing it needs two images out of two hundred, and the whole split at 2048 x 2048 is about
+6.7 GB, so `predict()` is asked for the two by name. It keeps one answer at a time and
+returns the pair in the order asked for:
+
+```{r worst, fig.alt = "The best and the worst validation case: image, truth and prediction"}
+chosen <- per_case$case[c(which.max(per_case$dice), which.min(per_case$dice))]
+masks <- predict(fit, split = "validation", cases = chosen)
+
+at_source <- function(what) file.path(root, "test", what, paste0(chosen, ".png"))
+
+plot_masks(
+  images = read_images(at_source("Original"), size = NULL, channels = 3),
+  # One `height x width` matrix per case, stacked the way plot_masks wants them:
+  # image x height x width.
+  prediction = aperm(simplify2array(masks), c(3, 1, 2)),
+  truth = read_masks(at_source("Ground truth"), colormap = binary_colormap, size = NULL),
+  labels = sprintf("%s  dice %.3f", chosen, per_case$dice[match(chosen, per_case$case)])
+)
+```
 
 ## Notes
 
@@ -266,3 +280,9 @@ processor and says so. `platypus_device()` reports what yours can see.
 that card; scoring the 200 test images - including reassembling each one for clDice - takes
 about two minutes. Tiling is what makes the first number bearable: a tiled run reuses each
 decoded image for all of its tiles, which is worth roughly a factor of two.
+
+**Asking for a few cases is cheap in memory, not in time.** `cases =` never holds more than
+one answer, which is what makes the figure above possible at all - but the engine's stream is
+sequential, so two cases out of two hundred still run the model over two hundred. Pass a
+function to `each =` instead when you want to walk the split and keep a number rather than a
+mask from each image.

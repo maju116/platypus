@@ -10,6 +10,8 @@
   split = "test",
   type = c("class", "probability"),
   space = c("model", "source"),
+  cases = NULL,
+  each = NULL,
   ...
 )
 }
@@ -26,6 +28,15 @@ first one trained.}
 
 \item{space}{\code{"model"} or \code{"source"}; see above. Note that the two return different
 shapes of thing, an array and a list, because they are different things.}
+
+\item{cases}{Case names to predict, as \code{\link[=evaluate_cases]{evaluate_cases()}} reports them. With this the
+result is a \strong{named list} of just those, in the order asked for. A name that is not in
+the split is an error rather than a missing entry.}
+
+\item{each}{A function called as \code{each(case, mask)} once per image, instead of the
+predictions being returned together. Whatever it returns is collected under the case's
+name; return \code{NULL} from it and nothing accumulates. This is the form that does not
+need the split to fit in memory.}
 
 \item{...}{Unused.}
 }
@@ -62,10 +73,33 @@ examined}, not \emph{nothing there}. Give the model an \code{input_shape} that c
 that distinction matters.
 }
 
+\section{One at a time, when the split will not fit}{
+
+
+The default returns everything together, which for a tiled run is the whole split at full
+resolution: 200 fundus photographs at 2048 x 2048 is about 6.7 GB before anything is drawn,
+and the engine's own \code{predict} was killed by exactly that. Two arguments avoid it.
+
+\code{cases} names the ones wanted. \code{each} hands them over one at a time and keeps only what the
+function gives back. They compose: \code{cases} says which, \code{each} says what to do with them.
+
+The saving is in memory and not in time. The engine's stream is sequential, so asking for
+two cases out of two hundred still runs the model over two hundred - it simply never holds
+more than one answer at once.
+}
+
 \examples{
 \dontrun{
 masks <- predict(fit, "unet")                     # an array, on the model's grid
 masks <- predict(fit, "unet", space = "source")   # a list, on each scan's own grid
+
+# The two worst cases, without holding the other 198.
+cases <- evaluate_cases(fit, split = "validation")
+worst <- cases$case[order(cases$dice)][1:2]
+two <- predict(fit, split = "validation", cases = worst)
+
+# Or walk the split, keeping one number per image and none of the masks.
+coverage <- predict(fit, split = "validation", each = function(case, mask) mean(mask > 1))
 
 # `space = "source"` returns a list and not an array, which is the API being
 # honest: scans differ in size, a stacked array needs one shape, and resizing
