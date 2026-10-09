@@ -13,6 +13,26 @@ test_that("loading the package does not start Python", {
   expect_false(started)
 })
 
+test_that("platypus_use_torch replaces the requirement instead of adding a second", {
+  # The bug this pins: `py_require()` accumulates, .onLoad had already declared the plain
+  # requirement, and asking again left both in the list. uv then refuses the pair, because
+  # the two resolve to different torch builds - so the function could never do the one
+  # thing it is for, and the only existing test of it asserted that it *errors* once the
+  # engine has started, which is true either way.
+  #
+  # In a fresh process, like the test above and for the same reason: requirements are
+  # session-global, so asking the current session would make this depend on what ran first.
+  skip_if_not_installed("callr")
+  asked <- callr::r(function() {
+    library(platypus)
+    platypus_use_torch("pascal")
+    grep("pyplatypus", reticulate::py_require()$packages, fixed = TRUE, value = TRUE)
+  })
+  expect_length(asked, 1)
+  expect_match(asked, "pascal", fixed = TRUE)
+  expect_match(asked, platypus:::pyplatypus_version, fixed = TRUE)
+})
+
 test_that("status reports the pinned engine before anything has started", {
   status <- platypus_status()
   expect_s3_class(status, "platypus_status")
