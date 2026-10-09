@@ -15,7 +15,7 @@
 #' and an R package should not break because a Python dependency drifted underneath it.
 #' @keywords internal
 #' @noRd
-pyplatypus_version <- "0.8.0a2"
+pyplatypus_version <- "0.8.0a6"
 
 #' What this session will ask for. Set by [platypus_use_torch()] before the engine starts.
 #' @keywords internal
@@ -273,6 +273,13 @@ platypus_use_torch <- function(build = c("pascal", "default")) {
       call. = FALSE
     )
   }
+  # `py_require()` accumulates by default, and .onLoad has already declared the plain
+  # requirement. Asking again left *both* strings in the list, and uv refused the pair
+  # because the two resolve to different torch builds - so this function could never do
+  # the one thing it exists for, on exactly the machines it exists for. The previous
+  # string is withdrawn before the new one is declared; `action = "set"` would do it in
+  # one call and would also drop reticulate's own numpy.
+  reticulate::py_require(.platypus_requirement(), action = "remove")
   .platypus_requirement(if (identical(build, "default")) NULL else build)
   reticulate::py_require(.platypus_requirement())
   invisible(.platypus_requirement())
