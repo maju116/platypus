@@ -90,8 +90,8 @@ loss_combo <- function(alpha = 0.5, ce_ratio = 0.5) {
 #'
 #' | loss | Dice | volume bias | volume \|error\| |
 #' |---|---|---|---|
-#' | `loss_dice()` | 0.9525 ±0.0027 | −5.18% ±3.11% | 16.90% ±0.90% |
-#' | `loss_boundary()` | 0.9411 ±0.0093 | −0.06% ±4.15% | 22.17% ±2.88% |
+#' | `loss_dice()` | 0.9525 ±0.0027 | -5.18% ±3.11% | 16.90% ±0.90% |
+#' | `loss_boundary()` | 0.9411 ±0.0093 | -0.06% ±4.15% | 22.17% ±2.88% |
 #'
 #' It trades **accuracy per case** for **being unbiased over a series**. "Is there a lesion"
 #' wants the overlap; "has it grown since March" wants a volume that is not systematically
