@@ -672,6 +672,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#which-grid-the-answer-is-on" id="toc-which-grid-the-answer-is-on" class="nav-link" data-scroll-target="#which-grid-the-answer-is-on">Which grid the answer is on</a></li>
+  <li><a href="#one-at-a-time-when-the-split-will-not-fit" id="toc-one-at-a-time-when-the-split-will-not-fit" class="nav-link" data-scroll-target="#one-at-a-time-when-the-split-will-not-fit">One at a time, when the split will not fit</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
 </li>
@@ -689,6 +690,8 @@ predict(
   split = "test",
   type = c("class", "probability"),
   space = c("model", "source"),
+  cases = NULL,
+  each = NULL,
   ...
 )
 </code></pre>
@@ -736,6 +739,22 @@ Which data to predict on.
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="cases">cases</code>
+</td>
+<td>
+Case names to predict, as <code><a href="../man/evaluate_cases.html">evaluate_cases()</a></code> reports them. With this the result is a <strong>named list</strong> of just those, in the order asked for. A name that is not in the split is an error rather than a missing entry.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="each">each</code>
+</td>
+<td>
+A function called as <code>each(case, mask)</code> once per image, instead of the predictions being returned together. Whatever it returns is collected under the case’s name; return <code>NULL</code> from it and nothing accumulates. This is the form that does not need the split to fit in memory.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
 <code id="...">…</code>
 </td>
 <td>
@@ -749,12 +768,24 @@ Unused.
 <p><code>space = “model”</code> returns everything on the grid the model worked at, stacked into one array. That is what training saw, and it is the only form that can be a single array, because a stack needs one shape.</p>
 <p><code>space = “source”</code> maps each prediction back onto the grid of the scan it was computed from - undoing the resampling and the crop - and therefore returns a <strong>list</strong>, one mask per scan. This is what you want for anything that has to meet the original data: laying a mask over the scan in a viewer, writing it beside the scan with <code><a href="../man/save_volumes.html">save_volumes()</a></code>, or measuring it in millilitres of the scan’s own voxels. Scans differ in size, so the list is not a limitation being worked around - resizing them to a common shape is exactly how a mask ends up describing anatomy it was not computed from.</p>
 <p>Two things are lost mapping back, and neither can be recovered. Interpolation softens a boundary, so the mask returns slightly smoother than the model drew it. And where reading cropped anatomy away, the mask comes back padded with background - which means <em>not examined</em>, not <em>nothing there</em>. Give the model an <code>input_shape</code> that covers the anatomy if that distinction matters.</p>
+</section><section id="one-at-a-time-when-the-split-will-not-fit" class="level3"><h3 class="anchored" data-anchor-id="one-at-a-time-when-the-split-will-not-fit">One at a time, when the split will not fit</h3>
+<p>The default returns everything together, which for a tiled run is the whole split at full resolution: 200 fundus photographs at 2048 x 2048 is about 6.7 GB before anything is drawn, and the engine’s own <code>predict</code> was killed by exactly that. Two arguments avoid it.</p>
+<p><code>cases</code> names the ones wanted. <code>each</code> hands them over one at a time and keeps only what the function gives back. They compose: <code>cases</code> says which, <code>each</code> says what to do with them.</p>
+<p>The saving is in memory and not in time. The engine’s stream is sequential, so asking for two cases out of two hundred still runs the model over two hundred - it simply never holds more than one answer at once.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"unet"</span><span class="op">)</span>                     <span class="co"># an array, on the model's grid</span></span>
 <span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"unet"</span>, space <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span>   <span class="co"># a list, on each scan's own grid</span></span>
+<span></span>
+<span><span class="co"># The two worst cases, without holding the other 198.</span></span>
+<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/evaluate_cases.html">evaluate_cases</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"validation"</span><span class="op">)</span></span>
+<span><span class="va">worst</span> <span class="op">&lt;-</span> <span class="va">cases</span><span class="op">$</span><span class="va">case</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">cases</span><span class="op">$</span><span class="va">dice</span><span class="op">)</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span></span>
+<span><span class="va">two</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"validation"</span>, cases <span class="op">=</span> <span class="va">worst</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or walk the split, keeping one number per image and none of the masks.</span></span>
+<span><span class="va">coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"validation"</span>, each <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">case</span>, <span class="va">mask</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">mask</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># `space = "source"` returns a list and not an array, which is the API being</span></span>
 <span><span class="co"># honest: scans differ in size, a stacked array needs one shape, and resizing</span></span>
