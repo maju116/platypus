@@ -24,7 +24,22 @@ decide it, and \code{segmentation_data()} with \code{u_net()} can only mean one 
 is \strong{checked against them rather than trusted}, so it can only agree or refuse. It
 becomes load-bearing the day a pair of constructors stops deciding on its own.}
 
-\item{seed}{Set it for a reproducible run.}
+\item{seed}{Makes a run repeatable as far as the arithmetic is deterministic, which goes
+further on some hardware than others - so it is worth knowing where it stops.
+
+\strong{Repeatable:} the split (\code{\link[=split_dataset]{split_dataset()}} gives the same partition on any machine), a
+detector's fitted anchors, the order the data arrives in and its augmentation - including
+inside the loader's worker processes - and, on the processor, every number to twelve
+decimal places.
+
+\strong{Not repeatable:} a run on a CUDA device. Measured on a GTX 1070, two runs of one
+configuration at one seed agreed to twelve decimals on the processor and differed in the
+fourth after a single epoch on the card, because cuDNN chooses algorithms neither package
+constrains. Nor across versions of the engine: anything that changes the order data is
+drawn in changes what one seed draws, and \verb{0.8.0a3} did exactly that.
+
+So it is the argument for comparing two of your own runs, and not for publishing a number
+somebody else can land on. \code{\link[=platypus_device]{platypus_device()}} reports which device yours will use.}
 
 \item{output_dir}{Where to write a record of the run: the specification, the history,
 and anything the run worked out that the specification does not already say - a
