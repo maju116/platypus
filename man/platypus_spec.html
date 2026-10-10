@@ -722,7 +722,10 @@ Which task this specification describes, one of <code>“semantic_segmentation�
 <code id="seed">seed</code>
 </td>
 <td>
-Set it for a reproducible run.
+<p>Makes a run repeatable as far as the arithmetic is deterministic, which goes further on some hardware than others - so it is worth knowing where it stops.</p>
+<p><strong>Repeatable:</strong> the split (<code><a href="../man/split_dataset.html">split_dataset()</a></code> gives the same partition on any machine), a detector’s fitted anchors, the order the data arrives in and its augmentation - including inside the loader’s worker processes - and, on the processor, every number to twelve decimal places.</p>
+<p><strong>Not repeatable:</strong> a run on a CUDA device. Measured on a GTX 1070, two runs of one configuration at one seed agreed to twelve decimals on the processor and differed in the fourth after a single epoch on the card, because cuDNN chooses algorithms neither package constrains. Nor across versions of the engine: anything that changes the order data is drawn in changes what one seed draws, and <code style="white-space: pre;">0.8.0a3</code> did exactly that.</p>
+So it is the argument for comparing two of your own runs, and not for publishing a number somebody else can land on. <code><a href="../man/platypus_device.html">platypus_device()</a></code> reports which device yours will use.
 </td>
 </tr>
 <tr>
