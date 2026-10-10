@@ -693,6 +693,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#learning-it" id="toc-learning-it" class="nav-link" data-scroll-target="#learning-it">Learning it</a></li>
   <li><a href="#what-is-not-in-it-yet" id="toc-what-is-not-in-it-yet" class="nav-link" data-scroll-target="#what-is-not-in-it-yet">What is not in it yet</a></li>
   <li><a href="#about-the-engine" id="toc-about-the-engine" class="nav-link" data-scroll-target="#about-the-engine">About the engine</a></li>
+  <li><a href="#about-the-author" id="toc-about-the-author" class="nav-link" data-scroll-target="#about-the-author">About the author</a></li>
   <li><a href="#licence" id="toc-licence" class="nav-link" data-scroll-target="#licence">Licence</a></li>
   </ul></li>
   </ul>
@@ -895,6 +896,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>If the engine will not start and the error says there is no such version of pyplatypus</strong>, the version does exist and uv is answering from a cached copy of the package index — likely because the engine was published minutes ago. Clear the index cache:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> <span class="st">"</span><span class="va">$(</span><span class="ex">uv</span> cache dir<span class="va">)</span><span class="st">"</span>/simple-v<span class="pp">*</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Only the index: that directory is tens of megabytes, while the wheels beside it are tens of gigabytes and include PyTorch. <code>uv cache clean pyplatypus</code> is <em>not</em> enough — it removes that package’s built artifacts and leaves behind the index response saying the version does not exist.</p>
+</section>
+<section id="about-the-author" class="level2">
+<h2 class="anchored" data-anchor-id="about-the-author">About the author</h2>
+<p><img src="man/figures/author.png" align="right" alt="" width="130"></p>
+<p>Both halves of this are by <strong>Michał Maj</strong> — this R package, and the Python engine it calls.</p>
+<ul>
+<li><a href="https://www.linkedin.com/in/michal-maj116/">LinkedIn</a></li>
+<li><a href="https://github.com/maju116">GitHub</a></li>
+</ul>
+<p>The first version was a Keras and TensorFlow package in 2020, and it is still on <code>master</code> with the stars and the open issues it earned. Everything here was written from scratch in 2026 on torch, which is why the version numbers restart rather than continue.</p>
 </section>
 <section id="licence" class="level2">
 <h2 class="anchored" data-anchor-id="licence">Licence</h2>
