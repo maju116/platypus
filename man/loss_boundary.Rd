@@ -35,8 +35,8 @@ so a voxel predicted far outside the truth costs in proportion to how far.
 \strong{What it buys and what it costs, measured.} Three seeds, 60 epochs, lesions with
 ambiguous edges, against Dice alone:\tabular{llll}{
    loss \tab Dice \tab volume bias \tab volume |error| \cr
-   \code{loss_dice()} \tab 0.9525 ±0.0027 \tab −5.18\% ±3.11\% \tab 16.90\% ±0.90\% \cr
-   \code{loss_boundary()} \tab 0.9411 ±0.0093 \tab −0.06\% ±4.15\% \tab 22.17\% ±2.88\% \cr
+   \code{loss_dice()} \tab 0.9525 ±0.0027 \tab -5.18\% ±3.11\% \tab 16.90\% ±0.90\% \cr
+   \code{loss_boundary()} \tab 0.9411 ±0.0093 \tab -0.06\% ±4.15\% \tab 22.17\% ±2.88\% \cr
 }
 
 
