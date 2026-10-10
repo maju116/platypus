@@ -397,6 +397,19 @@ gigabytes and include PyTorch. `uv cache clean pyplatypus` is *not* enough — i
 package's built artifacts and leaves behind the index response saying the version does not
 exist.
 
+## About the author
+
+<img src="man/figures/author.png" align="right" alt="" width="130" />
+
+Both halves of this are by **Michał Maj** — this R package, and the Python engine it calls.
+
+- [LinkedIn](https://www.linkedin.com/in/michal-maj116/)
+- [GitHub](https://github.com/maju116)
+
+The first version was a Keras and TensorFlow package in 2020, and it is still on `master`
+with the stars and the open issues it earned. Everything here was written from scratch in
+2026 on torch, which is why the version numbers restart rather than continue.
+
 ## Licence
 
 MIT.
