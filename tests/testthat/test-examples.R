@@ -11,24 +11,9 @@
 # that reads as current and is not.
 
 rd_examples <- function() {
-  # Source `man/` first, installed package second, and the order matters.
-  #
-  # `tools::Rd_db("platypus")` reads the *installed* package - correct under
-  # `R CMD check`, which has just built one, and empty under `pkgload::load_all()`,
-  # which is how this package is most often worked on locally. Reading only the
-  # installed database left this test skipping in exactly that case: 2 skipped where
-  # 0 was expected, and a silently inert tripwire is worse than none. The same hazard
-  # made a vignette knit against platypus 0.2.0 and a linter report live helpers as
-  # undefined - three times now that the installed package was not the source tree.
-  roots <- c(".", "..", file.path("..", ".."))
-  for (root in roots) {
-    if (dir.exists(file.path(root, "man")) && file.exists(file.path(root, "DESCRIPTION"))) {
-      db <- tryCatch(tools::Rd_db(dir = root), error = function(e) list())
-      if (length(db)) return(collect(db))
-    }
-  }
-  db <- tryCatch(tools::Rd_db("platypus"), error = function(e) list())
-  collect(db)
+  # `rd_database()` is in helper-rd.R, with the reason the source tree is tried first.
+  # Defined there, which testthat sources at run time and lintr cannot see.
+  collect(rd_database())  # nolint: object_usage_linter.
 }
 
 collect <- function(db) {
