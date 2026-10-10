@@ -10,6 +10,10 @@
 # first is a page nobody can reach from the sidebar, the second is a sidebar entry leading
 # to a 404, and the second is the one a reader notices.
 
+# `yaml` is a Suggests, and CRAN runs the tests without Suggests installed, so every test
+# below guards on it explicitly. Letting this helper return NULL instead would land in the
+# `skip_if(is.null(groups))` guards already there and report "not reachable from here" - a
+# true skip for a false reason, which §4 says is indistinguishable from the real thing.
 reference_groups <- function() {
   for (root in c(".", "..", file.path("..", ".."))) {
     path <- file.path(root, "tools", "reference-groups.yml")
@@ -31,6 +35,7 @@ man_topics <- function() {
 }
 
 test_that("every documented topic is in exactly one reference group", {
+  skip_if_not_installed("yaml")
   groups <- reference_groups()
   skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
 
@@ -54,6 +59,7 @@ test_that("every documented topic is in exactly one reference group", {
 })
 
 test_that("the generated sidebar matches the grouping it was generated from", {
+  skip_if_not_installed("yaml")
   groups <- reference_groups()
   skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
 
@@ -100,6 +106,7 @@ test_that("the generated sidebar matches the grouping it was generated from", {
 #    which is a sidebar entry that cannot be clicked. That is what happened to Licence and
 #    Changelog before this test existed.
 test_that("the About section is in the agreed order and every entry has a file", {
+  skip_if_not_installed("yaml")
   root <- NULL
   for (candidate in c(".", "..", file.path("..", ".."))) {
     if (file.exists(file.path(candidate, "altdoc", "quarto_website.yml"))) {
@@ -161,6 +168,7 @@ group_order <- c(
 )
 
 test_that("the groups are a subsequence of the order pyplatypus shares", {
+  skip_if_not_installed("yaml")
   groups <- reference_groups()
   skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
 
@@ -200,6 +208,7 @@ shared_placement <- c(
 )
 
 test_that("the shared names are filed where pyplatypus files them", {
+  skip_if_not_installed("yaml")
   groups <- reference_groups()
   skip_if(is.null(groups), "tools/reference-groups.yml not reachable from here")
 
@@ -219,6 +228,7 @@ test_that("the shared names are filed where pyplatypus files them", {
 })
 
 test_that("every group says what it is for, because the Overview page publishes it", {
+  skip_if_not_installed("yaml")
   # `desc` was in this file from the start and rendered nowhere, so three groups had none and
   # nothing noticed. tools/build-reference.R now writes _quarto/overview.qmd from these, which
   # makes an empty one a blank section on a published page rather than a blank field in a
