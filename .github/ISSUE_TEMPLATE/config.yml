@@ -1,0 +1,15 @@
+# Blank issues stay enabled on purpose. The forms exist to stop a bug report arriving without
+# a version, not to turn away anything that does not fit them.
+blank_issues_enabled: true
+contact_links:
+  - name: The Python engine (pyplatypus)
+    url: https://github.com/maju116/pyplatypus/issues
+    about: >
+      This package is an R surface over pyplatypus, which does the computing. Anything about
+      the specification schema, the training loop, the metrics or the Python API lives there.
+      If you are not sure, file it here - it is easier to move an issue than to find one.
+  - name: The 2020 TensorFlow package
+    url: https://github.com/maju116/platypus/tree/master
+    about: >
+      The version with u_net() on Keras and yolo3() is frozen on the master branch. If you
+      installed platypus before 2026 and your code stopped working, start there.

@@ -1,0 +1,82 @@
+# Shared with pyplatypus/.github/ISSUE_TEMPLATE/bug_report.yml: the same fields in the same
+# order, each side showing its own subset. `tools/check-github-templates.R` holds this one to
+# that order; a test in the engine holds the other. The `half` field is this side's alone,
+# because only a user of the R package can be unsure which half they are looking at.
+#
+# A form rather than a markdown template, and the reason is the field that was always missing:
+# markdown sections get deleted, `required: true` cannot be.
+name: Bug report
+description: Something does not work the way the documentation says
+title: "Bug: "
+labels: []
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The error, in full, if there was one. Paste it rather than describing it.
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: half
+    attributes:
+      label: Which half
+      description: >
+        A guess is fine, and "not sure" is a real answer - the package is an R surface over a
+        Python engine, and the boundary is not always visible. If it is the engine, the issue
+        may get moved to maju116/pyplatypus, and nothing is lost by filing it here first.
+      options:
+        - Not sure
+        - In R, before anything Python started
+        - In the Python engine, reported back through R
+        - In installing or starting the engine
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: And where you read that, if it was in the documentation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce it
+      description: >
+        The shortest script that shows it. If it needs data, say what shape and type the
+        data is - a specification and the error it raises is usually enough, and no data is
+        needed at all for anything the engine refuses before training starts.
+      render: r
+    validations:
+      required: true
+
+  - type: textarea
+    id: session
+    attributes:
+      label: Session information
+      description: >
+        Paste the output of both, which is quicker than answering questions about versions.
+        `platypus_status()` reports the engine pin, the interpreter and where its environment
+        lives; it does not start Python, so it is safe to run when something is wrong.
+      value: |
+        # R
+        sessionInfo()
+
+        # the engine
+        platypus_status()
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else
+      description: Whether it ever worked, what changed, what you have already tried.
+    validations:
+      required: false
