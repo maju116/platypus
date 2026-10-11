@@ -507,3 +507,117 @@ available_transforms <- function(rank = 2, pattern = NULL) {
   if (!is.null(pattern)) names <- grep(pattern, names, value = TRUE)
   names
 }
+
+
+#' What this package can do, asked of the package
+#'
+#' Six listings beside [available_transforms()] and [available_weights()]: the losses, the
+#' metrics, the architectures, the optimisers, the callbacks and the tasks. Three columns -
+#' the name you write in a specification, the arguments you may tune, and what it is for.
+#'
+#' Worth having because the alternative is leaving R for a website. The number of named
+#' components grows with every release, and these are read from the engine's own schema, so a
+#' loss added there appears here with nothing in this package edited. Nothing is maintained by
+#' hand; a list maintained by hand is a list that will be wrong.
+#'
+#' `description` is the component's summary line. The rest of what the engine knows about it -
+#' including the measurements, where there are any - is on the configuration reference of the
+#' engine's own site, which is generated from the same text.
+#'
+#' @section Detection chooses fewer things, and says so:
+#'
+#' A detection specification chooses no loss component and no metrics at all. Its objective is
+#' fixed, with `box_loss` on the model picking the box term, and every detection run reports
+#' the same set - `map_50`, `map_50_95`, `mean_matched_iou` - which comes out of the run rather
+#' than going into the specification.
+#'
+#' So `available_losses("object_detection")` and `available_metrics("object_detection")` raise
+#' a condition whose message says that, rather than returning a table with no rows. An empty
+#' table reads as "there are none", which is a different and wrong answer.
+#'
+#' @param task `"semantic_segmentation"` or `"object_detection"`. Which components a
+#'   specification may name depends on what it is asking for.
+#' @return A data frame with `name`, `arguments` and `description`. `arguments` is a single
+#'   string per row, comma-separated, because a column of vectors prints as something nobody
+#'   can read; `strsplit(x, ", ")` takes it apart.
+#' @seealso [available_transforms()] and [available_weights()], the two that came first, and
+#'   [platypus_spec()], where these names are written.
+#' @examples
+#' \dontrun{
+#' available_losses()
+#' #>            name                    arguments
+#' #> 1      boundary               region, alpha
+#' #> 2           cce             label_smoothing
+#' #> 3      cce_dice          cce_weight, smooth
+#' #> ...
+#'
+#' # Which metrics take an argument at all, and which do not.
+#' available_metrics()[, c("name", "arguments")]
+#'
+#' # The entry point, for somebody who has read nothing yet.
+#' available_tasks()
+#'
+#' # Detection says what it has instead of a loss to choose.
+#' try(available_losses("object_detection"))
+#' }
+#' @name available_components
+NULL
+
+component_listing <- function(kind, task = NULL) {
+  result <- if (is.null(task)) {
+    shim()$component_listing(kind)
+  } else {
+    shim()$component_listing(kind, task = task)
+  }
+  if (!isTRUE(result$ok)) abort_engine(result)
+
+  rows <- lapply(result$rows, function(row) {
+    data.frame(
+      name = row$name, arguments = row$arguments, description = row$description,
+      stringsAsFactors = FALSE
+    )
+  })
+  if (!length(rows)) {
+    return(data.frame(
+      name = character(), arguments = character(), description = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+#' @rdname available_components
+#' @export
+available_losses <- function(task = "semantic_segmentation") {
+  component_listing("losses", task)
+}
+
+#' @rdname available_components
+#' @export
+available_metrics <- function(task = "semantic_segmentation") {
+  component_listing("metrics", task)
+}
+
+#' @rdname available_components
+#' @export
+available_models <- function(task = "semantic_segmentation") {
+  component_listing("models", task)
+}
+
+#' @rdname available_components
+#' @export
+available_optimizers <- function() {
+  component_listing("optimizers")
+}
+
+#' @rdname available_components
+#' @export
+available_callbacks <- function() {
+  component_listing("callbacks")
+}
+
+#' @rdname available_components
+#' @export
+available_tasks <- function() {
+  component_listing("tasks")
+}

@@ -294,6 +294,18 @@ ct_windows <- function() {
 #'
 #'   So it is the argument for comparing two of your own runs, and not for publishing a number
 #'   somebody else can land on. [platypus_device()] reports which device yours will use.
+#' @param deterministic Ask the engine for deterministic algorithms as well, which is the only
+#'   thing that makes a run on a card repeatable - `seed` on its own does not, as above.
+#'
+#'   **The cost is real and arrives later than any other refusal here.** Some convolutions
+#'   become much slower, and an operation with no deterministic implementation raises *when it
+#'   is reached*, so a run can stop ten minutes in rather than when the specification is
+#'   built. Everything else this package refuses, it refuses before reading a single image;
+#'   this cannot, because whether an operation has a deterministic algorithm is a fact about
+#'   the installed engine and the device rather than about the specification.
+#'
+#'   Needs `seed`, and is refused without one: constraining the algorithms while the draw
+#'   still varies leaves the run exactly as unrepeatable and only slower.
 #' @param output_dir Where to write a record of the run: the specification, the history,
 #'   and anything the run worked out that the specification does not already say - a
 #'   detector's fitted anchors, which it cannot be reloaded without. `NULL`, the default,
@@ -321,7 +333,7 @@ ct_windows <- function() {
 #' spec <- platypus_spec("experiment.yaml")
 #' }
 platypus_spec <- function(data, models = NULL, task = NULL, seed = NULL,
-                          output_dir = NULL, check_paths = TRUE) {
+                          deterministic = NULL, output_dir = NULL, check_paths = TRUE) {
   from_file <- is.character(data) && length(data) == 1L && is.null(models)
 
   result <- if (from_file) {
@@ -336,7 +348,7 @@ platypus_spec <- function(data, models = NULL, task = NULL, seed = NULL,
       # leaves it out is one whose meaning depends on the version reading it.
       task = task,
       data = data, models = models,
-      seed = int1(seed), output_dir = output_dir
+      seed = int1(seed), deterministic = deterministic, output_dir = output_dir
     ))
     shim()$build_spec(config, check_paths = check_paths)
   }
@@ -533,4 +545,54 @@ split_block <- function(split) {
       if (is.null(split$seed)) list() else list(seed = int1(split$seed))),
     class = c("platypus_verbatim", "list")
   )
+}
+
+
+#' Write a specification back out as YAML
+#'
+#' [platypus_spec()] reads a YAML file and builds a specification from arguments. This is the
+#' way back, so the two are one pipeline rather than one and a half: a specification assembled
+#' in R becomes a file somebody else can run, or that a script can keep beside its results.
+#'
+#' **It writes what you set, not what the specification holds.** A model built from two
+#' arguments holds 29 fields once the engine has filled in its defaults, and writing all of
+#' them is not merely verbose - it changes what the file does. A model given `weights` and no
+#' `architecture` takes the architecture from the weights sidecar, and that adoption happens
+#' precisely because the field was never set. Freeze the defaults into the file and the
+#' adoption can never happen again: the file looks like the original and quietly stops doing
+#' what the original did.
+#'
+#' `defaults = TRUE` is the opposite want, and a legitimate one: freeze this run exactly as it
+#' resolved so it reproduces years from now. The cost is the paragraph above, by design.
+#'
+#' @param spec A `platypus_spec`, from [platypus_spec()].
+#' @param path Where to write it. The parent directory must exist.
+#' @param defaults Write every field at its resolved value, including the ones you never set.
+#' @return The path, invisibly.
+#' @seealso [platypus_spec()], which reads one back, and [read_record()] for what a run *did*
+#'   as opposed to what it was asked to do.
+#' @export
+#' @examples
+#' \dontrun{
+#' spec <- platypus_spec(
+#'   data = segmentation_data("train/", "valid/", colormap = binary_colormap),
+#'   models = list(u_net("unet", input_shape = c(256, 256)))
+#' )
+#'
+#' save_spec(spec, "experiment.yaml")
+#' identical(as.list(platypus_spec("experiment.yaml")), as.list(spec))
+#'
+#' # Everything the engine resolved, for a run that has to reproduce in five years.
+#' save_spec(spec, "frozen.yaml", defaults = TRUE)
+#' }
+save_spec <- function(spec, path, defaults = FALSE) {
+  if (!inherits(spec, "platypus_spec")) {
+    stop("`spec` must be a platypus_spec; see `?platypus_spec`.", call. = FALSE)
+  }
+  if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
+    stop("`path` must be a single file path.", call. = FALSE)
+  }
+  result <- shim()$save_spec(spec$py, path.expand(path), defaults = isTRUE(defaults))
+  if (!isTRUE(result$ok)) abort_engine(result)
+  invisible(result$path)
 }
