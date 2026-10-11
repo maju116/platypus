@@ -111,6 +111,9 @@ website:
               - man/ct_windows.qmd
               - man/save_masks.qmd
               - man/save_volumes.qmd
+          - section: "When something is wrong"
+            contents:
+              - man/platypus_conditions.qmd
       - section: "About"
         contents:
           - text: Changelog
