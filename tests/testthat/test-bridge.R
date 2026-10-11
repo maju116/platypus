@@ -22,12 +22,25 @@ test_that("platypus_use_torch replaces the requirement instead of adding a secon
   #
   # In a fresh process, like the test above and for the same reason: requirements are
   # session-global, so asking the current session would make this depend on what ran first.
+  #
+  # **The child loads whatever this run loaded, which is not the same thing as loading the
+  # package.** It used to call `library(platypus)`, which reaches the user library - so the
+  # last assertion compared the *installed* package's pin against the *source's* version and
+  # failed on every pin move until somebody reinstalled, reporting it as a wrong pin. §4's
+  # "installed is not source" from the inside: the two were both here, and the test read one
+  # and asserted about the other. The `engine` job checks the installed route on purpose and
+  # separately, which is where that question belongs.
   skip_if_not_installed("callr")
-  asked <- callr::r(function() {
-    library(platypus)
-    platypus_use_torch("pascal")
-    grep("pyplatypus", reticulate::py_require()$packages, fixed = TRUE, value = TRUE)
-  })
+  source_tree <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+  loaded_from_source <- file.exists(file.path(source_tree, "DESCRIPTION"))
+  asked <- callr::r(
+    function(source_tree, loaded_from_source) {
+      if (loaded_from_source) pkgload::load_all(source_tree, quiet = TRUE) else library(platypus)
+      platypus_use_torch("pascal")
+      grep("pyplatypus", reticulate::py_require()$packages, fixed = TRUE, value = TRUE)
+    },
+    args = list(source_tree, loaded_from_source)
+  )
   expect_length(asked, 1)
   expect_match(asked, "pascal", fixed = TRUE)
   expect_match(asked, platypus:::pyplatypus_version, fixed = TRUE)

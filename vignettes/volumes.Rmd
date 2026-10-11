@@ -186,7 +186,7 @@ spec <- platypus_spec(
 )
 spec
 #> platypus specification
-#>   data        : /tmp/RtmpkbOuuB/splits/train.csv 
+#>   data        : /tmp/RtmpN31LIu/splits/train.csv 
 #>   classes     : 0 
 #>   models      : 1 
 #>     lesion         u_net            32x32x32, dice, 12 epochs
@@ -202,13 +202,16 @@ rather than guess:
 
 ``` r
 length(available_transforms())
-#> [1] 130
-length(available_transforms(rank = 3))
-#> [1] 97
+#> [1] 118
 head(setdiff(available_transforms(), available_transforms(rank = 3)), 4)
 #> [1] "AdditiveNoise"       "BBoxSafeRandomCrop"  "ChannelDropout"     
 #> [4] "ChromaticAberration"
 ```
+
+The second call asks the same question at `rank = 3` and returns fewer names. How many fewer
+is not printed here on purpose: it is a property of the installed 'albumentations' rather than
+of this package, and `?available_transforms` says what the engine does and does not promise
+about it. The names are the useful part anyway.
 
 A transform from that difference is refused by name when the run starts, rather than
 raising something from inside the library an hour in.
@@ -241,7 +244,7 @@ plot(fit)
 ``` r
 evaluate(fit)[, c("model", "loss_function", "dice", "epochs_run")]
 #>    model loss_function      dice epochs_run
-#> 1 lesion          dice 0.9633882         12
+#> 1 lesion          dice 0.9448062         12
 ```
 
 That number hides the distribution, and the distribution is usually the finding. With
@@ -253,16 +256,16 @@ cases <- evaluate_cases(fit, group_by = "^(patient\\d+)_")
 cases
 #> platypus scores by group (3 rows)
 #>      group      dice
-#>  patient06 0.9800181
-#>  patient11 0.9230408
-#>  patient10 0.9870523
+#>  patient06 0.9508058
+#>  patient11 0.9174028
+#>  patient10 0.9661106
 ```
 
 
 ``` r
 summary(cases)
-#>   metric n      mean         sd    median       min       max worst_group
-#> 1   dice 3 0.9633704 0.03510311 0.9800181 0.9230408 0.9870523   patient11
+#>   metric n      mean       sd    median       min       max worst_group
+#> 1   dice 3 0.9447731 0.024908 0.9508058 0.9174028 0.9661106   patient11
 ```
 
 The `worst_group` column is the one that makes this actionable. A mean of any value with a
@@ -311,18 +314,23 @@ sizes <- merge(
 sizes$error_pct <- round(100 * (sizes$predicted_ml - sizes$true_ml) / sizes$true_ml)
 sizes
 #>                key predicted_ml   true_ml error_pct
-#> 1 patient06_study1         0.27 0.2680826         1
-#> 2 patient06_study2         0.27 0.2680826         1
-#> 3 patient10_study1         0.90 0.9047787        -1
-#> 4 patient10_study2         0.90 0.9047787        -1
-#> 5 patient11_study1         0.53 0.5235988         1
-#> 6 patient11_study2         0.52 0.5235988        -1
+#> 1 patient06_study1         0.31 0.2680826        16
+#> 2 patient06_study2         0.31 0.2680826        16
+#> 3 patient10_study1         0.98 0.9047787         8
+#> 4 patient10_study2         0.97 0.9047787         7
+#> 5 patient11_study1         0.59 0.5235988        13
+#> 6 patient11_study2         0.59 0.5235988        13
 ```
 
 These lesions are spheres, so the true volume is known exactly - which is worth doing in a
 synthetic example, because it asks a question Dice cannot. The overlap scores above were
-around 0.88, respectable by any standard; the volumes are -1% to
-1% out.
+0.92 to 0.97, respectable
+by any standard; the volumes are 7% to 16% out.
+
+Every number in that sentence is computed rather than typed, and the first half is why: it
+used to read "around 0.88", against the table directly above it. A stale number next to the
+measurement it contradicts is the one kind a reader can catch without leaving the page, and
+it survived anyway.
 
 That is not a contradiction. Dice is dominated by the interior of an object and forgiving about
 its boundary, and for a small lesion the boundary *is* most of it. A model that draws every
