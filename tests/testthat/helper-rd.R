@@ -50,3 +50,31 @@ documented_arguments <- function(db = rd_database()) {
   }
   unique(found[nzchar(found)])
 }
+
+#' Which help topics document a name as an argument
+#'
+#' @keywords internal
+#' @noRd
+argument_locations <- function(db = rd_database()) {
+  tag_of <- function(x) {
+    tag <- attr(x, "Rd_tag")
+    if (is.null(tag)) "" else tag
+  }
+  found <- list()
+  for (topic in names(db)) {
+    rd <- db[[topic]]
+    tags <- vapply(rd, tag_of, character(1))
+    for (block in rd[tags == "\\arguments"]) {
+      items <- block[vapply(block, tag_of, character(1)) == "\\item"]
+      for (item in items) {
+        text <- paste(unlist(lapply(item[[1]], as.character)), collapse = "")
+        for (name in trimws(strsplit(text, ",")[[1]])) {
+          if (nzchar(name)) {
+            found[[name]] <- unique(c(found[[name]], sub("[.]Rd$", "", topic)))
+          }
+        }
+      }
+    }
+  }
+  found
+}
