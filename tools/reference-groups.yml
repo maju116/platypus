@@ -66,3 +66,14 @@ groups:
       than voxels, and a NIfTI that carries the affine of the scan it was predicted from.
     contents: [colours_to_classes, classes_to_colours, mask_coverage, mask_volume,
                unite_masks, colormaps, ct_windows, save_masks, save_volumes]
+
+  # Last here and last in the engine's grouping too, because it is the page a reader reaches
+  # after something has gone wrong rather than while planning what to do. The group existed
+  # on the engine's side alone until 2026-10-11: the conditions were raised and classed from
+  # the beginning and documented nowhere, so the one thing a script needs in order to handle
+  # a failure was discoverable only by reading `R/errors.R`.
+  - title: When something is wrong
+    desc: >-
+      Every failure arrives as a classed condition, so a script can tell a specification it
+      cannot run from a dataset that is not there. `platypus_error` catches all of them.
+    contents: [platypus_conditions]
