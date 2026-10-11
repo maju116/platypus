@@ -1,0 +1,54 @@
+# Shared with pyplatypus/.github/ISSUE_TEMPLATE/feature_request.yml - see the note in
+# bug_report.yml. Both sides ask for a measurement, because this project's issues are closed
+# with numbers rather than with "done", and that is easier if one is asked for early.
+name: Feature request
+description: Something the package should be able to do and cannot
+title: "Feature: "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: >
+        The task, not the feature. What you are segmenting, what you have, and what you need
+        out of it - the shape of the answer often decides whether this belongs in R, in the
+        engine, or in neither.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: A function, an argument, a field in the configuration file - whatever fits.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: >
+        Including other packages. If something else already does this well, that is worth
+        knowing and may be the answer.
+    validations:
+      required: false
+
+  - type: textarea
+    id: measurement
+    attributes:
+      label: How would you know it worked
+      description: >
+        A number if there is one - a score, a time, a size. Not required and not a test you
+        have to pass: it is here because a feature with no way to tell whether it helped is
+        the hardest kind to finish, and the question is easier to answer now than later.
+    validations:
+      required: false
+
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else
+    validations:
+      required: false
