@@ -6,7 +6,7 @@
 #
 # A digest that no longer matches is not the engine's failure. It is a question - does R's
 # prose still say the right thing? - asked at the only moment anybody would ask it.
-engine: 0.8.0a10
+engine: 0.8.0a11
 fields:
   - field: activation
     engine_digest: 4822b126e39826a504979a6b123cc241
@@ -86,6 +86,9 @@ fields:
   - field: deep_supervision
     engine_digest: 7c93647b6037dd1848a527d6171a91bd
     documented_in: [models]
+  - field: deterministic
+    engine_digest: 12d9cc8d342cff1e855deb5fd533976b
+    documented_in: [platypus_spec]
   - field: dropout
     engine_digest: 690516d8d8aa6634028a26912375c8ac
     documented_in: [models]
@@ -199,7 +202,7 @@ fields:
     documented_in: []
   - field: path
     engine_digest: 2a2235c61bce2ece0ff562db6c1489ff
-    documented_in: [callbacks, export_weights, read_record]
+    documented_in: [callbacks, export_weights, read_record, save_spec]
   - field: patience
     engine_digest: 4a7007e48113bbfc10e8649df4c5b0bd
     documented_in: [callbacks]
@@ -259,7 +262,7 @@ fields:
     documented_in: [segmentation_data]
   - field: task
     engine_digest: 7900a00ff5a8a0b82af03e3a8bddfda1
-    documented_in: [platypus_spec]
+    documented_in: [available_components, platypus_spec]
   - field: test_path
     engine_digest: 47df2eadd41a480d75b706c403905336
     documented_in: []

@@ -53,6 +53,7 @@ website:
               - man/detection_data.qmd
               - man/models.qmd
               - man/yolo3.qmd
+              - man/save_spec.qmd
               - man/as.list.platypus_spec.qmd
           - section: "What a model is made of"
             contents:
@@ -63,6 +64,7 @@ website:
               - man/callbacks.qmd
               - man/callback_swa.qmd
               - man/augmentation_step.qmd
+              - man/available_components.qmd
               - man/available_transforms.qmd
               - man/encoders.qmd
           - section: "The data on disk"

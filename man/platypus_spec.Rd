@@ -9,6 +9,7 @@ platypus_spec(
   models = NULL,
   task = NULL,
   seed = NULL,
+  deterministic = NULL,
   output_dir = NULL,
   check_paths = TRUE
 )
@@ -40,6 +41,19 @@ drawn in changes what one seed draws, and \verb{0.8.0a3} did exactly that.
 
 So it is the argument for comparing two of your own runs, and not for publishing a number
 somebody else can land on. \code{\link[=platypus_device]{platypus_device()}} reports which device yours will use.}
+
+\item{deterministic}{Ask the engine for deterministic algorithms as well, which is the only
+thing that makes a run on a card repeatable - \code{seed} on its own does not, as above.
+
+\strong{The cost is real and arrives later than any other refusal here.} Some convolutions
+become much slower, and an operation with no deterministic implementation raises \emph{when it
+is reached}, so a run can stop ten minutes in rather than when the specification is
+built. Everything else this package refuses, it refuses before reading a single image;
+this cannot, because whether an operation has a deterministic algorithm is a fact about
+the installed engine and the device rather than about the specification.
+
+Needs \code{seed}, and is refused without one: constraining the algorithms while the draw
+still varies leaves the run exactly as unrepeatable and only slower.}
 
 \item{output_dir}{Where to write a record of the run: the specification, the history,
 and anything the run worked out that the specification does not already say - a

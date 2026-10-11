@@ -922,6 +922,68 @@ def transform_names(rank: int = 2) -> dict:
     return {"ok": True, "transforms": names, "rank": int(rank)}
 
 
+def component_listing(kind: str, task: str | None = None) -> dict:
+    """One of the engine's `available_*` listings, as rows R can make a data frame of.
+
+    One function rather than six, because the R side differs only in which name it passes
+    and the engine is the thing that knows what each listing contains. `arguments` comes
+    back as a list and R joins it: a data frame cell holding a vector prints as a column
+    nobody can read.
+
+    A refusal is a refusal with a message - `available_metrics(task="object_detection")`
+    raises rather than returning an empty table, and that message is the answer, so it
+    crosses the bridge as a condition instead of being flattened into zero rows.
+    """
+    import pyplatypus
+
+    try:
+        listing = getattr(pyplatypus, f"available_{kind}")
+    except AttributeError as error:  # an engine older than 0.8.0a11
+        return _engine_failure(error)
+
+    try:
+        rows = listing() if task is None else listing(task)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    return {
+        "ok": True,
+        "rows": [
+            {
+                "name": row["name"],
+                "arguments": ", ".join(row.get("arguments", row.get("chooses", ()))),
+                "description": row["description"],
+            }
+            for row in rows
+        ],
+    }
+
+
+def save_spec(spec: Any, path: str, defaults: bool = False) -> dict:
+    """Write a specification back out as YAML.
+
+    The engine writes what was *set* rather than what the object holds, and that is the
+    whole point of it: a model given `weights` and no `architecture` adopts the architecture
+    from the weights sidecar, and the adoption fires on the field not having been set.
+    """
+    import pyplatypus
+
+    try:
+        from pyplatypus import save_spec as write
+    except Exception as error:  # noqa: BLE001 - an engine older than 0.8.0a11
+        return _engine_failure(error)
+
+    try:
+        written = write(spec, path, defaults=bool(defaults))
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "path": str(written)}
+
+
 def weights_listing() -> dict:
     """The published weights and what each one is."""
     import pyplatypus
