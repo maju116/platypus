@@ -25,21 +25,29 @@ work and several intensity ones raise from inside the library, so \code{rank = 3
 shorter list than \code{rank = 2}. A transform outside it is refused when the specification is
 built, by name, rather than failing an hour into training.
 
-The number of names at \code{rank = 2} is a property of the installed 'albumentations'. The
-number at \code{rank = 3} is not: the engine finds that list by running each transform against
-a small probe, and eleven of the ones it rejects fail for the probe's reasons rather than
-the library's - nine want three channels where the probe has one, and four fail on its
-size. Which of those eleven tips over differs between machines, so the count below is what
-was measured rather than a guarantee. The check that decides your run is made when the
-specification is built, against your own shape and parameters.
+The number of names at \code{rank = 2} is a property of the installed 'albumentations'. \strong{The
+number at \code{rank = 3} is not, and is deliberately not written down here.} The engine finds
+that list by offering each transform a probe volume, and some of what it refuses fails for
+the probe's reasons rather than the library's: a group of transforms want three channels
+where the probe has one, and another group want a target - reference image, bounding box,
+metadata of their own - that a probe cannot supply and a specification cannot name either.
+
+A third group used to fail on the probe's \emph{size}, which engine 0.8.0a10 fixed by retrying a
+refusal at a larger probe before believing it. That is also where a long-standing
+superstition went: the count used to vary between machines and was attributed to them, when
+the cause was one transform randomising its own parameters, so the same machine gave two
+answers. Escalating removed it. The count is still not promised, because it belongs to the
+installed library rather than to this package.
+
+The check that decides your run is made when the specification is built, against your own
+shape and parameters.
 }
 \examples{
 \dontrun{
 available_transforms()                       # everything, for images
 #> 118 names, with albumentations 2.0.8
 
-available_transforms(rank = 3)               # what volumes can take
-#> 87 - the other 31 are refused when handed a volume
+available_transforms(rank = 3)               # what volumes can take: fewer
 
 available_transforms(rank = 3, pattern = "Flip|Crop")
 #> [1] "AtLeastOneBBoxRandomCrop" "CenterCrop"   "CenterCrop3D"
@@ -48,8 +56,9 @@ available_transforms(rank = 3, pattern = "Flip|Crop")
 #> [10] "RandomResizedCrop"  "RandomSizedBBoxSafeCrop"  "RandomSizedCrop"
 #> [13] "VerticalFlip"
 
-length(setdiff(available_transforms(), available_transforms(rank = 3)))
-#> [1] 31
+# Which ones a volume cannot take, by name rather than by count.
+head(setdiff(available_transforms(), available_transforms(rank = 3)), 3)
+#> [1] "AdditiveNoise"      "BBoxSafeRandomCrop" "ChannelDropout"
 }
 }
 \seealso{

@@ -199,9 +199,13 @@ rather than guess:
 
 ```{r augmentations}
 length(available_transforms())
-length(available_transforms(rank = 3))
 head(setdiff(available_transforms(), available_transforms(rank = 3)), 4)
 ```
+
+The second call asks the same question at `rank = 3` and returns fewer names. How many fewer
+is not printed here on purpose: it is a property of the installed 'albumentations' rather than
+of this package, and `?available_transforms` says what the engine does and does not promise
+about it. The names are the useful part anyway.
 
 A transform from that difference is refused by name when the run starts, rather than
 raising something from inside the library an hour in.
@@ -282,8 +286,13 @@ sizes
 
 These lesions are spheres, so the true volume is known exactly - which is worth doing in a
 synthetic example, because it asks a question Dice cannot. The overlap scores above were
-around 0.88, respectable by any standard; the volumes are `r min(sizes$error_pct)`% to
-`r max(sizes$error_pct)`% out.
+`r sprintf("%.2f", min(cases$dice))` to `r sprintf("%.2f", max(cases$dice))`, respectable
+by any standard; the volumes are `r min(sizes$error_pct)`% to `r max(sizes$error_pct)`% out.
+
+Every number in that sentence is computed rather than typed, and the first half is why: it
+used to read "around 0.88", against the table directly above it. A stale number next to the
+measurement it contradicts is the one kind a reader can catch without leaving the page, and
+it survived anyway.
 
 That is not a contradiction. Dice is dominated by the interior of an object and forgiving about
 its boundary, and for a small lesion the boundary *is* most of it. A model that draws every
