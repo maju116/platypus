@@ -34,12 +34,26 @@ loss_lovasz(per_image = FALSE)
 \arguments{
 \item{smooth}{Added to numerator and denominator to keep an empty class finite.}
 
-\item{label_smoothing, cce_weight, ce_ratio, per_image}{See the individual losses.}
+\item{label_smoothing}{For cross-entropy, train towards \code{1 - label_smoothing} instead of
+towards 1, so the model is not pushed to be certain. Worth having where the labels
+themselves are uncertain, which on a hand-drawn boundary they are.}
+
+\item{cce_weight}{For \code{loss_cce_dice()}, how much of the total the cross-entropy half
+provides. At 0 or 1 it is one of the two alone, which is worth knowing before tuning it
+as though it were a third thing.}
 
 \item{gamma}{For focal losses, how hard to discount the pixels already classified well.}
 
 \item{alpha}{For Tversky, the weight on false negatives; raising it buys recall.
 Note that \code{alpha = 0.5} is Dice exactly only when \code{smooth = 0}.}
+
+\item{ce_ratio}{For \code{loss_combo()}, how its cross-entropy half is tilted between
+punishing missed foreground (towards 1) and false alarms (towards 0), while \code{alpha}
+sets how much of the total each half provides.}
+
+\item{per_image}{For \code{loss_lovasz()}, sort the errors of each image separately rather
+than over the whole batch. The harsher reading, and on mostly empty images the noisier
+one.}
 }
 \value{
 A loss specification, to be passed to a model constructor.

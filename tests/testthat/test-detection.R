@@ -9,8 +9,16 @@ test_that("detection_data carries the task so nobody has to type it", {
   expect_s3_class(data, "platypus_detection_data")
   expect_identical(attr(data, "task"), "object_detection")
   expect_identical(data$classes, c("RBC", "WBC"))
-  expect_identical(data$subdirs, c("images", "annotations"))
-  expect_identical(data$annotation_format, "pascal_voc")
+  # `subdirs` and `annotation_format` are no longer sent unless the caller names them
+  # (#148): a default sent from R is a value the engine has to treat as chosen. They used
+  # to be asserted here as present, which is what made this test the one that noticed.
+  expect_null(data$subdirs)
+  expect_null(data$annotation_format)
+  expect_identical(
+    detection_data("train/", "valid/", classes = "cell",
+                   subdirs = c("pics", "boxes"))$subdirs,
+    c("pics", "boxes")
+  )
 })
 
 test_that("a segmentation data block has no task attribute and defaults to segmentation", {

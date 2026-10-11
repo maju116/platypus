@@ -78,3 +78,66 @@ argument_locations <- function(db = rd_database()) {
   }
   found
 }
+
+
+#' How long each documented argument's text is, in the Rd a reader sees
+#'
+#' Beside `documented_arguments()`, which answers whether a name is documented at all. This
+#' answers whether the entry says anything, which is a different question and the one
+#' platypus#135's third part is about. Keyed by name, longest where a name appears twice.
+#'
+#' @keywords internal
+#' @noRd
+argument_text_lengths <- function(db = rd_database()) {
+  tag_of <- function(x) {
+    tag <- attr(x, "Rd_tag")
+    if (is.null(tag)) "" else tag
+  }
+  found <- list()
+  for (rd in db) {
+    tags <- vapply(rd, tag_of, character(1))
+    for (block in rd[tags == "\\arguments"]) {
+      items <- block[vapply(block, tag_of, character(1)) == "\\item"]
+      for (item in items) {
+        names_text <- paste(unlist(lapply(item[[1]], as.character)), collapse = "")
+        body <- nchar(trimws(paste(unlist(lapply(item[[2]], as.character)), collapse = "")))
+        for (name in trimws(strsplit(names_text, ",")[[1]])) {
+          if (nzchar(name)) {
+            found[[name]] <- max(c(found[[name]], body))
+          }
+        }
+      }
+    }
+  }
+  found
+}
+
+
+#' The longest description the engine gives each field name, and R's own text for it
+#'
+#' Keyed by name, taking the longest where a name appears more than once: the question is
+#' whether an R reader meeting this name gets something worth reading, and the engine's
+#' fullest text is the fair thing to measure against. The Rd half is
+#' `argument_text_lengths()`, beside the database it reads.
+#'
+#' @keywords internal
+#' @noRd
+prose_lengths <- function() {
+  schema <- platypus:::engine()$spec_schema()
+  engine <- list()
+  for (definition in schema$`$defs`) {
+    properties <- definition$properties
+    if (!length(properties)) next
+    for (name in names(properties)) {
+      text <- trimws(properties[[name]]$description %||% "")
+      if (nzchar(text)) engine[[name]] <- max(c(engine[[name]], nchar(text)))
+    }
+  }
+
+  r <- argument_text_lengths()
+  shared <- intersect(names(engine), names(r))
+  list(
+    engine = vapply(engine[shared], identity, numeric(1)),
+    r = vapply(r[shared], identity, numeric(1))
+  )
+}

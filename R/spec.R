@@ -110,7 +110,18 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
                               channels_from = NULL,
                               subdirs = c("images", "masks"), column_sep = ";",
                               shuffle = TRUE) {
+  # Which of these the caller actually named. Everything below sends a field only when
+  # somebody chose it or when this function chose it for them, because a default sent from
+  # here is indistinguishable from a value the user set - and §3D's rule exists for a
+  # reason: an R-side default silences a schema, or a weights file, that knows better.
+  # Measured 2026-10-11: all four matched the engine's own defaults, so dropping them
+  # changes nothing today. The point is the day one of them stops matching.
   explicit_mode <- !missing(mode)
+  gave <- list(
+    subdirs = !missing(subdirs),
+    column_sep = !missing(column_sep),
+    shuffle = !missing(shuffle)
+  )
   mode <- match.arg(mode)
 
   # A split goes straight in. Making the caller unpack three paths and remember to switch
@@ -174,7 +185,10 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
     # engine to refuse a key the caller did write. The one case where an absent value and
     # a NULL value are different things, so the list is assembled by hand.
     split = split_block(split),
-    mode = mode,
+    # Sent when the caller named it, or when the `platypus_split` branch above chose
+    # `config_file` on their behalf - R deciding is as good a reason as the user deciding,
+    # and the engine cannot tell them apart anyway.
+    mode = if (explicit_mode || !identical(mode, "nested_dirs")) mode else NULL,
     colormap = if (is.null(colormap)) NULL else lapply(colormap, as.integer),
     labels = if (is.null(labels)) NULL else as.integer(labels),
     # Left out entirely when unset. An older engine rejects fields it does not know, so
@@ -187,9 +201,9 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
              else as.numeric(window),
     target_spacing = if (is.null(target_spacing)) NULL else as.numeric(target_spacing),
     channels_from = if (is.null(channels_from)) NULL else as.character(channels_from),
-    subdirs = subdirs,
-    column_sep = column_sep,
-    shuffle = shuffle
+    subdirs = if (gave$subdirs) subdirs else NULL,
+    column_sep = if (gave$column_sep) column_sep else NULL,
+    shuffle = if (gave$shuffle) shuffle else NULL
   )
 }
 
@@ -272,7 +286,11 @@ ct_windows <- function() {
 #' training run - and reported against the model that has it, by the name you gave it.
 #'
 #' @param data A [segmentation_data()] specification, or the path to a YAML file.
-#' @param models A list of model specifications, see [models].
+#' @param models A list of model specifications, see [models] and [available_models()].
+#'   More than one is the ordinary case rather than the exception: they are trained in turn
+#'   against the same data and the same split, which is what makes their numbers
+#'   comparable, and a comparison is written by listing several entries of the same
+#'   architecture with different settings.
 #' @param task Which task this specification describes, one of `"semantic_segmentation"`
 #'   or `"object_detection"`. Normally left unset: the data and model constructors already
 #'   decide it, and `segmentation_data()` with `u_net()` can only mean one thing. Given, it

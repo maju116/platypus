@@ -17,7 +17,11 @@ platypus_spec(
 \arguments{
 \item{data}{A \code{\link[=segmentation_data]{segmentation_data()}} specification, or the path to a YAML file.}
 
-\item{models}{A list of model specifications, see \link{models}.}
+\item{models}{A list of model specifications, see \link{models} and \code{\link[=available_models]{available_models()}}.
+More than one is the ordinary case rather than the exception: they are trained in turn
+against the same data and the same split, which is what makes their numbers
+comparable, and a comparison is written by listing several entries of the same
+architecture with different settings.}
 
 \item{task}{Which task this specification describes, one of \code{"semantic_segmentation"}
 or \code{"object_detection"}. Normally left unset: the data and model constructors already

@@ -137,7 +137,10 @@ linknet(
 )
 }
 \arguments{
-\item{name}{Unique within a specification; names the outputs and the table rows.}
+\item{name}{Unique within a specification. It names this model's outputs, its rows in
+every score table, and the directory its run record is written to - so two models
+called the same thing would overwrite one record and report it as two, which is why
+the engine refuses a repeat rather than disambiguating it.}
 
 \item{input_shape}{Tile size: \code{c(height, width)}, or \code{c(depth, height, width)}.}
 
@@ -154,16 +157,27 @@ disagree with its own data. Passing it is an error that says so.}
 \item{filters}{Filters in the first block; doubled at each level. Taken from the weights
 file when \code{weights} is given and this is not.}
 
-\item{block_width}{Convolutions per block.}
+\item{block_width}{Convolutions per block. Two is the usual U-Net block; one trains
+faster and holds less, three rarely pays for itself. It composes with every
+architecture, including the residual blocks of \code{res_u_net()}, where it is the number of
+convolutions inside the residual rather than beside it.}
 
-\item{dropout}{Dropout rate, 0 to switch it off.}
+\item{dropout}{Drop this fraction of activations in every block during training, 0 to
+switch it off. The first thing to reach for when the training loss keeps falling and
+the validation loss does not.}
 
-\item{batch_normalization}{Normalise between convolutions.}
+\item{batch_normalization}{Normalise each batch's activations between convolutions,
+which is what lets a deeper network train at all at a useful learning rate. On by
+default; the reason to turn it off is a batch so small that its statistics are noise,
+which is the case a 3D run with \code{batch_size = 1} lands in.}
 
 \item{separable_conv}{Depthwise-separable convolutions. Far fewer parameters, a little
 slower to converge.}
 
-\item{spatial_dropout}{Drop whole feature maps rather than individual activations.}
+\item{spatial_dropout}{Drop whole feature maps rather than individual activations. On an
+image the neighbouring pixels of a dropped activation carry almost the same
+information, so ordinary dropout removes less than it appears to; dropping a channel
+removes a feature. Does nothing unless \code{dropout} is above 0, which sets the rate.}
 
 \item{upsample}{Interpolate and convolve instead of using a transposed convolution.}
 
@@ -176,7 +190,11 @@ only, since it is the one with intermediate outputs to supervise.}
 \item{initialiser}{One of \code{"he_normal"}, \code{"he_uniform"}, \code{"glorot_normal"},
 \code{"glorot_uniform"}.}
 
-\item{loss}{A loss, see \link{losses}.}
+\item{loss}{The objective trained against, see \link{losses} and \code{\link[=available_losses]{available_losses()}}. It is
+what a score table's \code{loss} column is comparable within and not across: a
+Focal-Tversky of 0.05 is not better than a cross-entropy of 0.14, it is a different
+question, which is why the table carries the loss's name beside the number. Unset uses
+the engine's default.}
 
 \item{metrics}{A list of metrics, see \link{metrics}.}
 

@@ -24,7 +24,18 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' @param gamma For focal losses, how hard to discount the pixels already classified well.
 #' @param alpha For Tversky, the weight on false negatives; raising it buys recall.
 #'   Note that `alpha = 0.5` is Dice exactly only when `smooth = 0`.
-#' @param label_smoothing,cce_weight,ce_ratio,per_image See the individual losses.
+#' @param label_smoothing For cross-entropy, train towards `1 - label_smoothing` instead of
+#'   towards 1, so the model is not pushed to be certain. Worth having where the labels
+#'   themselves are uncertain, which on a hand-drawn boundary they are.
+#' @param cce_weight For `loss_cce_dice()`, how much of the total the cross-entropy half
+#'   provides. At 0 or 1 it is one of the two alone, which is worth knowing before tuning it
+#'   as though it were a third thing.
+#' @param ce_ratio For `loss_combo()`, how its cross-entropy half is tilted between
+#'   punishing missed foreground (towards 1) and false alarms (towards 0), while `alpha`
+#'   sets how much of the total each half provides.
+#' @param per_image For `loss_lovasz()`, sort the errors of each image separately rather
+#'   than over the whole batch. The harsher reading, and on mostly empty images the noisier
+#'   one.
 #' @return A loss specification, to be passed to a model constructor.
 #' @name losses
 #' @examples
@@ -210,12 +221,71 @@ metric_cldice <- function(iterations = 5, smooth = 1, include_background = FALSE
 
 #' Optimisers
 #'
-#' @param learning_rate,weight_decay Standard.
-#' @param beta_1,beta_2,eps,amsgrad,momentum,nesterov,alpha,rho,lr_decay Per optimiser.
+#' How the weights are updated. `optimizer_adam()` unless there is a reason not to: it adapts
+#' the step per parameter, so it usually trains without anything tuned except
+#' `learning_rate`. `optimizer_sgd()` with `momentum` is the recipe most of the
+#' classification literature's best numbers were produced with, in exchange for depending on
+#' a tuned rate and usually a schedule - see [callbacks] for those.
+#'
+#' **No run in this project has compared them on segmentation**, so this page says what each
+#' one does differently rather than which is better. [available_optimizers()] lists them with
+#' the arguments each accepts.
+#'
+#' The rest are here because a configuration should be able to name what torch offers.
+#' `optimizer_adamw()` is Adam with weight decay applied to the weights rather than through
+#' the gradient, which is why its decay defaults to 0.01 rather than 0 - choosing it and
+#' leaving the decay at zero leaves nothing to choose. `optimizer_adagrad()` accumulates
+#' every squared gradient it has seen, so its step only ever shrinks and a long run can stop
+#' learning; `optimizer_adadelta()` is the same idea with a window instead of a sum.
+#' `optimizer_adamax()` tracks the largest gradient rather than the average of their squares,
+#' which is steadier where a few batches carry very large ones. `optimizer_rmsprop()` is
+#' Adam's denominator without its momentum, and `optimizer_nadam()` is Adam with the
+#' look-ahead that SGD calls `nesterov`.
+#'
+#' Every argument left unset is decided by the engine, which is where the defaults live.
+#'
+#' @param learning_rate How big a step to take. The one setting worth trying first when a run
+#'   will not learn: too high and the loss moves without improving, too low and it improves
+#'   too slowly to tell from not improving at all. Each parameter group decays from its own
+#'   rate, so an `encoder_learning_rate` is not flattened by a schedule.
+#' @param weight_decay Pull the weights towards zero at every step, which is L2
+#'   regularisation. Off by default because it interacts with the loss and is not free: on a
+#'   small dataset it can cost more than the overfitting it prevents. In `optimizer_adamw()`
+#'   it is applied to the weights directly rather than through the gradient, which is the
+#'   whole difference between the two.
+#' @param beta_1 Decay for the running average of the gradient. Lower reacts to the last few
+#'   batches, higher smooths over more of them; 0.9 is the usual value and rarely worth
+#'   moving.
+#' @param beta_2 Decay for the running average of the squared gradient, which is what scales
+#'   each parameter's step. Below about 0.99 training gets noticeably noisier. In
+#'   `optimizer_adamax()` it decays the largest gradient seen instead.
+#' @param eps Added to the denominator so a parameter whose gradient has been zero for a
+#'   while does not take an enormous step. A guard, not a knob.
+#' @param amsgrad Keep the largest squared-gradient average seen so far rather than the
+#'   current one, so the step size never grows back. It fixes a convergence case in Adam's
+#'   proof and usually changes nothing in practice; worth trying if a run plateaus and then
+#'   gets worse.
+#' @param momentum Carry a fraction of the previous step into this one. 0 is plain gradient
+#'   descent; 0.9 is the usual choice and is what makes SGD competitive with the adaptive
+#'   methods.
+#' @param nesterov Look ahead to where momentum is about to carry the weights before
+#'   measuring the gradient. Needs `momentum` above 0, and giving it without momentum is
+#'   refused rather than ignored.
+#' @param alpha For `optimizer_rmsprop()`, the decay for its running average of the squared
+#'   gradient - the same work `beta_2` does in the Adam family, under that family's name.
+#' @param rho For `optimizer_adadelta()`, how long a window of squared gradients to remember.
+#'   Adadelta exists to avoid Adagrad's ever-shrinking step and this is the parameter that
+#'   does it.
+#' @param lr_decay For `optimizer_adagrad()`, shrink the rate further as training goes on, on
+#'   top of the shrinking Adagrad already does by accumulating every squared gradient it has
+#'   seen.
 #' @return An optimiser specification.
+#' @seealso [available_optimizers()] for the same list with its arguments, and [callbacks()]
+#'   for moving the rate during a run.
 #' @name optimizers
 #' @examples
 #' optimizer_adam(learning_rate = 1e-4)
+#' optimizer_sgd(learning_rate = 0.01, momentum = 0.9, nesterov = TRUE)
 NULL
 
 #' @rdname optimizers
@@ -313,9 +383,13 @@ optimizer_nadam <- function(learning_rate = 1e-3, beta_1 = 0.9, beta_2 = 0.999,
 #'   metric name, such as `"val_dice"`.
 #' @param patience Epochs to wait before acting.
 #' @param min_delta Improvement smaller than this does not count.
-#' @param restore_best Put the best weights back when training stops.
+#' @param restore_best Put the best weights back when training stops, rather than keeping
+#'   the last - which are by definition the ones that were not improving. On by default.
+#'   Note that `callback_swa()` replaces nothing if a run stops before averaging began.
 #' @param path Where to write.
-#' @param save_best_only Only write when the watched quantity improves.
+#' @param save_best_only Only write when the watched quantity improves, which is the
+#'   default. `FALSE` writes every epoch, which is what to use when a run may be
+#'   interrupted rather than when the best epoch is what you want to keep.
 #' @param factor,min_lr For the learning rate schedule. `min_lr` is the floor for both
 #'   `callback_reduce_lr_on_plateau()` and `callback_cosine_annealing()`.
 #' @param epochs For `callback_cosine_annealing()`, how many epochs to spread the decay

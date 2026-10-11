@@ -169,3 +169,54 @@ test_that("the ledger was written against the engine this package pins", {
   # would be about the engine R actually runs.
   expect_identical(as.character(recorded$engine), platypus_status()$engine_version)
 })
+
+# And the third thing platypus#135 asked for: not presence, not agreement, but substance.
+#
+# The failure this catches is a stub standing in for a described field. It happened twice and
+# at scale: `@param learning_rate,weight_decay Standard.` and
+# `@param beta_1,beta_2,eps,amsgrad,momentum,nesterov,alpha,rho,lr_decay Per optimiser.`
+# documented eleven fields with two phrases, against 1,900 characters of engine text.
+#
+# **The threshold comes from a measured gap, not from taste.** Over the 88 fields documented
+# on both sides, R's text against the engine's longest for that name:
+#
+#     before the prose pass of 2026-10-11   median 0.68, 22 fields below 0.25
+#     after it                              median 0.99, thinnest 0.23 (`monitor`)
+#     the stubs it replaced                 0.04 ("Standard."), 0.08 ("Per optimiser.")
+#
+# So 0.15 sits in the gap between the thinnest real text and the fattest stub. A ratio is a
+# crude instrument - platypus#135 says so - and this is the one job it can do without
+# nagging: a floor at the median would flag half the package for no reason.
+
+test_that("no field the engine describes is documented in R with a stub", {
+  skip_if_no_engine()
+  lengths <- prose_lengths()
+  skip_if(!length(lengths$r), "no Rd database reachable from here")
+  expect_gt(length(lengths$r), 80)
+
+  ratio <- lengths$r / lengths$engine
+  stubs <- sort(ratio[ratio < 0.15])
+  expect_identical(
+    names(stubs), character(0),
+    info = paste0(
+      "these say far less in R than the engine says about them: ",
+      paste(sprintf("%s (%d chars against %d)", names(stubs),
+                    lengths$r[names(stubs)], lengths$engine[names(stubs)]),
+            collapse = "; "),
+      ".\nWrite the `@param`, in R's own words - the engine's text is the source, not the ",
+      "thing to copy."
+    )
+  )
+})
+
+test_that("the measure is on the Rd a reader sees, not on the roxygen", {
+  # Same reason `documented_arguments()` reads the Rd: a roxygen comment that never
+  # regenerated would pass a grep over R/ and still be absent from `?optimizers`. This
+  # asserts the instrument reads something, so the test above cannot pass on an empty read.
+  skip_if_no_engine()
+  lengths <- prose_lengths()
+  skip_if(!length(lengths$r), "no Rd database reachable from here")
+  expect_gt(lengths$r[["learning_rate"]], 100)
+  expect_gt(lengths$r[["eps"]], 60)
+  expect_gt(lengths$engine[["seed"]], 500)
+})
