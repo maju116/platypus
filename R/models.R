@@ -41,7 +41,10 @@
 #' those are adopted **only** where the specification stayed silent. Sending `blocks = 4`
 #' because that is what R happened to say would override a file that knows better.
 #'
-#' @param name Unique within a specification; names the outputs and the table rows.
+#' @param name Unique within a specification. It names this model's outputs, its rows in
+#'   every score table, and the directory its run record is written to - so two models
+#'   called the same thing would overwrite one record and report it as two, which is why
+#'   the engine refuses a repeat rather than disambiguating it.
 #' @param input_shape Tile size: `c(height, width)`, or `c(depth, height, width)`.
 #' @param channels Input channels. 3 for colour, 1 for greyscale. Derived from
 #'   `channels_from` when [segmentation_data()] names one file per channel.
@@ -52,12 +55,23 @@
 #'   `weights` is given and this is not.
 #' @param filters Filters in the first block; doubled at each level. Taken from the weights
 #'   file when `weights` is given and this is not.
-#' @param block_width Convolutions per block.
-#' @param dropout Dropout rate, 0 to switch it off.
-#' @param batch_normalization Normalise between convolutions.
+#' @param block_width Convolutions per block. Two is the usual U-Net block; one trains
+#'   faster and holds less, three rarely pays for itself. It composes with every
+#'   architecture, including the residual blocks of `res_u_net()`, where it is the number of
+#'   convolutions inside the residual rather than beside it.
+#' @param dropout Drop this fraction of activations in every block during training, 0 to
+#'   switch it off. The first thing to reach for when the training loss keeps falling and
+#'   the validation loss does not.
+#' @param batch_normalization Normalise each batch's activations between convolutions,
+#'   which is what lets a deeper network train at all at a useful learning rate. On by
+#'   default; the reason to turn it off is a batch so small that its statistics are noise,
+#'   which is the case a 3D run with `batch_size = 1` lands in.
 #' @param separable_conv Depthwise-separable convolutions. Far fewer parameters, a little
 #'   slower to converge.
-#' @param spatial_dropout Drop whole feature maps rather than individual activations.
+#' @param spatial_dropout Drop whole feature maps rather than individual activations. On an
+#'   image the neighbouring pixels of a dropped activation carry almost the same
+#'   information, so ordinary dropout removes less than it appears to; dropping a channel
+#'   removes a feature. Does nothing unless `dropout` is above 0, which sets the rate.
 #' @param upsample Interpolate and convolve instead of using a transposed convolution.
 #' @param deep_supervision Train every decoder depth, not only the last. `u_net_plus_plus`
 #'   only, since it is the one with intermediate outputs to supervise.
@@ -65,7 +79,11 @@
 #'   `"silu"`, `"tanh"`.
 #' @param initialiser One of `"he_normal"`, `"he_uniform"`, `"glorot_normal"`,
 #'   `"glorot_uniform"`.
-#' @param loss A loss, see [losses].
+#' @param loss The objective trained against, see [losses] and [available_losses()]. It is
+#'   what a score table's `loss` column is comparable within and not across: a
+#'   Focal-Tversky of 0.05 is not better than a cross-entropy of 0.14, it is a different
+#'   question, which is why the table carries the loss's name beside the number. Unset uses
+#'   the engine's default.
 #' @param metrics A list of metrics, see [metrics].
 #' @param optimizer An optimiser, see [optimizers].
 #' @param callbacks A list of callbacks, see [callbacks].

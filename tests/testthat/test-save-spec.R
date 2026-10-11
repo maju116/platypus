@@ -94,22 +94,22 @@ test_that("save_spec refuses what is not a specification", {
   expect_error(save_spec(specification(), character(0)), "single file path")
 })
 
-test_that("R sends four fields the caller never set, which the saved file shows", {
-  # Measured rather than assumed, and asserted so that fixing it is visible. §3D says
-  # defaults live in the engine and R sends nothing it was not given; `segmentation_data()`
-  # has R-side defaults for these four, so they cross the bridge as values somebody chose
-  # and the engine can no longer decide them. `architecture` is the legitimate case - in R
-  # the constructor *is* the architecture (§3A), so `u_net()` naming it is correct.
+test_that("R sends nothing the caller did not give, which the saved file shows", {
+  # This test is the reason #148 exists: written on 2026-10-11 it asserted the *presence*
+  # of `mode`, `subdirs`, `column_sep` and `shuffle` - four R-side defaults crossing the
+  # bridge as values somebody chose - and it now asserts their absence. §3D: defaults live
+  # in the engine, because an R-side default silences a schema or a weights file that knows
+  # better.
+  #
+  # `architecture` stays, and is the legitimate case: in R the constructor *is* the
+  # architecture (§3A), so `u_net()` naming it is correct. The cost is in ?save_spec.
   skip_if_no_engine()
   path <- withr::local_tempfile(fileext = ".yaml")
   save_spec(specification(), path)
   written <- yaml::read_yaml(path)
 
-  expect_setequal(
-    setdiff(names(written$data), c("train_path", "validation_path", "colormap")),
-    c("mode", "subdirs", "column_sep", "shuffle")
-  )
-  expect_identical(written$models[[1]]$architecture, "u_net")
+  expect_setequal(names(written$data), c("train_path", "validation_path", "colormap"))
+  expect_setequal(names(written$models[[1]]), c("name", "input_shape", "architecture"))
 })
 
 test_that("deterministic is refused without a seed", {

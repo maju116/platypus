@@ -75,16 +75,85 @@ optimizer_nadam(
 )
 }
 \arguments{
-\item{learning_rate, weight_decay}{Standard.}
+\item{learning_rate}{How big a step to take. The one setting worth trying first when a run
+will not learn: too high and the loss moves without improving, too low and it improves
+too slowly to tell from not improving at all. Each parameter group decays from its own
+rate, so an \code{encoder_learning_rate} is not flattened by a schedule.}
 
-\item{beta_1, beta_2, eps, amsgrad, momentum, nesterov, alpha, rho, lr_decay}{Per optimiser.}
+\item{beta_1}{Decay for the running average of the gradient. Lower reacts to the last few
+batches, higher smooths over more of them; 0.9 is the usual value and rarely worth
+moving.}
+
+\item{beta_2}{Decay for the running average of the squared gradient, which is what scales
+each parameter's step. Below about 0.99 training gets noticeably noisier. In
+\code{optimizer_adamax()} it decays the largest gradient seen instead.}
+
+\item{eps}{Added to the denominator so a parameter whose gradient has been zero for a
+while does not take an enormous step. A guard, not a knob.}
+
+\item{weight_decay}{Pull the weights towards zero at every step, which is L2
+regularisation. Off by default because it interacts with the loss and is not free: on a
+small dataset it can cost more than the overfitting it prevents. In \code{optimizer_adamw()}
+it is applied to the weights directly rather than through the gradient, which is the
+whole difference between the two.}
+
+\item{amsgrad}{Keep the largest squared-gradient average seen so far rather than the
+current one, so the step size never grows back. It fixes a convergence case in Adam's
+proof and usually changes nothing in practice; worth trying if a run plateaus and then
+gets worse.}
+
+\item{momentum}{Carry a fraction of the previous step into this one. 0 is plain gradient
+descent; 0.9 is the usual choice and is what makes SGD competitive with the adaptive
+methods.}
+
+\item{nesterov}{Look ahead to where momentum is about to carry the weights before
+measuring the gradient. Needs \code{momentum} above 0, and giving it without momentum is
+refused rather than ignored.}
+
+\item{alpha}{For \code{optimizer_rmsprop()}, the decay for its running average of the squared
+gradient - the same work \code{beta_2} does in the Adam family, under that family's name.}
+
+\item{lr_decay}{For \code{optimizer_adagrad()}, shrink the rate further as training goes on, on
+top of the shrinking Adagrad already does by accumulating every squared gradient it has
+seen.}
+
+\item{rho}{For \code{optimizer_adadelta()}, how long a window of squared gradients to remember.
+Adadelta exists to avoid Adagrad's ever-shrinking step and this is the parameter that
+does it.}
 }
 \value{
 An optimiser specification.
 }
 \description{
-Optimisers
+How the weights are updated. \code{optimizer_adam()} unless there is a reason not to: it adapts
+the step per parameter, so it usually trains without anything tuned except
+\code{learning_rate}. \code{optimizer_sgd()} with \code{momentum} is the recipe most of the
+classification literature's best numbers were produced with, in exchange for depending on
+a tuned rate and usually a schedule - see \link{callbacks} for those.
+}
+\details{
+\strong{No run in this project has compared them on segmentation}, so this page says what each
+one does differently rather than which is better. \code{\link[=available_optimizers]{available_optimizers()}} lists them with
+the arguments each accepts.
+
+The rest are here because a configuration should be able to name what torch offers.
+\code{optimizer_adamw()} is Adam with weight decay applied to the weights rather than through
+the gradient, which is why its decay defaults to 0.01 rather than 0 - choosing it and
+leaving the decay at zero leaves nothing to choose. \code{optimizer_adagrad()} accumulates
+every squared gradient it has seen, so its step only ever shrinks and a long run can stop
+learning; \code{optimizer_adadelta()} is the same idea with a window instead of a sum.
+\code{optimizer_adamax()} tracks the largest gradient rather than the average of their squares,
+which is steadier where a few batches carry very large ones. \code{optimizer_rmsprop()} is
+Adam's denominator without its momentum, and \code{optimizer_nadam()} is Adam with the
+look-ahead that SGD calls \code{nesterov}.
+
+Every argument left unset is decided by the engine, which is where the defaults live.
 }
 \examples{
 optimizer_adam(learning_rate = 1e-4)
+optimizer_sgd(learning_rate = 0.01, momentum = 0.9, nesterov = TRUE)
+}
+\seealso{
+\code{\link[=available_optimizers]{available_optimizers()}} for the same list with its arguments, and \code{\link[=callbacks]{callbacks()}}
+for moving the rate during a run.
 }

@@ -72,6 +72,17 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
                            coordinates = NULL, strict_labels = TRUE, window = NULL,
                            subdirs = c("images", "annotations"), column_sep = ";",
                            shuffle = TRUE) {
+  # As in `segmentation_data()`, and for the same reason: a default sent from here is a
+  # value the engine must treat as chosen. This constructor has two more than that one -
+  # `annotation_format` and `strict_labels`.
+  explicit_mode <- !missing(mode)
+  gave <- list(
+    annotation_format = !missing(annotation_format),
+    strict_labels = !missing(strict_labels),
+    subdirs = !missing(subdirs),
+    column_sep = !missing(column_sep),
+    shuffle = !missing(shuffle)
+  )
   mode <- match.arg(mode)
   annotation_format <- match.arg(annotation_format)
 
@@ -116,21 +127,21 @@ detection_data <- function(train, validation = NULL, classes, test = NULL,
       validation = if (isFALSE(validation)) FALSE else NULL,
       test_path = test,
       split = split_block(split),
-      mode = mode,
+      mode = if (explicit_mode || !identical(mode, "nested_dirs")) mode else NULL,
       classes = classes,
-      annotation_format = annotation_format,
+      annotation_format = if (gave$annotation_format) annotation_format else NULL,
       # NULL unless asked for, and `compact()` drops it before the request is built -
       # the rule every option here follows, so an engine that has never heard of a
       # field keeps working for everyone not asking for it.
       coordinates = coordinates,
-      strict_labels = strict_labels,
+      strict_labels = if (gave$strict_labels) strict_labels else NULL,
       # Aligned under the `if` it continues: the chain reads as one decision.
       window = if (is.null(window)) NULL
                else if (is.character(window)) window  # nolint: indentation_linter.
                else as.numeric(window),
-      subdirs = as.character(subdirs),
-      column_sep = column_sep,
-      shuffle = shuffle
+      subdirs = if (gave$subdirs) as.character(subdirs) else NULL,
+      column_sep = if (gave$column_sep) column_sep else NULL,
+      shuffle = if (gave$shuffle) shuffle else NULL
     ),
     class = c("platypus_detection_data", "list"),
     task = "object_detection"

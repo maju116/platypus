@@ -40,11 +40,15 @@ metric name, such as \code{"val_dice"}.}
 
 \item{min_delta}{Improvement smaller than this does not count.}
 
-\item{restore_best}{Put the best weights back when training stops.}
+\item{restore_best}{Put the best weights back when training stops, rather than keeping
+the last - which are by definition the ones that were not improving. On by default.
+Note that \code{callback_swa()} replaces nothing if a run stops before averaging began.}
 
 \item{path}{Where to write.}
 
-\item{save_best_only}{Only write when the watched quantity improves.}
+\item{save_best_only}{Only write when the watched quantity improves, which is the
+default. \code{FALSE} writes every epoch, which is what to use when a run may be
+interrupted rather than when the best epoch is what you want to keep.}
 
 \item{factor, min_lr}{For the learning rate schedule. \code{min_lr} is the floor for both
 \code{callback_reduce_lr_on_plateau()} and \code{callback_cosine_annealing()}.}
