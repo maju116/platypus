@@ -1,0 +1,34 @@
+# Dependabot has no ecosystem for R. It cannot read a `DESCRIPTION`, there is no CRAN
+# ecosystem and there is no `renv.lock` here, so nothing in this file covers the package's
+# own dependencies - those floors move by hand, and the suite against the published engine
+# is what catches a drift. What Dependabot can read is the workflows, and that is where
+# this repository actually accumulates stale pins: counted 2026-10-11, `actions/checkout`
+# is on v4 in all three jobs of `R-CMD-check.yaml` and v6 in `docs.yaml`, while the engine
+# is on v7 everywhere Dependabot has run. The exception there proves the schedule rather
+# than the rule: the engine's own `docs.yaml` was written on 2026-10-07, after the last
+# batch of action bumps on 2026-09-09, and still says v5.
+#
+# The engine's history also says which half of Dependabot is worth having. Of what it
+# proposed there, the action bumps were merged (`pyplatypus#105`, and the ruff ones) and
+# almost every library-floor bump was closed as cost without benefit - one of them,
+# `pyplatypus#112`, would have widened torch past the CUDA 13 line and handed Pascal users
+# a build their card cannot run, with ten green CPU-only jobs behind it. That is why the
+# engine's pip entry carries `versioning-strategy: increase-if-necessary` and an `ignore`
+# for torch. Here there is no library ecosystem for Dependabot to read at all, so only the
+# half that was worth merging can happen.
+#
+# It opens pull requests by itself, which is the point and also the whole cost: at most one
+# a month, grouped, and each one has to go green on the eight required contexts like any
+# other.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    # `r-lib/actions` ships setup-r, setup-r-dependencies, setup-pandoc and check-r-package
+    # out of one repository, so to Dependabot they are four dependencies and one release
+    # there is four pull requests. They are released together and they are tested together -
+    # the suite either passes on the new ones or it does not - so they belong in one.
+    groups:
+      actions:
+        patterns: ["*"]
