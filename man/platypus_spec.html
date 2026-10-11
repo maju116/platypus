@@ -278,6 +278,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/save_spec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Write a specification back out as YAML</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/as.list.platypus_spec.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Turn a specification back into plain R data</span></a>
   </div>
@@ -333,6 +339,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/augmentation_step.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">An augmentation step</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/available_components.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What this package can do, asked of the package</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -707,6 +719,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   models = NULL,
   task = NULL,
   seed = NULL,
+  deterministic = NULL,
   output_dir = NULL,
   check_paths = TRUE
 )
@@ -746,6 +759,16 @@ Which task this specification describes, one of <code>“semantic_segmentation�
 <p><strong>Repeatable:</strong> the split (<code><a href="../man/split_dataset.html">split_dataset()</a></code> gives the same partition on any machine), a detector’s fitted anchors, the order the data arrives in and its augmentation - including inside the loader’s worker processes - and, on the processor, every number to twelve decimal places.</p>
 <p><strong>Not repeatable:</strong> a run on a CUDA device. Measured on a GTX 1070, two runs of one configuration at one seed agreed to twelve decimals on the processor and differed in the fourth after a single epoch on the card, because cuDNN chooses algorithms neither package constrains. Nor across versions of the engine: anything that changes the order data is drawn in changes what one seed draws, and <code style="white-space: pre;">0.8.0a3</code> did exactly that.</p>
 So it is the argument for comparing two of your own runs, and not for publishing a number somebody else can land on. <code><a href="../man/platypus_device.html">platypus_device()</a></code> reports which device yours will use.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="deterministic">deterministic</code>
+</td>
+<td>
+<p>Ask the engine for deterministic algorithms as well, which is the only thing that makes a run on a card repeatable - <code>seed</code> on its own does not, as above.</p>
+<p><strong>The cost is real and arrives later than any other refusal here.</strong> Some convolutions become much slower, and an operation with no deterministic implementation raises <em>when it is reached</em>, so a run can stop ten minutes in rather than when the specification is built. Everything else this package refuses, it refuses before reading a single image; this cannot, because whether an operation has a deterministic algorithm is a fact about the installed engine and the device rather than about the specification.</p>
+Needs <code>seed</code>, and is refused without one: constraining the algorithms while the draw still varies leaves the run exactly as unrepeatable and only slower.
 </td>
 </tr>
 <tr>
