@@ -485,8 +485,12 @@ test_that("a record appears when output_dir was given, and carries the fitted an
   # The reason it exists: the specification does not name the anchors when they were
   # fitted, so this is the only copy outside a weights sidecar somebody has to remember
   # to export.
+  # Through `read_record()` rather than `jsonlite::fromJSON()`, which is what this read
+  # before the package had a reader: a feature is not shipped until something uses it the
+  # way a user reaches it, and the anchors are the strongest reason the reader exists.
   skip_if_not_installed("jsonlite")
-  record <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  record <- read_record(path)
+  expect_s3_class(record, "platypus_record")
   expect_true(record$derived$anchors_were_fitted)
   expect_length(record$derived$anchors, 3L)
   expect_equal(
