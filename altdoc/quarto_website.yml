@@ -92,6 +92,9 @@ website:
             contents:
               - man/export_weights.qmd
               - man/available_weights.qmd
+          - section: "Records"
+            contents:
+              - man/read_record.qmd
           - section: "Looking at the results"
             contents:
               - man/plot_masks.qmd

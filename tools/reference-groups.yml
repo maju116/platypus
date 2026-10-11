@@ -55,6 +55,18 @@ groups:
       at, so one name means one set of numbers for good.
     contents: [export_weights, available_weights]
 
+  # Between "Weights" and "Looking at the results", which is where the engine files it and
+  # where the shared order has always put it. It held nothing on this side until 2026-10-11:
+  # the engine wrote records from the beginning and R had no way to read one, so the package's
+  # own tests reached for `jsonlite::fromJSON()` to check that a detector's fitted anchors had
+  # been written down.
+  - title: Records
+    desc: >-
+      What a run wrote down about itself, including the engine version that made it. Reading
+      one needs no Python: a record you cannot read without the thing that wrote it is worth
+      less than one you can.
+    contents: [read_record]
+
   - title: Looking at the results
     desc: A figure is the point. These are the ones you put in a paper.
     contents: [plot_masks, plot_boxes, plot_anchors, overlay_mask, overlay_agreement,
