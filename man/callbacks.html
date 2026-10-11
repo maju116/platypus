@@ -768,7 +768,7 @@ Improvement smaller than this does not count.
 <code id="restore_best">restore_best</code>
 </td>
 <td>
-Put the best weights back when training stops.
+Put the best weights back when training stops, rather than keeping the last - which are by definition the ones that were not improving. On by default. Note that <code><a href="../man/callback_swa.html">callback_swa()</a></code> replaces nothing if a run stops before averaging began.
 </td>
 </tr>
 <tr>
@@ -784,7 +784,7 @@ Where to write.
 <code id="save_best_only">save_best_only</code>
 </td>
 <td>
-Only write when the watched quantity improves.
+Only write when the watched quantity improves, which is the default. <code>FALSE</code> writes every epoch, which is what to use when a run may be interrupted rather than when the best epoch is what you want to keep.
 </td>
 </tr>
 <tr>

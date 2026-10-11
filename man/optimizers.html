@@ -702,7 +702,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
 </li>
@@ -711,7 +713,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.qmd">Reference</a></li><li class="breadcrumb-item"><a href="../man/losses.html">What a model is made of</a></li><li class="breadcrumb-item"><a href="../man/optimizers.html">Optimisers</a></li></ol></nav></header><section id="optimisers" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="optimisers">Optimisers</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Optimisers</p>
+<p>How the weights are updated. <code><a href="../man/optimizers.html">optimizer_adam()</a></code> unless there is a reason not to: it adapts the step per parameter, so it usually trains without anything tuned except <code>learning_rate</code>. <code><a href="../man/optimizers.html">optimizer_sgd()</a></code> with <code>momentum</code> is the recipe most of the classification literature’s best numbers were produced with, in exchange for depending on a tuned rate and usually a schedule - see callbacks for those.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">optimizer_adam(
   learning_rate = 0.001,
@@ -779,22 +781,100 @@ optimizer_nadam(
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="learning_rate">learning_rate</code>, <code id="weight_decay">weight_decay</code>
+<code id="learning_rate">learning_rate</code>
 </td>
 <td>
-Standard.
+How big a step to take. The one setting worth trying first when a run will not learn: too high and the loss moves without improving, too low and it improves too slowly to tell from not improving at all. Each parameter group decays from its own rate, so an <code>encoder_learning_rate</code> is not flattened by a schedule.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="beta_1">beta_1</code>, <code id="beta_2">beta_2</code>, <code id="eps">eps</code>, <code id="amsgrad">amsgrad</code>, <code id="momentum">momentum</code>, <code id="nesterov">nesterov</code>, <code id="alpha">alpha</code>, <code id="rho">rho</code>, <code id="lr_decay">lr_decay</code>
+<code id="beta_1">beta_1</code>
 </td>
 <td>
-Per optimiser.
+Decay for the running average of the gradient. Lower reacts to the last few batches, higher smooths over more of them; 0.9 is the usual value and rarely worth moving.
 </td>
 </tr>
-</tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="beta_2">beta_2</code>
+</td>
+<td>
+Decay for the running average of the squared gradient, which is what scales each parameter’s step. Below about 0.99 training gets noticeably noisier. In <code><a href="../man/optimizers.html">optimizer_adamax()</a></code> it decays the largest gradient seen instead.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="eps">eps</code>
+</td>
+<td>
+Added to the denominator so a parameter whose gradient has been zero for a while does not take an enormous step. A guard, not a knob.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="weight_decay">weight_decay</code>
+</td>
+<td>
+Pull the weights towards zero at every step, which is L2 regularisation. Off by default because it interacts with the loss and is not free: on a small dataset it can cost more than the overfitting it prevents. In <code><a href="../man/optimizers.html">optimizer_adamw()</a></code> it is applied to the weights directly rather than through the gradient, which is the whole difference between the two.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="amsgrad">amsgrad</code>
+</td>
+<td>
+Keep the largest squared-gradient average seen so far rather than the current one, so the step size never grows back. It fixes a convergence case in Adam’s proof and usually changes nothing in practice; worth trying if a run plateaus and then gets worse.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="momentum">momentum</code>
+</td>
+<td>
+Carry a fraction of the previous step into this one. 0 is plain gradient descent; 0.9 is the usual choice and is what makes SGD competitive with the adaptive methods.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="nesterov">nesterov</code>
+</td>
+<td>
+Look ahead to where momentum is about to carry the weights before measuring the gradient. Needs <code>momentum</code> above 0, and giving it without momentum is refused rather than ignored.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="alpha">alpha</code>
+</td>
+<td>
+For <code><a href="../man/optimizers.html">optimizer_rmsprop()</a></code>, the decay for its running average of the squared gradient - the same work <code>beta_2</code> does in the Adam family, under that family’s name.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="lr_decay">lr_decay</code>
+</td>
+<td>
+For <code><a href="../man/optimizers.html">optimizer_adagrad()</a></code>, shrink the rate further as training goes on, on top of the shrinking Adagrad already does by accumulating every squared gradient it has seen.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="rho">rho</code>
+</td>
+<td>
+For <code><a href="../man/optimizers.html">optimizer_adadelta()</a></code>, how long a window of squared gradients to remember. Adadelta exists to avoid Adagrad’s ever-shrinking step and this is the parameter that does it.
+</td>
+</tr>
+</tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
+<p><strong>No run in this project has compared them on segmentation</strong>, so this page says what each one does differently rather than which is better. <code><a href="../man/available_components.html">available_optimizers()</a></code> lists them with the arguments each accepts.</p>
+<p>The rest are here because a configuration should be able to name what torch offers. <code><a href="../man/optimizers.html">optimizer_adamw()</a></code> is Adam with weight decay applied to the weights rather than through the gradient, which is why its decay defaults to 0.01 rather than 0 - choosing it and leaving the decay at zero leaves nothing to choose. <code><a href="../man/optimizers.html">optimizer_adagrad()</a></code> accumulates every squared gradient it has seen, so its step only ever shrinks and a long run can stop learning; <code><a href="../man/optimizers.html">optimizer_adadelta()</a></code> is the same idea with a window instead of a sum. <code><a href="../man/optimizers.html">optimizer_adamax()</a></code> tracks the largest gradient rather than the average of their squares, which is steadier where a few batches carry very large ones. <code><a href="../man/optimizers.html">optimizer_rmsprop()</a></code> is Adam’s denominator without its momentum, and <code><a href="../man/optimizers.html">optimizer_nadam()</a></code> is Adam with the look-ahead that SGD calls <code>nesterov</code>.</p>
+<p>Every argument left unset is decided by the engine, which is where the defaults live.</p>
+</section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>An optimiser specification.</p>
+</section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
+<p><code><a href="../man/available_components.html">available_optimizers()</a></code> for the same list with its arguments, and <a href="../man/callbacks.html"><code>callbacks()</code></a> for moving the rate during a run.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
@@ -821,6 +901,23 @@ $weight_decay
 
 $amsgrad
 [1] FALSE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="../man/optimizers.html">optimizer_sgd</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>, nesterov <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$name
+[1] "sgd"
+
+$learning_rate
+[1] 0.01
+
+$momentum
+[1] 0.9
+
+$nesterov
+[1] TRUE
+
+$weight_decay
+[1] 0</code></pre>
 </div>
 </div>
 
