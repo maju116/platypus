@@ -817,19 +817,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span><span class="op">)</span></span>
 <span><span class="va">spec</span></span>
 <span><span class="co">#&gt; platypus specification</span></span>
-<span><span class="co">#&gt;   data        : /tmp/RtmpkbOuuB/splits/train.csv </span></span>
+<span><span class="co">#&gt;   data        : /tmp/RtmpN31LIu/splits/train.csv </span></span>
 <span><span class="co">#&gt;   classes     : 0 </span></span>
 <span><span class="co">#&gt;   models      : 1 </span></span>
 <span><span class="co">#&gt;     lesion         u_net            32x32x32, dice, 12 epochs</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>input_shape</code> has three entries, and that is the only thing that makes this a 3D run. Nothing else in the specification is different - the same losses, the same metrics, the same tiling if you want it.</p>
 <p>Not every augmentation works on a volume. albumentations supports them unevenly, so ask rather than guess:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu">available_transforms</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 130</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu">available_transforms</span><span class="op">(</span>rank <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 97</span></span>
+<span><span class="co">#&gt; [1] 118</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html">setdiff</a></span><span class="op">(</span><span class="fu">available_transforms</span><span class="op">(</span><span class="op">)</span>, <span class="fu">available_transforms</span><span class="op">(</span>rank <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "AdditiveNoise"       "BBoxSafeRandomCrop"  "ChannelDropout"     </span></span>
 <span><span class="co">#&gt; [4] "ChromaticAberration"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The second call asks the same question at <code>rank = 3</code> and returns fewer names. How many fewer is not printed here on purpose: it is a property of the installed ‘albumentations’ rather than of this package, and <code>?available_transforms</code> says what the engine does and does not promise about it. The names are the useful part anyway.</p>
 <p>A transform from that difference is refused by name when the run starts, rather than raising something from inside the library an hour in.</p>
 </section><section id="training" class="level2"><h2 class="anchored" data-anchor-id="training">Training</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">platypus_fit</span><span class="op">(</span><span class="va">spec</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -848,18 +847,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><a href="../man/evaluate.html"><code>evaluate()</code></a> gives one row per model: one number for the whole validation set.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">evaluate</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"model"</span>, <span class="st">"loss_function"</span>, <span class="st">"dice"</span>, <span class="st">"epochs_run"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    model loss_function      dice epochs_run</span></span>
-<span><span class="co">#&gt; 1 lesion          dice 0.9633882         12</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="co">#&gt; 1 lesion          dice 0.9448062         12</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>That number hides the distribution, and the distribution is usually the finding. With <code>group_by</code>, each row is a patient - their slices pooled, the way a volume would be:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu">evaluate_cases</span><span class="op">(</span><span class="va">fit</span>, group_by <span class="op">=</span> <span class="st">"^(patient\\d+)_"</span><span class="op">)</span></span>
 <span><span class="va">cases</span></span>
 <span><span class="co">#&gt; platypus scores by group (3 rows)</span></span>
 <span><span class="co">#&gt;      group      dice</span></span>
-<span><span class="co">#&gt;  patient06 0.9800181</span></span>
-<span><span class="co">#&gt;  patient11 0.9230408</span></span>
-<span><span class="co">#&gt;  patient10 0.9870523</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="co">#&gt;  patient06 0.9508058</span></span>
+<span><span class="co">#&gt;  patient11 0.9174028</span></span>
+<span><span class="co">#&gt;  patient10 0.9661106</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">cases</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   metric n      mean         sd    median       min       max worst_group</span></span>
-<span><span class="co">#&gt; 1   dice 3 0.9633704 0.03510311 0.9800181 0.9230408 0.9870523   patient11</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="co">#&gt;   metric n      mean       sd    median       min       max worst_group</span></span>
+<span><span class="co">#&gt; 1   dice 3 0.9447731 0.024908 0.9508058 0.9174028 0.9661106   patient11</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The <code>worst_group</code> column is the one that makes this actionable. A mean of any value with a minimum far below it is a model with a failure mode, and the mean is where it hides.</p>
 </section><section id="looking-at-a-slice" class="level2"><h2 class="anchored" data-anchor-id="looking-at-a-slice">Looking at a slice</h2>
 <p>A volume cannot honestly be shown as one picture, so <a href="../man/plot_masks.html"><code>plot_masks()</code></a> asks which plane to draw. <code>slice = "middle"</code> is the sensible first look:</p>
@@ -892,13 +891,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span><span class="va">sizes</span><span class="op">$</span><span class="va">error_pct</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="op">(</span><span class="va">sizes</span><span class="op">$</span><span class="va">predicted_ml</span> <span class="op">-</span> <span class="va">sizes</span><span class="op">$</span><span class="va">true_ml</span><span class="op">)</span> <span class="op">/</span> <span class="va">sizes</span><span class="op">$</span><span class="va">true_ml</span><span class="op">)</span></span>
 <span><span class="va">sizes</span></span>
 <span><span class="co">#&gt;                key predicted_ml   true_ml error_pct</span></span>
-<span><span class="co">#&gt; 1 patient06_study1         0.27 0.2680826         1</span></span>
-<span><span class="co">#&gt; 2 patient06_study2         0.27 0.2680826         1</span></span>
-<span><span class="co">#&gt; 3 patient10_study1         0.90 0.9047787        -1</span></span>
-<span><span class="co">#&gt; 4 patient10_study2         0.90 0.9047787        -1</span></span>
-<span><span class="co">#&gt; 5 patient11_study1         0.53 0.5235988         1</span></span>
-<span><span class="co">#&gt; 6 patient11_study2         0.52 0.5235988        -1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>These lesions are spheres, so the true volume is known exactly - which is worth doing in a synthetic example, because it asks a question Dice cannot. The overlap scores above were around 0.88, respectable by any standard; the volumes are -1% to 1% out.</p>
+<span><span class="co">#&gt; 1 patient06_study1         0.31 0.2680826        16</span></span>
+<span><span class="co">#&gt; 2 patient06_study2         0.31 0.2680826        16</span></span>
+<span><span class="co">#&gt; 3 patient10_study1         0.98 0.9047787         8</span></span>
+<span><span class="co">#&gt; 4 patient10_study2         0.97 0.9047787         7</span></span>
+<span><span class="co">#&gt; 5 patient11_study1         0.59 0.5235988        13</span></span>
+<span><span class="co">#&gt; 6 patient11_study2         0.59 0.5235988        13</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>These lesions are spheres, so the true volume is known exactly - which is worth doing in a synthetic example, because it asks a question Dice cannot. The overlap scores above were 0.92 to 0.97, respectable by any standard; the volumes are 7% to 16% out.</p>
+<p>Every number in that sentence is computed rather than typed, and the first half is why: it used to read “around 0.88”, against the table directly above it. A stale number next to the measurement it contradicts is the one kind a reader can catch without leaving the page, and it survived anyway.</p>
 <p>That is not a contradiction. Dice is dominated by the interior of an object and forgiving about its boundary, and for a small lesion the boundary <em>is</em> most of it. A model that draws every lesion one voxel too wide scores well and reports a volume that is wrong by a third. If the question is <em>is there a lesion</em>, the Dice is the relevant number. If it is <em>has it grown since March</em>, this table is, and the two do not follow from each other.</p>
 </section><section id="writing-a-mask-back-onto-its-scan" class="level2"><h2 class="anchored" data-anchor-id="writing-a-mask-back-onto-its-scan">Writing a mask back onto its scan</h2>
 <p><a href="../man/save_volumes.html"><code>save_volumes()</code></a> writes a prediction as NIfTI carrying the affine of the scan it came from. Without that affine a mask cannot be laid over its scan by any viewer or registration tool - it either lands in the wrong place or is refused, and nothing about the file looks wrong.</p>
