@@ -26,6 +26,25 @@ test_that("the nuclei entry says what it cannot do", {
   expect_match(nuclei$description, "[Ss]emantic")
 })
 
+test_that("the retinal entry carries the two things a reader would get wrong", {
+  # The third published set, and the first where the description has to correct an assumption
+  # rather than only state a limitation. Its per-disease table reads picture quality as
+  # pathology - glaucoma is the weakest group over all 200 test images and the strongest over
+  # the ones FIVES grades clean - and these weights are CC BY 4.0 while the other two are MIT.
+  # Both are things somebody reading only the headline Dice would get wrong.
+  skip_if_no_weights_registry()
+  listing <- available_weights()
+  vessels <- listing[listing$name == "fives-unet", ]
+
+  expect_equal(nrow(vessels), 1)
+  expect_match(vessels$description, "FIVES")
+  expect_match(vessels$description, "glaucoma")
+  # Not "CC BY 4.0", which appears twice - once for the data, once for the weights. The
+  # engine-side version of this test passed with the licence sentence deleted for exactly
+  # that reason.
+  expect_match(vessels$description, "not MIT")
+})
+
 test_that("a trained model's weights make the round trip through R", {
   skip_if_no_weights_registry()
   root <- tiny_dataset()
