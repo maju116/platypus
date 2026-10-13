@@ -63,6 +63,50 @@ for i in range(%d):
   root
 }
 
+#' The same, with the masks kept apart instead of united
+#'
+#' One file per object, which is the layout `instance_data()` is named for and the whole
+#' difference between the two tasks on disk: `tiny_dataset()` writes one mask per sample and
+#' two touching squares in it are one region forever.
+#'
+#' Two objects a case, deliberately **touching** - they share a column - because a dataset
+#' whose objects never touch cannot tell a separation signal from connected components, and a
+#' fixture that cannot distinguish the thing under test is §4's probe answering an adjacent
+#' question.
+tiny_instance_dataset <- function(n = 6, size = 32) {
+  root <- withr::local_tempdir(.local_envir = parent.frame())
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib
+from PIL import Image
+root = pathlib.Path(%s)
+rng = np.random.default_rng(0)
+for i in range(%d):
+    sample = root / f'sample_{i:02d}'
+    (sample / 'images').mkdir(parents=True, exist_ok=True)
+    (sample / 'masks').mkdir(parents=True, exist_ok=True)
+    top = 4 + (i %% 8)
+    first = np.zeros((%d, %d), np.uint8)
+    second = np.zeros((%d, %d), np.uint8)
+    first[top:top + 10, 6:14] = 255
+    second[top:top + 10, 14:22] = 255     # shares the seam at column 14
+    both = np.maximum(first, second)
+    image = np.clip(both.astype(np.float32) * 0.7 + rng.random((%d, %d)) * 70, 0, 255)
+    Image.fromarray(image.astype(np.uint8)).convert('RGB').save(sample / 'images' / 'a.png')
+    Image.fromarray(first).save(sample / 'masks' / 'object_0.png')
+    Image.fromarray(second).save(sample / 'masks' / 'object_1.png')
+", shQuote(root), n, size, size, size, size, size, size))
+  root
+}
+
+tiny_instance_spec <- function(root, ...) {
+  platypus_spec(
+    data = instance_data(root, root),
+    models = list(u_net("tiny", input_shape = c(32, 32), blocks = 2, filters = 4,
+                        separation = separation_rim(width = 1),
+                        epochs = 1, batch_size = 2, ...))
+  )
+}
+
 tiny_spec <- function(root, ...) {
   platypus_spec(
     data = segmentation_data(root, root, colormap = binary_colormap),

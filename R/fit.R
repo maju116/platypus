@@ -257,6 +257,18 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
     return(as_box_frames(found$detections))
   }
 
+  # Refused by name rather than attempted. Without this the call reaches the instance
+  # engine's `predict()`, which takes no `space`, and an R user gets a raw Python
+  # `TypeError` about a keyword argument they never wrote - the one kind of message this
+  # package has a whole conditions page to avoid. `evaluate()` already scores an instance
+  # run, so the gap is the answer coming back, not the run.
+  if (identical(object$task, "instance_segmentation")) {
+    stop("`predict()` does not return instances yet. The run and its scores do work - ",
+         "`evaluate()` gives a row per model and decoding - but there is no way yet to get ",
+         "the objects themselves back into R: the bridge has no call that returns a label ",
+         "map of them. platypus#103.", call. = FALSE)
+  }
+
   if (is.null(cases) && is.null(each)) {
     result <- shim()$predictions(object$engine, model, split = split,
                                  as_class = identical(type, "class"), space = space)

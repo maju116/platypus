@@ -240,3 +240,69 @@ test_that("the engine refuses the combinations R deliberately does not police", 
     "follow_flows"
   )
 })
+
+test_that("an instance run goes all the way through, from R", {
+  # The one that decides whether this is shipped. `platypus_fit()` and `evaluate()` reach
+  # the instance engine through `build_engine()` and `engine.evaluate(split)`, which
+  # dispatch on the task tag - so they *should* work, and §4 has an entry about what a
+  # should is worth. This runs one.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset()
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  expect_s3_class(fit, "platypus_fit")
+  expect_identical(fit$task, "instance_segmentation")
+
+  scored <- evaluate(fit)
+  # A row per (model, decoding) rather than per model, which is the shape this task's table
+  # has and the semantic one's does not - so a column check is what says the instance
+  # engine answered rather than something that merely returned a data frame.
+  expect_true(all(c("model", "decode", "average_precision") %in% names(scored)))
+  expect_gt(nrow(scored), 1L)
+  expect_true("connected_components" %in% scored$decode)
+  expect_true(all(scored$model == "tiny"))
+  # The yardstick is in the table whether or not anybody asked for it, and so is the signal's
+  # own decoding: an unset `decode` derives to both.
+  expect_setequal(scored$decode, c("nearest_seed", "connected_components"))
+})
+
+test_that("the fixture's objects touch, which is what makes it a fixture for this", {
+  # Guarding the fixture rather than the code, because a fixture whose objects never touch
+  # would make every row of the table above identical and the test would still pass. The
+  # engine reads the two files as one label map; two values that share a seam are what the
+  # separation signal exists to tell apart.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 1)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib
+from PIL import Image
+masks = sorted((pathlib.Path(%s) / 'sample_00' / 'masks').glob('*.png'))
+arrays = [np.array(Image.open(m)) > 0 for m in masks]
+r_objects = len(arrays)
+# Touching: one object's pixels are adjacent to the other's, so a connected-components read
+# of their union finds one region where the truth has two.
+union = np.logical_or(*arrays)
+from scipy import ndimage
+r_regions = int(ndimage.label(union)[1])
+", shQuote(root)))
+  expect_identical(reticulate::py$r_objects, 2L)
+  expect_identical(reticulate::py$r_regions, 1L)
+})
+
+test_that("predict() refuses instances by name rather than leaking a TypeError", {
+  # Measured before it was written: without the guard this reaches the instance engine's
+  # own predict, which takes no `space`, and the user sees
+  # "TypeError: InstanceEngine.predict() got an unexpected keyword argument 'space'" -
+  # about an argument they never wrote, from a library they never invoked.
+  #
+  # The first wording of the refusal named the engine's Python function, and
+  # test-messages-name-real-functions.R failed it: a message may not point an R reader at
+  # something they cannot call, which is the same rule that caught `summarise_cases()`.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  expect_error(predict(fit, split = "validation"), "does not return instances yet")
+  expect_error(predict(fit, split = "validation"), "platypus#103", fixed = TRUE)
+  # And the half that does work is named in the same breath, so the message says what to do
+  # instead rather than only what is missing.
+  expect_error(predict(fit, split = "validation"), "evaluate()", fixed = TRUE)
+})
