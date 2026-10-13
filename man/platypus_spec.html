@@ -266,6 +266,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/instance_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data for instance segmentation: tell the objects apart, not just find them</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Segmentation models</span></a>
   </div>
@@ -333,6 +339,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/callback_swa.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Average the weights over the last part of the run</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/separations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What the network predicts, so objects can be told apart</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/decodings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How predicted channels become objects</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -731,7 +749,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="data">data</code>
 </td>
 <td>
-A <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> specification, or the path to a YAML file.
+A <code><a href="../man/segmentation_data.html">segmentation_data()</a></code>, <code><a href="../man/detection_data.html">detection_data()</a></code> or <code><a href="../man/instance_data.html">instance_data()</a></code> specification, or the path to a YAML file. Which one it is decides <code>task</code>.
 </td>
 </tr>
 <tr>
@@ -747,7 +765,8 @@ A list of model specifications, see models and <code><a href="../man/available_c
 <code id="task">task</code>
 </td>
 <td>
-Which task this specification describes, one of <code>“semantic_segmentation”</code> or <code>“object_detection”</code>. Normally left unset: the data and model constructors already decide it, and <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> with <code><a href="../man/models.html">u_net()</a></code> can only mean one thing. Given, it is <strong>checked against them rather than trusted</strong>, so it can only agree or refuse. It becomes load-bearing the day a pair of constructors stops deciding on its own.
+<p>Which task this specification describes, one of <code>“semantic_segmentation”</code>, <code>“object_detection”</code> or <code>“instance_segmentation”</code>. Normally left unset: the data and model constructors already decide it, and <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> with <code><a href="../man/models.html">u_net()</a></code> can only mean one thing. Given, it is <strong>checked against them rather than trusted</strong>, so it can only agree or refuse.</p>
+The third task sharpened what this argument is for rather than making it load-bearing. An instance <em>data</em> block declares nothing a segmentation one lacks, so <code><a href="../man/instance_data.html">instance_data()</a></code> is what says the word - but a <em>model</em> can still say it on its own, because <code>separation</code> is required on an instance model and has no counterpart on a semantic one.
 </td>
 </tr>
 <tr>

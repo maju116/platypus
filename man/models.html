@@ -266,6 +266,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/instance_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data for instance segmentation: tell the objects apart, not just find them</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/models.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Segmentation models</span></a>
   </div>
@@ -333,6 +339,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/callback_swa.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Average the weights over the last part of the run</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/separations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What the network predicts, so objects can be told apart</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/decodings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How predicted channels become objects</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -744,7 +762,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 u_net_plus_plus(
@@ -776,7 +796,9 @@ u_net_plus_plus(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 res_u_net(
@@ -808,7 +830,9 @@ res_u_net(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 linknet(
@@ -840,7 +864,9 @@ linknet(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 </code></pre>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
@@ -1067,6 +1093,22 @@ Hold the transferred layers still for this many epochs, then train them. <strong
 </td>
 <td>
 A separate, smaller rate for the layers that arrived pretrained. The full-resolution stage in front of them is platypus’s own and starts random, so it keeps the optimiser’s rate. Giving this instead of <code>freeze_encoder</code> measured worse everywhere, and on one dataset worse than no backbone at all.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="separation">separation</code>
+</td>
+<td>
+What the network predicts so that touching objects can be told apart - <code><a href="../man/separations.html">separation_rim()</a></code> or <code><a href="../man/separations.html">separation_flows()</a></code>. Giving it is what makes this an <strong>instance</strong> model: it has no counterpart on a semantic one, so a model carrying it can only mean instances, which is how a specification knows its task without anybody typing it. The data has to be <code><a href="../man/instance_data.html">instance_data()</a></code> to match. The head’s width follows from the signal and the number of classes and is derived rather than stated.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="decode">decode</code>
+</td>
+<td>
+A <strong>list</strong> of decodings turning those channels into objects, e.g. <code>list(decode_nearest_seed(), decode_connected_components())</code>. A list rather than one, because several decodings share a single forward pass: a second costs seconds where a second training run costs an hour, so <code><a href="../man/evaluate.html">evaluate()</a></code> returns a row per model <em>and</em> decoding. Unset, the engine uses the signal’s own decoding plus <code><a href="../man/decodings.html">decode_connected_components()</a></code>, which ignores the signal and is therefore the row the others have to be read against. Only meaningful with <code>separation</code>.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>

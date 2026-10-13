@@ -266,6 +266,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/instance_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data for instance segmentation: tell the objects apart, not just find them</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Segmentation models</span></a>
   </div>
@@ -333,6 +339,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/callback_swa.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Average the weights over the last part of the run</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/separations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What the network predicts, so objects can be told apart</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/decodings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How predicted channels become objects</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -755,6 +773,8 @@ platypus_dicom_error             a DICOM file or series
 platypus_augmentation_error      a transform that cannot do what was asked of it
 platypus_detection_error         detection metrics
 platypus_detection_data_error    annotations, boxes or classes
+platypus_instance_error          a separation target, or decoding one into objects
+platypus_instance_data_error     the per-object mask files a case has, or has not
 platypus_weights_error           weights that do not belong to this model
 platypus_training_stopped        a callback ended the run early
 platypus_unknown_case            a case or model name that is not in this run

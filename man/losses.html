@@ -266,6 +266,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/instance_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data for instance segmentation: tell the objects apart, not just find them</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Segmentation models</span></a>
   </div>
@@ -333,6 +339,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/callback_swa.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Average the weights over the last part of the run</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/separations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What the network predicts, so objects can be told apart</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/decodings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How predicted channels become objects</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -704,6 +722,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
 </li>
@@ -729,6 +748,12 @@ loss_tversky(alpha = 0.5, smooth = 1)
 loss_focal_tversky(alpha = 0.5, gamma = 1, smooth = 1)
 
 loss_combo(alpha = 0.5, ce_ratio = 0.5)
+
+loss_mse(where = NULL)
+
+loss_l1(where = NULL)
+
+loss_smooth_l1(beta = NULL, where = NULL)
 
 loss_lovasz(per_image = FALSE)
 </code></pre>
@@ -784,6 +809,22 @@ For <code><a href="../man/losses.html">loss_combo()</a></code>, how its cross-en
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="where">where</code>
+</td>
+<td>
+For the three regression losses, where the target means anything and so where the error is averaged. A flow field is defined on the objects and undefined off them - there is no direction towards a centre for a pixel in no object - so the builder writes zero on the background, and <code>“everywhere”</code> would spend most of the objective learning that zero. The foreground is 13.97% of a Data Science Bowl image, so <code>“everywhere”</code> gives 86% of the gradient to a constant; <code>“foreground”</code> is the default for that reason rather than by taste.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="beta">beta</code>
+</td>
+<td>
+For <code><a href="../man/losses.html">loss_smooth_l1()</a></code>, where the quadratic part ends and the linear one begins, <strong>in the target’s own units</strong>. A flow field is scaled to roughly <code style="white-space: pre;">[-1, 1]</code>, so the default of 1 makes the whole range quadratic - which is <code><a href="../man/losses.html">loss_mse()</a></code> with extra steps. Lower it to get any of the robustness this loss is for.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
 <code id="per_image">per_image</code>
 </td>
 <td>
@@ -791,9 +832,12 @@ For <code><a href="../man/losses.html">loss_lovasz()</a></code>, sort the errors
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p>There is a tenth, documented separately because it needs a page of its own: <code><a href="../man/loss_boundary.html">loss_boundary()</a></code> adds the signed distance to the truth’s boundary on top of any of these, which removes the systematic volume bias at some cost in per-case accuracy.</p>
+<p>There is one documented separately because it needs a page of its own: <code><a href="../man/loss_boundary.html">loss_boundary()</a></code> adds the signed distance to the truth’s boundary on top of any of these, which removes the systematic volume bias at some cost in per-case accuracy.</p>
+<p><strong>Three of these score numbers rather than classes</strong> - <code><a href="../man/losses.html">loss_mse()</a></code>, <code><a href="../man/losses.html">loss_l1()</a></code> and <code><a href="../man/losses.html">loss_smooth_l1()</a></code> - and they are not alternatives to the others. A class target has nothing for them to measure and a continuous one has nothing for an overlap to measure, so they belong in exactly one place: the <code>loss</code> of <code><a href="../man/separations.html">separation_flows()</a></code>, where the target is a vector field. Measured against the pinned engine rather than assumed: giving one as an <em>instance</em> model’s own <code>loss</code> is refused by name, and giving a class loss to <code><a href="../man/separations.html">separation_flows()</a></code> is refused by name the other way round.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A loss specification, to be passed to a model constructor.</p>
+</section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
+<p><code><a href="../man/separations.html">separation_flows()</a></code>, whose <code>loss</code> is the one place the regression losses belong</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
@@ -819,6 +863,17 @@ $alpha
 
 $smooth
 [1] 1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="../man/losses.html">loss_smooth_l1</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">0.1</span>, where <span class="op">=</span> <span class="st">"foreground"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$name
+[1] "smooth_l1"
+
+$beta
+[1] 0.1
+
+$where
+[1] "foreground"</code></pre>
 </div>
 </div>
 
