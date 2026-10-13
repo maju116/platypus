@@ -459,9 +459,21 @@ agreed_task <- function(data, models, stated = NULL) {
 
   # `task` is derived rather than typed, because `segmentation_data()` with `u_net()` can
   # only mean one thing and saying it again could only ever disagree. It can still be
-  # stated - and then it is checked, not trusted. The day instance segmentation arrives
-  # the constructors stop deciding on their own and this argument starts carrying the
-  # answer; until then it is a way of being explicit, not a way of choosing.
+  # stated - and then it is checked, not trusted.
+  #
+  # This used to predict that instance segmentation would end that, and that the constructors
+  # would stop deciding on their own. Engine 0.8.0a20 arrived with the task and the prediction
+  # was half right, which is why it is corrected here rather than deleted. The *data*
+  # constructor does stop deciding: an instance data block declares nothing a segmentation one
+  # lacks and requires the same fields, so no data block can tell the two apart. The *model*
+  # constructor does not - `separation` is required on an instance model and has no
+  # counterpart on a semantic one - so a model still names its task and cannot leave it unsaid.
+  #
+  # So this argument keeps the job it has. Instances arrive as `instance_data()`, tagged the
+  # way `detection_data()` tags itself, and what that constructor is for is the five fields it
+  # refuses - `colormap`, `labels`, `regions`, `channels_from`, `target_spacing` - rather than
+  # any it adds. `known` below gains "instance_segmentation" when that constructor lands, not
+  # before: a value nothing can produce would only ever reach the disagreement error.
   if (!is.null(stated)) {
     stated <- as.character(stated)[[1L]]
     known <- c("semantic_segmentation", "object_detection")
