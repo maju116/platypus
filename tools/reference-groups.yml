@@ -21,15 +21,16 @@ groups:
     desc: >
       One object says what to train, on what data, with what. Built from arguments or from
       YAML - the same specification either way.
-    contents: [platypus_spec, segmentation_data, detection_data, models, yolo3,
-               save_spec, as.list.platypus_spec]
+    contents: [platypus_spec, segmentation_data, detection_data, instance_data, models,
+               yolo3, save_spec, as.list.platypus_spec]
 
   - title: What a model is made of
     desc: >
       Losses, metrics, optimisers, callbacks, augmentation, encoders - and the listings that
       ask the engine what those names are, rather than asking you to remember them.
     contents: [losses, loss_boundary, metrics, optimizers, callbacks, callback_swa,
-               augmentation_step, available_components, available_transforms, encoders]
+               separations, decodings, augmentation_step, available_components,
+               available_transforms, encoders]
 
   - title: The data on disk
     desc: >

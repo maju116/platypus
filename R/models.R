@@ -115,6 +115,19 @@
 #'   pretrained. The full-resolution stage in front of them is platypus's own and starts
 #'   random, so it keeps the optimiser's rate. Giving this instead of `freeze_encoder`
 #'   measured worse everywhere, and on one dataset worse than no backbone at all.
+#' @param separation What the network predicts so that touching objects can be told apart -
+#'   [separation_rim()] or [separation_flows()]. Giving it is what makes this an **instance**
+#'   model: it has no counterpart on a semantic one, so a model carrying it can only mean
+#'   instances, which is how a specification knows its task without anybody typing it. The
+#'   data has to be [instance_data()] to match. The head's width follows from the signal and
+#'   the number of classes and is derived rather than stated.
+#' @param decode A **list** of [decodings] turning those channels into objects, e.g.
+#'   `list(decode_nearest_seed(), decode_connected_components())`. A list rather than one,
+#'   because several decodings share a single forward pass: a second costs seconds where a
+#'   second training run costs an hour, so [evaluate()] returns a row per model *and*
+#'   decoding. Unset, the engine uses the signal's own decoding plus
+#'   `decode_connected_components()`, which ignores the signal and is therefore the row the
+#'   others have to be read against. Only meaningful with `separation`.
 #' @return A model specification, to be passed to [platypus_spec()].
 #' @name models
 #' @examples
@@ -134,7 +147,7 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
                                loss, metrics, optimizer, callbacks, augmentation,
                                epochs, batch_size, splits, weights, fit,
                                encoder, pretrained, freeze_encoder,
-                               encoder_learning_rate) {
+                               encoder_learning_rate, separation, decode) {
   if (!is.null(n_class)) {
     stop("`n_class` is not a model setting: the number of classes comes from the data, ",
          "from `colormap` or `labels` in segmentation_data(). It was removed because a ",
@@ -148,7 +161,7 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
   # engine that could fill `blocks` and `filters` from a weights file would never get the
   # chance. That is what `output_dir` taught, with a record written into every working
   # directory because R sent a default nobody asked for.
-  compact(list(
+  built <- compact(list(
     name = name,
     architecture = architecture,
     input_shape = as.integer(input_shape),
@@ -177,8 +190,19 @@ segmentation_model <- function(architecture, name, input_shape, channels, n_clas
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = if (is.null(freeze_encoder)) NULL else int1(freeze_encoder),
-    encoder_learning_rate = encoder_learning_rate
+    encoder_learning_rate = encoder_learning_rate,
+    separation = separation,
+    decode = decode
   ))
+
+  # The model names its own task, and `separation` is how. It is required on an instance
+  # model in the engine and has no counterpart on a semantic one, so a model carrying it
+  # can only mean instances and a model without it can only mean semantic - which is why
+  # `task` stays read off the constructors rather than typed. `decode` alone is not enough
+  # to tag on: it is optional, and a model that decoded without predicting a signal would
+  # be a specification with no way to produce one.
+  if (is.null(separation)) return(built)
+  structure(built, task = "instance_segmentation")
 }
 
 
@@ -194,7 +218,8 @@ u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
                   augmentation = NULL, epochs = NULL, batch_size = NULL,
                   splits = NULL, weights = NULL, fit = NULL,
                   encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                  encoder_learning_rate = NULL) {
+                  encoder_learning_rate = NULL,
+                  separation = NULL, decode = NULL) {
   segmentation_model(
     architecture = "u_net",
     name = name,
@@ -225,7 +250,9 @@ u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = freeze_encoder,
-    encoder_learning_rate = encoder_learning_rate
+    encoder_learning_rate = encoder_learning_rate,
+    separation = separation,
+    decode = decode
   )
 }
 
@@ -241,7 +268,8 @@ u_net_plus_plus <- function(name, input_shape, channels = NULL, n_class = NULL,
                             augmentation = NULL, epochs = NULL, batch_size = NULL,
                             splits = NULL, weights = NULL, fit = NULL,
                             encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                            encoder_learning_rate = NULL) {
+                            encoder_learning_rate = NULL,
+                            separation = NULL, decode = NULL) {
   segmentation_model(
     architecture = "u_net_plus_plus",
     name = name,
@@ -272,7 +300,9 @@ u_net_plus_plus <- function(name, input_shape, channels = NULL, n_class = NULL,
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = freeze_encoder,
-    encoder_learning_rate = encoder_learning_rate
+    encoder_learning_rate = encoder_learning_rate,
+    separation = separation,
+    decode = decode
   )
 }
 
@@ -288,7 +318,8 @@ res_u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
                       augmentation = NULL, epochs = NULL, batch_size = NULL,
                       splits = NULL, weights = NULL, fit = NULL,
                       encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                      encoder_learning_rate = NULL) {
+                      encoder_learning_rate = NULL,
+                      separation = NULL, decode = NULL) {
   segmentation_model(
     architecture = "res_u_net",
     name = name,
@@ -319,7 +350,9 @@ res_u_net <- function(name, input_shape, channels = NULL, n_class = NULL,
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = freeze_encoder,
-    encoder_learning_rate = encoder_learning_rate
+    encoder_learning_rate = encoder_learning_rate,
+    separation = separation,
+    decode = decode
   )
 }
 
@@ -335,7 +368,8 @@ linknet <- function(name, input_shape, channels = NULL, n_class = NULL,
                     augmentation = NULL, epochs = NULL, batch_size = NULL,
                     splits = NULL, weights = NULL, fit = NULL,
                     encoder = NULL, pretrained = NULL, freeze_encoder = NULL,
-                    encoder_learning_rate = NULL) {
+                    encoder_learning_rate = NULL,
+                    separation = NULL, decode = NULL) {
   segmentation_model(
     architecture = "linknet",
     name = name,
@@ -366,6 +400,8 @@ linknet <- function(name, input_shape, channels = NULL, n_class = NULL,
     encoder = encoder,
     pretrained = pretrained,
     freeze_encoder = freeze_encoder,
-    encoder_learning_rate = encoder_learning_rate
+    encoder_learning_rate = encoder_learning_rate,
+    separation = separation,
+    decode = decode
   )
 }

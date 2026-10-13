@@ -15,7 +15,8 @@ platypus_spec(
 )
 }
 \arguments{
-\item{data}{A \code{\link[=segmentation_data]{segmentation_data()}} specification, or the path to a YAML file.}
+\item{data}{A \code{\link[=segmentation_data]{segmentation_data()}}, \code{\link[=detection_data]{detection_data()}} or \code{\link[=instance_data]{instance_data()}}
+specification, or the path to a YAML file. Which one it is decides \code{task}.}
 
 \item{models}{A list of model specifications, see \link{models} and \code{\link[=available_models]{available_models()}}.
 More than one is the ordinary case rather than the exception: they are trained in turn
@@ -23,11 +24,17 @@ against the same data and the same split, which is what makes their numbers
 comparable, and a comparison is written by listing several entries of the same
 architecture with different settings.}
 
-\item{task}{Which task this specification describes, one of \code{"semantic_segmentation"}
-or \code{"object_detection"}. Normally left unset: the data and model constructors already
-decide it, and \code{segmentation_data()} with \code{u_net()} can only mean one thing. Given, it
-is \strong{checked against them rather than trusted}, so it can only agree or refuse. It
-becomes load-bearing the day a pair of constructors stops deciding on its own.}
+\item{task}{Which task this specification describes, one of \code{"semantic_segmentation"},
+\code{"object_detection"} or \code{"instance_segmentation"}. Normally left unset: the data and
+model constructors already decide it, and \code{segmentation_data()} with \code{u_net()} can only
+mean one thing. Given, it is \strong{checked against them rather than trusted}, so it can
+only agree or refuse.
+
+The third task sharpened what this argument is for rather than making it load-bearing.
+An instance \emph{data} block declares nothing a segmentation one lacks, so
+\code{\link[=instance_data]{instance_data()}} is what says the word - but a \emph{model} can still say it on its own,
+because \code{separation} is required on an instance model and has no counterpart on a
+semantic one.}
 
 \item{seed}{Makes a run repeatable as far as the arithmetic is deterministic, which goes
 further on some hardware than others - so it is worth knowing where it stops.

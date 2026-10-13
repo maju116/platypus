@@ -16,9 +16,17 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' The objective the model is trained against. Every one of these works unchanged on
 #' volumes as well as images.
 #'
-#' There is a tenth, documented separately because it needs a page of its own:
-#' [loss_boundary()] adds the signed distance to the truth's boundary on top of any of
-#' these, which removes the systematic volume bias at some cost in per-case accuracy.
+#' There is one documented separately because it needs a page of its own: [loss_boundary()]
+#' adds the signed distance to the truth's boundary on top of any of these, which removes
+#' the systematic volume bias at some cost in per-case accuracy.
+#'
+#' **Three of these score numbers rather than classes** - `loss_mse()`, `loss_l1()` and
+#' `loss_smooth_l1()` - and they are not alternatives to the others. A class target has
+#' nothing for them to measure and a continuous one has nothing for an overlap to measure,
+#' so they belong in exactly one place: the `loss` of [separation_flows()], where the target
+#' is a vector field. Measured against the pinned engine rather than assumed: giving one as
+#' an *instance* model's own `loss` is refused by name, and giving a class loss to
+#' [separation_flows()] is refused by name the other way round.
 #'
 #' @param smooth Added to numerator and denominator to keep an empty class finite.
 #' @param gamma For focal losses, how hard to discount the pixels already classified well.
@@ -36,11 +44,24 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' @param per_image For `loss_lovasz()`, sort the errors of each image separately rather
 #'   than over the whole batch. The harsher reading, and on mostly empty images the noisier
 #'   one.
+#' @param where For the three regression losses, where the target means anything and so
+#'   where the error is averaged. A flow field is defined on the objects and undefined off
+#'   them - there is no direction towards a centre for a pixel in no object - so the builder
+#'   writes zero on the background, and `"everywhere"` would spend most of the objective
+#'   learning that zero. The foreground is 13.97% of a Data Science Bowl image, so
+#'   `"everywhere"` gives 86% of the gradient to a constant; `"foreground"` is the default
+#'   for that reason rather than by taste.
+#' @param beta For `loss_smooth_l1()`, where the quadratic part ends and the linear one
+#'   begins, **in the target's own units**. A flow field is scaled to roughly `[-1, 1]`, so
+#'   the default of 1 makes the whole range quadratic - which is `loss_mse()` with extra
+#'   steps. Lower it to get any of the robustness this loss is for.
 #' @return A loss specification, to be passed to a model constructor.
 #' @name losses
+#' @seealso [separation_flows()], whose `loss` is the one place the regression losses belong
 #' @examples
 #' loss_focal(gamma = 2)
 #' loss_tversky(alpha = 0.7)
+#' loss_smooth_l1(beta = 0.1, where = "foreground")
 NULL
 
 #' @rdname losses
@@ -85,6 +106,29 @@ loss_focal_tversky <- function(alpha = 0.5, gamma = 1, smooth = 1) {
 #' @export
 loss_combo <- function(alpha = 0.5, ce_ratio = 0.5) {
   list(name = "combo", alpha = alpha, ce_ratio = ce_ratio)
+}
+
+# The three below are the objective for a continuous target, which in R means the vector
+# channels of `separation_flows()` and nothing else. `where` is carried rather than
+# defaulted here, because an R-side default would be a value the engine could not tell from
+# one the user chose - §3D.4 - and the engine's own default stands on a measurement.
+
+#' @rdname losses
+#' @export
+loss_mse <- function(where = NULL) {
+  compact(list(name = "mse", where = where))
+}
+
+#' @rdname losses
+#' @export
+loss_l1 <- function(where = NULL) {
+  compact(list(name = "l1", where = where))
+}
+
+#' @rdname losses
+#' @export
+loss_smooth_l1 <- function(beta = NULL, where = NULL) {
+  compact(list(name = "smooth_l1", beta = beta, where = where))
 }
 
 #' A loss that knows how far a wrong voxel is from the truth

@@ -42,7 +42,12 @@ as pictures. Give this or \code{labels}, not both.}
 \item{labels}{The voxel value of each class, in class order, for masks stored as label
 maps - \code{c(0, 1)} for a binary segmentation, \code{c(0, 1, 2)} where 1 is liver and 2 is
 tumour. This is how NIfTI and every other volume format label anything. Give this or
-\code{colormap}, not both.}
+\code{colormap}, not both.
+
+\strong{Include 0 unless the masks really do fill every voxel.} A value matching no entry
+falls back to the first class, so a list without 0 trains the background as whatever
+that first class is. The engine refuses that combination rather than let it look
+plausible, which means the error arrives before the run and not in the scores.}
 
 \item{test}{Optional test data. Only images are read from it.}
 

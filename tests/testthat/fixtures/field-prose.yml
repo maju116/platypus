@@ -6,7 +6,7 @@
 #
 # A digest that no longer matches is not the engine's failure. It is a question - does R's
 # prose still say the right thing? - asked at the only moment anybody would ask it.
-engine: 0.8.0a12
+engine: 0.8.0a20
 fields:
   - field: activation
     engine_digest: 4822b126e39826a504979a6b123cc241
@@ -38,6 +38,9 @@ fields:
   - field: batch_size
     engine_digest: dfd950ac00d0020b685d3c38846564c7
     documented_in: [models, yolo3]
+  - field: beta
+    engine_digest: 023bdf432613942bf062e31d2ca4a3e5
+    documented_in: [losses]
   - field: beta_1
     engine_digest: 0817e9136b0f3c51e89413f71e2c5ea6
     documented_in: [optimizers]
@@ -76,13 +79,16 @@ fields:
     documented_in: [classes_to_colours, colours_to_classes, overlay_mask, plot_masks, read_masks, save_masks, segmentation_data]
   - field: column_sep
     engine_digest: 4ec6cf0298455ab02a01769a8f97f7c5
-    documented_in: [detection_data, segmentation_data, split_dataset]
+    documented_in: [detection_data, instance_data, segmentation_data, split_dataset]
   - field: coordinates
     engine_digest: 86740597ee6bb0ce54cdf36985dee01a
     documented_in: [detection_data]
   - field: data
-    engine_digest: ef4abc72b85f95196c1e0e6de22ee2f1
+    engine_digest: da90c4fbc87f21e311dfbd52940c3050
     documented_in: [platypus_spec]
+  - field: decode
+    engine_digest: 5642c906a2fb2f7632264753ca46ac26
+    documented_in: [models]
   - field: deep_supervision
     engine_digest: 7c93647b6037dd1848a527d6171a91bd
     documented_in: [models]
@@ -144,14 +150,14 @@ fields:
     engine_digest: 18ae4913093ce8268f74faebf0476e11
     documented_in: [losses]
   - field: labels
-    engine_digest: 8d5e6513f3a3bc3a35f1accc370a8bfc
+    engine_digest: ea9d0a07ce04298c9edd4ac416797497
     documented_in: [mask_coverage, plot_boxes, plot_masks, read_masks, segmentation_data]
   - field: learning_rate
     engine_digest: 1703e6fd9efb1d843d14859114088a80
     documented_in: [callback_swa, optimizers]
   - field: loss
-    engine_digest: 42b53a270873dd3e9e02329801aa8e16
-    documented_in: [models]
+    engine_digest: 8bd5ebe613c0e6dd98fe443b700085f3
+    documented_in: [models, separations]
   - field: lr_decay
     engine_digest: 5e5568e16a2872eb8fcddf1693905d1a
     documented_in: [optimizers]
@@ -167,11 +173,14 @@ fields:
   - field: min_visibility
     engine_digest: aea901f218dc94aef9e67d068c33b2ab
     documented_in: [yolo3]
+  - field: minimum_area
+    engine_digest: de4e6056b44911ca76454967b4aebf80
+    documented_in: [decodings]
   - field: mode
-    engine_digest: f51df27602870cb4765b46108392d627
-    documented_in: [detection_data, segmentation_data, split_dataset]
+    engine_digest: 208a7f36a80c02f3e096d2e6ee0d2757
+    documented_in: [detection_data, instance_data, segmentation_data, separations, split_dataset]
   - field: models
-    engine_digest: a5bcfcf6f30342ac95a9b8b0a1e47541
+    engine_digest: df80a813ad8a9099a42c582dd7845c9b
     documented_in: [platypus_spec]
   - field: momentum
     engine_digest: dcabc1a692103443b3ef16503d73ac97
@@ -180,7 +189,7 @@ fields:
     engine_digest: 154478e867f4f3bce7e1c7299d588e43
     documented_in: [callbacks]
   - field: name
-    engine_digest: 44e73fd4f5e9a6726d5d9b47072eeded
+    engine_digest: 504282f4b9aa1030a90be971e27e4aab
     documented_in: [augmentation_step, models, yolo3]
   - field: nesterov
     engine_digest: ca72d9bb1726037b66653c1bb67f09b3
@@ -188,6 +197,9 @@ fields:
   - field: nms_threshold
     engine_digest: d454bdcd67eb1091255794579ade264c
     documented_in: [yolo3]
+  - field: of
+    engine_digest: 88afce214fb8ee9ab26dc780169bdda6
+    documented_in: []
   - field: operating_point
     engine_digest: 4225a01aa300a09b4ad3063f9f371c02
     documented_in: [yolo3]
@@ -215,6 +227,9 @@ fields:
   - field: region
     engine_digest: ef4f7462543b7764a24e5ada544161c5
     documented_in: [loss_boundary]
+  - field: regions
+    engine_digest: 80b33f0ee00d1b7388d4694c763c7bbb
+    documented_in: []
   - field: restore_best
     engine_digest: 552162d110abf8811f1824e0d4760d16
     documented_in: [callbacks]
@@ -233,9 +248,12 @@ fields:
   - field: separable_conv
     engine_digest: 942bbb272137159f5119ddcf845a89f3
     documented_in: [models]
+  - field: separation
+    engine_digest: 9884b5fabc319a01d787dac76767c523
+    documented_in: [models]
   - field: shuffle
     engine_digest: 37c2b417f1db6e981b3d445acb5f89f1
-    documented_in: [detection_data, segmentation_data]
+    documented_in: [detection_data, instance_data, segmentation_data]
   - field: smooth
     engine_digest: fab61d93b754eca89ca7f3caa9a1bf7e
     documented_in: [losses, metrics]
@@ -244,24 +262,30 @@ fields:
     documented_in: [models]
   - field: split
     engine_digest: 7395bbc945dad8bf33b21581eb2d04c1
-    documented_in: [detection_crops, detection_data, evaluate, evaluate_cases, evaluate_classes, evaluate_images, inspect_masks, plot_anchors, predict.platypus_fit, segmentation_data, split_path]
+    documented_in: [detection_crops, detection_data, evaluate, evaluate_cases, evaluate_classes, evaluate_images, inspect_masks, instance_data, plot_anchors, predict.platypus_fit, segmentation_data, split_path]
   - field: splits
     engine_digest: b19ea7b749dd121b54cd3ca5a17cd337
     documented_in: [models]
   - field: start
     engine_digest: fdd38c62253581c1efb3cca96f184c2f
     documented_in: [callback_swa]
+  - field: step_size
+    engine_digest: 42fdccfd45c8050aaceaf8a586800152
+    documented_in: [decodings]
+  - field: steps
+    engine_digest: 63964264a34c52e2d549ebae34162765
+    documented_in: [decodings]
   - field: strict_labels
     engine_digest: 6ff5d3cd86a2824e479fdbe1426902e0
     documented_in: [detection_data]
   - field: subdirs
-    engine_digest: 7933e22e7aaef1968ac64e03f64a9d32
-    documented_in: [detection_data, segmentation_data, split_dataset]
+    engine_digest: 42b7a1f5c5b377872f6c0e74931b60b5
+    documented_in: [detection_data, instance_data, segmentation_data, split_dataset]
   - field: target_spacing
     engine_digest: 87975e91de68a611bd662c5afbe8fb70
     documented_in: [segmentation_data]
   - field: task
-    engine_digest: 7900a00ff5a8a0b82af03e3a8bddfda1
+    engine_digest: f3683dc07ded14b8da7d3d06e0c33301
     documented_in: [available_components, platypus_spec]
   - field: test_path
     engine_digest: 47df2eadd41a480d75b706c403905336
@@ -274,16 +298,25 @@ fields:
     documented_in: [models]
   - field: validation
     engine_digest: e252f3d56963f501df92b34a1995fb05
-    documented_in: [detection_data, segmentation_data]
+    documented_in: [detection_data, instance_data, segmentation_data]
   - field: validation_path
     engine_digest: 46b402bd61b98ad682741ba4945327a1
     documented_in: []
+  - field: weight
+    engine_digest: d72e198e5030a6587709da9a98c92233
+    documented_in: [separations]
   - field: weight_decay
     engine_digest: 2d943d18793a2575162b39e0db327a33
     documented_in: [optimizers]
   - field: weights
     engine_digest: b240a5fd93755705debf2a983a8fe689
     documented_in: [models, yolo3]
+  - field: where
+    engine_digest: ec2dcaee58cec6fc1ba71933f944812a
+    documented_in: [losses]
+  - field: width
+    engine_digest: d9be30428817f6557078e83ed249b342
+    documented_in: [separations]
   - field: window
     engine_digest: 13351716875d443696c18b94debbfa48
-    documented_in: [detection_data, segmentation_data]
+    documented_in: [detection_data, instance_data, segmentation_data]

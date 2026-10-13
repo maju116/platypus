@@ -51,6 +51,7 @@ website:
               - man/platypus_spec.qmd
               - man/segmentation_data.qmd
               - man/detection_data.qmd
+              - man/instance_data.qmd
               - man/models.qmd
               - man/yolo3.qmd
               - man/save_spec.qmd
@@ -63,6 +64,8 @@ website:
               - man/optimizers.qmd
               - man/callbacks.qmd
               - man/callback_swa.qmd
+              - man/separations.qmd
+              - man/decodings.qmd
               - man/augmentation_step.qmd
               - man/available_components.qmd
               - man/available_transforms.qmd
