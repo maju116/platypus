@@ -10,6 +10,9 @@
 \alias{loss_tversky}
 \alias{loss_focal_tversky}
 \alias{loss_combo}
+\alias{loss_mse}
+\alias{loss_l1}
+\alias{loss_smooth_l1}
 \alias{loss_lovasz}
 \title{Loss functions}
 \usage{
@@ -28,6 +31,12 @@ loss_tversky(alpha = 0.5, smooth = 1)
 loss_focal_tversky(alpha = 0.5, gamma = 1, smooth = 1)
 
 loss_combo(alpha = 0.5, ce_ratio = 0.5)
+
+loss_mse(where = NULL)
+
+loss_l1(where = NULL)
+
+loss_smooth_l1(beta = NULL, where = NULL)
 
 loss_lovasz(per_image = FALSE)
 }
@@ -51,6 +60,19 @@ Note that \code{alpha = 0.5} is Dice exactly only when \code{smooth = 0}.}
 punishing missed foreground (towards 1) and false alarms (towards 0), while \code{alpha}
 sets how much of the total each half provides.}
 
+\item{where}{For the three regression losses, where the target means anything and so
+where the error is averaged. A flow field is defined on the objects and undefined off
+them - there is no direction towards a centre for a pixel in no object - so the builder
+writes zero on the background, and \code{"everywhere"} would spend most of the objective
+learning that zero. The foreground is 13.97\% of a Data Science Bowl image, so
+\code{"everywhere"} gives 86\% of the gradient to a constant; \code{"foreground"} is the default
+for that reason rather than by taste.}
+
+\item{beta}{For \code{loss_smooth_l1()}, where the quadratic part ends and the linear one
+begins, \strong{in the target's own units}. A flow field is scaled to roughly \verb{[-1, 1]}, so
+the default of 1 makes the whole range quadratic - which is \code{loss_mse()} with extra
+steps. Lower it to get any of the robustness this loss is for.}
+
 \item{per_image}{For \code{loss_lovasz()}, sort the errors of each image separately rather
 than over the whole batch. The harsher reading, and on mostly empty images the noisier
 one.}
@@ -63,11 +85,23 @@ The objective the model is trained against. Every one of these works unchanged o
 volumes as well as images.
 }
 \details{
-There is a tenth, documented separately because it needs a page of its own:
-\code{\link[=loss_boundary]{loss_boundary()}} adds the signed distance to the truth's boundary on top of any of
-these, which removes the systematic volume bias at some cost in per-case accuracy.
+There is one documented separately because it needs a page of its own: \code{\link[=loss_boundary]{loss_boundary()}}
+adds the signed distance to the truth's boundary on top of any of these, which removes
+the systematic volume bias at some cost in per-case accuracy.
+
+\strong{Three of these score numbers rather than classes} - \code{loss_mse()}, \code{loss_l1()} and
+\code{loss_smooth_l1()} - and they are not alternatives to the others. A class target has
+nothing for them to measure and a continuous one has nothing for an overlap to measure,
+so they belong in exactly one place: the \code{loss} of \code{\link[=separation_flows]{separation_flows()}}, where the target
+is a vector field. Measured against the pinned engine rather than assumed: giving one as
+an \emph{instance} model's own \code{loss} is refused by name, and giving a class loss to
+\code{\link[=separation_flows]{separation_flows()}} is refused by name the other way round.
 }
 \examples{
 loss_focal(gamma = 2)
 loss_tversky(alpha = 0.7)
+loss_smooth_l1(beta = 0.1, where = "foreground")
+}
+\seealso{
+\code{\link[=separation_flows]{separation_flows()}}, whose \code{loss} is the one place the regression losses belong
 }

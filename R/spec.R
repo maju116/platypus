@@ -57,6 +57,11 @@
 #'   maps - `c(0, 1)` for a binary segmentation, `c(0, 1, 2)` where 1 is liver and 2 is
 #'   tumour. This is how NIfTI and every other volume format label anything. Give this or
 #'   `colormap`, not both.
+#'
+#'   **Include 0 unless the masks really do fill every voxel.** A value matching no entry
+#'   falls back to the first class, so a list without 0 trains the background as whatever
+#'   that first class is. The engine refuses that combination rather than let it look
+#'   plausible, which means the error arrives before the run and not in the scores.
 #' @param mode `"nested_dirs"` or `"config_file"`.
 #' @param window How values in real units reach the model. A named window - `"lung"`,
 #'   `"soft_tissue"`, `"bone"`, `"brain"`, `"abdomen"`, `"liver"`, `"mediastinum"`,
@@ -285,17 +290,24 @@ ct_windows <- function() {
 #' The engine validates it, so a mistake is caught here rather than part-way through a
 #' training run - and reported against the model that has it, by the name you gave it.
 #'
-#' @param data A [segmentation_data()] specification, or the path to a YAML file.
+#' @param data A [segmentation_data()], [detection_data()] or [instance_data()]
+#'   specification, or the path to a YAML file. Which one it is decides `task`.
 #' @param models A list of model specifications, see [models] and [available_models()].
 #'   More than one is the ordinary case rather than the exception: they are trained in turn
 #'   against the same data and the same split, which is what makes their numbers
 #'   comparable, and a comparison is written by listing several entries of the same
 #'   architecture with different settings.
-#' @param task Which task this specification describes, one of `"semantic_segmentation"`
-#'   or `"object_detection"`. Normally left unset: the data and model constructors already
-#'   decide it, and `segmentation_data()` with `u_net()` can only mean one thing. Given, it
-#'   is **checked against them rather than trusted**, so it can only agree or refuse. It
-#'   becomes load-bearing the day a pair of constructors stops deciding on its own.
+#' @param task Which task this specification describes, one of `"semantic_segmentation"`,
+#'   `"object_detection"` or `"instance_segmentation"`. Normally left unset: the data and
+#'   model constructors already decide it, and `segmentation_data()` with `u_net()` can only
+#'   mean one thing. Given, it is **checked against them rather than trusted**, so it can
+#'   only agree or refuse.
+#'
+#'   The third task sharpened what this argument is for rather than making it load-bearing.
+#'   An instance *data* block declares nothing a segmentation one lacks, so
+#'   [instance_data()] is what says the word - but a *model* can still say it on its own,
+#'   because `separation` is required on an instance model and has no counterpart on a
+#'   semantic one.
 #' @param seed Makes a run repeatable as far as the arithmetic is deterministic, which goes
 #'   further on some hardware than others - so it is worth knowing where it stops.
 #'
@@ -472,11 +484,11 @@ agreed_task <- function(data, models, stated = NULL) {
   # So this argument keeps the job it has. Instances arrive as `instance_data()`, tagged the
   # way `detection_data()` tags itself, and what that constructor is for is the five fields it
   # refuses - `colormap`, `labels`, `regions`, `channels_from`, `target_spacing` - rather than
-  # any it adds. `known` below gains "instance_segmentation" when that constructor lands, not
-  # before: a value nothing can produce would only ever reach the disagreement error.
+  # any it adds. `known` below gained "instance_segmentation" with that constructor and not
+  # before, because a value nothing can produce would only ever reach the disagreement error.
   if (!is.null(stated)) {
     stated <- as.character(stated)[[1L]]
-    known <- c("semantic_segmentation", "object_detection")
+    known <- c("semantic_segmentation", "object_detection", "instance_segmentation")
     if (!stated %in% known) {
       renamed <- c(segmentation = "semantic_segmentation", detection = "object_detection")
       if (stated %in% names(renamed)) {

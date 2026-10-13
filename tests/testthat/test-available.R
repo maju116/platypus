@@ -43,13 +43,16 @@ test_that("the counts are what the engine's own unions hold", {
   # not of what it will accept forever, which is why they are asserted here and written in
   # no help page.
   skip_if_no_engine()
-  expect_identical(nrow(available_losses()), 10L)
+  # 13 rather than 10 since the pin moved to 0.8.0a20: `mse`, `l1` and `smooth_l1` arrived
+  # with the regression targets in 0.8.0a17 and R can reach them now, through
+  # `separation_flows(loss = )` and nowhere else.
+  expect_identical(nrow(available_losses()), 13L)
   expect_identical(nrow(available_metrics()), 4L)
   expect_identical(nrow(available_optimizers()), 8L)
   expect_identical(nrow(available_callbacks()), 7L)
   expect_identical(nrow(available_models()), 4L)
   expect_identical(nrow(available_models("object_detection")), 1L)
-  expect_identical(nrow(available_tasks()), 2L)
+  expect_identical(nrow(available_tasks()), 3L)
 })
 
 test_that("arguments are a readable column and recover their parts", {
@@ -84,10 +87,27 @@ test_that("detection names the metrics it reports rather than returning none", {
 })
 
 test_that("an unknown task lists the ones there are", {
+  # This used to use `instance_segmentation` as the unknown one, which is the shape of test
+  # that stops testing what it says the day the world catches up: 0.8.0a20 made it a task and
+  # the assertion became "a real task is refused". A name no engine will ever have cannot
+  # rot that way.
   skip_if_no_engine()
-  expect_error(available_losses("instance_segmentation"), class = "platypus_error")
-  expect_error(available_losses("instance_segmentation"), "semantic_segmentation")
-  expect_error(available_losses("instance_segmentation"), "object_detection")
+  expect_error(available_losses("panoptic_segmentation"), class = "platypus_error")
+  expect_error(available_losses("panoptic_segmentation"), "semantic_segmentation")
+  expect_error(available_losses("panoptic_segmentation"), "object_detection")
+  expect_error(available_losses("panoptic_segmentation"), "instance_segmentation")
+})
+
+test_that("the third task answers with losses rather than with a refusal", {
+  # The pin moved for this. Before 0.8.0a20 the line above was the whole story about
+  # instances; now the task exists, and what it accepts is the regression losses *and* the
+  # class losses - the model's own `loss` scores the mask at either separation, and only
+  # `separation_flows(loss = )` is restricted to the three continuous ones.
+  skip_if_no_engine()
+  instance <- available_losses("instance_segmentation")
+  expect_gt(nrow(instance), 0)
+  expect_true(all(c("mse", "l1", "smooth_l1") %in% instance$name))
+  expect_true("dice" %in% instance$name)
 })
 
 test_that("the family is spelled one way across both packages", {

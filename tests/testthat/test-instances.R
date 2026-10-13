@@ -1,0 +1,242 @@
+# The R surface for instance segmentation, in the parts that need no Python.
+#
+# Everything here is about what R itself decides: which constructor tags which task, which
+# fields a constructor refuses by not having them, and that nothing is sent that nobody
+# asked for. What the engine makes of the request is a different file and a different gate.
+
+test_that("instance_data tags its own task, and that is the whole mechanism", {
+  data <- instance_data("train/", "valid/")
+  expect_s3_class(data, "platypus_instance_data")
+  expect_identical(attr(data, "task", exact = TRUE), "instance_segmentation")
+  expect_identical(data$train_path, "train/")
+  expect_identical(data$validation_path, "valid/")
+})
+
+test_that("instance_data refuses the five fields that do not apply, by not having them", {
+  # The point of a separate constructor rather than a flag: these are refused by R's own
+  # argument matching, with no table to keep in step with the engine. A directory of
+  # per-object masks has no colormap, no label list, no regions, no channel order to state
+  # and no spacing to resample to.
+  for (field in c("colormap", "labels", "regions", "channels_from", "target_spacing")) {
+    arguments <- list("train/", "valid/")
+    arguments[[field]] <- 1
+    expect_error(do.call(instance_data, arguments), "unused argument", info = field)
+  }
+  # And the one that distinguishes it from `segmentation_data()` in the other direction:
+  # that constructor *requires* exactly one of colormap and labels, this one neither.
+  expect_error(segmentation_data("train/", "valid/"), "exactly one of")
+  expect_no_error(instance_data("train/", "valid/"))
+})
+
+test_that("a model names its task through separation, and only through separation", {
+  semantic <- u_net("m", input_shape = c(256, 256))
+  expect_null(attr(semantic, "task", exact = TRUE))
+
+  instance <- u_net("m", input_shape = c(256, 256), separation = separation_rim())
+  expect_identical(attr(instance, "task", exact = TRUE), "instance_segmentation")
+  expect_identical(instance$separation, list(name = "rim"))
+
+  # `decode` alone must not tag: it is optional on an instance model, so a model that
+  # decoded without predicting a signal would be a specification with no way to produce one.
+  decoded <- u_net("m", input_shape = c(256, 256), decode = list(decode_watershed()))
+  expect_null(attr(decoded, "task", exact = TRUE))
+})
+
+test_that("all four architectures carry separation, not just the one that was tested", {
+  for (architecture in list(u_net, u_net_plus_plus, res_u_net, linknet)) {
+    model <- architecture("m", input_shape = c(256, 256), separation = separation_flows())
+    expect_identical(attr(model, "task", exact = TRUE), "instance_segmentation")
+    expect_identical(model$separation$name, "flows")
+  }
+})
+
+test_that("a separation block sends only what it was given", {
+  # §3D's rule: defaults live in the engine. `width` is the sharp case - the engine's 2
+  # stands on an argument rather than a measurement, so an R-side copy of it would freeze
+  # a number that is expected to move.
+  expect_identical(separation_rim(), list(name = "rim"))
+  expect_identical(separation_rim(width = 3), list(name = "rim", width = 3L))
+  expect_identical(separation_flows(), list(name = "flows"))
+  expect_identical(
+    separation_flows(mode = "centroid", weight = 2),
+    list(name = "flows", mode = "centroid", weight = 2)
+  )
+})
+
+test_that("every decoding the engine offers has a constructor, and they agree on names", {
+  # Written against the names rather than a count, because a count passes when one name is
+  # swapped for another.
+  constructors <- list(
+    connected_components = decode_connected_components,
+    nearest_seed = decode_nearest_seed,
+    watershed = decode_watershed,
+    follow_flows = decode_follow_flows
+  )
+  for (expected in names(constructors)) {
+    expect_identical(constructors[[expected]](), list(name = expected), info = expected)
+  }
+})
+
+test_that("a decoding sends its own settings and nothing else", {
+  expect_identical(
+    decode_connected_components(minimum_area = 20),
+    list(name = "connected_components", minimum_area = 20L)
+  )
+  expect_identical(
+    decode_follow_flows(steps = 50, step_size = 0.5, minimum_area = 4),
+    list(name = "follow_flows", steps = 50L, step_size = 0.5, minimum_area = 4L)
+  )
+  # `step_size` is a distance in pixels and the interesting values are below 1. Coercing it
+  # the way every count here is coerced would turn 0.5 into a decoding that never moves,
+  # which is a wrong answer rather than an error - so it is the one field here left as a
+  # double, and this is the assertion that says so.
+  expect_identical(decode_follow_flows(step_size = 0.5)$step_size, 0.5)
+  expect_type(decode_follow_flows(steps = 50)$steps, "integer")
+})
+
+test_that("the three regression losses exist in R, because separation_flows asks for one", {
+  # `separation_flows(loss = )` documents an objective R could not build until the pin
+  # moved: the engine gained `mse`, `l1` and `smooth_l1` in 0.8.0a17 and nothing in R named
+  # them. A help page pointing at a constructor that does not exist is §4's "an instruction
+  # addressed to a human is code nothing runs".
+  expect_identical(loss_mse(), list(name = "mse"))
+  expect_identical(loss_l1(where = "everywhere"), list(name = "l1", where = "everywhere"))
+  expect_identical(
+    loss_smooth_l1(beta = 0.1, where = "foreground"),
+    list(name = "smooth_l1", beta = 0.1, where = "foreground")
+  )
+  # Nothing is sent that nobody asked for: the engine's `where` default stands on a
+  # measurement of this dataset's foreground fraction, and an R-side copy would be
+  # indistinguishable from a user's choice.
+  expect_named(loss_smooth_l1(), "name")
+
+  built <- separation_flows(loss = loss_mse(where = "foreground"), weight = 0.5)
+  expect_identical(built$loss, list(name = "mse", where = "foreground"))
+  expect_identical(built$name, "flows")
+})
+
+# --- the task is inferred from the pair, and mixing is refused ----------------------------
+
+test_that("an instance data block and an instance model agree on one task", {
+  expect_identical(
+    platypus:::agreed_task(
+      instance_data("a/", "b/"),
+      list(u_net("u", input_shape = c(64, 64), separation = separation_rim()))
+    ),
+    "instance_segmentation"
+  )
+})
+
+test_that("instance data with a plain segmentation model is refused, and named", {
+  # The pair that would otherwise be silent: the same directory layout and the same
+  # architecture, differing only in whether a signal is predicted at all.
+  caught <- tryCatch(
+    platypus:::agreed_task(
+      instance_data("a/", "b/"),
+      list(u_net("plain", input_shape = c(64, 64)))
+    ),
+    error = function(e) conditionMessage(e)
+  )
+  expect_match(caught, "mixes them")
+  expect_match(caught, "the data is instance_segmentation")
+  expect_match(caught, "plain is semantic_segmentation")
+})
+
+test_that("stating the task is still checked rather than trusted", {
+  # The rule the whole decision turned on: a constructor decides, `task` confirms.
+  expect_identical(
+    platypus:::agreed_task(
+      instance_data("a/", "b/"),
+      list(u_net("u", input_shape = c(64, 64), separation = separation_flows())),
+      stated = "instance_segmentation"
+    ),
+    "instance_segmentation"
+  )
+  expect_error(
+    platypus:::agreed_task(
+      instance_data("a/", "b/"),
+      list(u_net("u", input_shape = c(64, 64), separation = separation_flows())),
+      stated = "semantic_segmentation"
+    ),
+    "disagrees with what this specification is built from"
+  )
+  # And it is a known value now, so it no longer reaches the "must be one of" refusal.
+  expect_error(
+    platypus:::agreed_task(instance_data("a/", "b/"), list(u_net("u", input_shape = c(64, 64))),
+                           stated = "instances"),
+    "`task` must be one of"
+  )
+})
+
+# --- and the half that does need Python ---------------------------------------------------
+#
+# Everything above is R deciding things on its own, and green on all of it would still leave
+# the question §4 keeps asking: has anything used this the way a user reaches it? These send
+# the request. Without them the surface could be wrong in the one way R cannot see - a field
+# the engine does not have, or has under another name - and the whole suite would pass.
+
+test_that("an instance specification reaches the engine intact", {
+  skip_if_no_engine()
+  spec <- platypus_spec(
+    data = instance_data(tempdir(), tempdir()),
+    models = list(u_net(
+      "rim", input_shape = c(128, 128), blocks = 3, filters = 8,
+      separation = separation_rim(width = 2),
+      decode = list(decode_nearest_seed(), decode_connected_components(minimum_area = 4))
+    ))
+  )
+  expect_s3_class(spec, "platypus_spec")
+
+  built <- as.list(spec)
+  expect_identical(built$task, "instance_segmentation")
+  model <- built$models[[1]]
+  expect_identical(model$separation$name, "rim")
+  expect_equal(model$separation$width, 2L)
+  expect_identical(vapply(model$decode, function(d) d$name, character(1)),
+                   c("nearest_seed", "connected_components"))
+  expect_equal(model$decode[[2]]$minimum_area, 4L)
+})
+
+test_that("the flow surface reaches the engine too, with its own loss", {
+  skip_if_no_engine()
+  built <- as.list(platypus_spec(
+    data = instance_data(tempdir(), tempdir()),
+    models = list(u_net(
+      "flows", input_shape = c(128, 128),
+      separation = separation_flows(mode = "diffusion",
+                                    loss = loss_mse(where = "foreground"), weight = 1),
+      decode = list(decode_follow_flows(step_size = 0.5))
+    ))
+  ))
+  separation <- built$models[[1]]$separation
+  expect_identical(separation$name, "flows")
+  expect_identical(separation$mode, "diffusion")
+  expect_identical(separation$loss$name, "mse")
+  expect_identical(separation$loss$where, "foreground")
+  expect_equal(built$models[[1]]$decode[[1]]$step_size, 0.5)
+})
+
+test_that("the engine refuses the combinations R deliberately does not police", {
+  # R sends what it was given and the engine decides. Both of these are refusals R has no
+  # copy of, which is the point: a second rule here would be a second place to keep in step.
+  skip_if_no_engine()
+  expect_error(
+    platypus_spec(
+      data = instance_data(tempdir(), tempdir()),
+      models = list(u_net("m", input_shape = c(64, 64),
+                          separation = separation_flows(loss = loss_dice())))
+    ),
+    "defined over classes"
+  )
+  # A decoding that cannot read the signal it is given, named at both ends rather than
+  # returning a label map of something else.
+  expect_error(
+    platypus_spec(
+      data = instance_data(tempdir(), tempdir()),
+      models = list(u_net("m", input_shape = c(64, 64),
+                          separation = separation_rim(),
+                          decode = list(decode_follow_flows())))
+    ),
+    "follow_flows"
+  )
+})

@@ -161,6 +161,8 @@ problems_frame <- function(problems) {
 #' platypus_augmentation_error      a transform that cannot do what was asked of it
 #' platypus_detection_error         detection metrics
 #' platypus_detection_data_error    annotations, boxes or classes
+#' platypus_instance_error          a separation target, or decoding one into objects
+#' platypus_instance_data_error     the per-object mask files a case has, or has not
 #' platypus_weights_error           weights that do not belong to this model
 #' platypus_training_stopped        a callback ended the run early
 #' platypus_unknown_case            a case or model name that is not in this run

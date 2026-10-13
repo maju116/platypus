@@ -37,7 +37,9 @@ u_net(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 u_net_plus_plus(
@@ -69,7 +71,9 @@ u_net_plus_plus(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 res_u_net(
@@ -101,7 +105,9 @@ res_u_net(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 
 linknet(
@@ -133,7 +139,9 @@ linknet(
   encoder = NULL,
   pretrained = NULL,
   freeze_encoder = NULL,
-  encoder_learning_rate = NULL
+  encoder_learning_rate = NULL,
+  separation = NULL,
+  decode = NULL
 )
 }
 \arguments{
@@ -238,6 +246,21 @@ fixed for the whole run.}
 pretrained. The full-resolution stage in front of them is platypus's own and starts
 random, so it keeps the optimiser's rate. Giving this instead of \code{freeze_encoder}
 measured worse everywhere, and on one dataset worse than no backbone at all.}
+
+\item{separation}{What the network predicts so that touching objects can be told apart -
+\code{\link[=separation_rim]{separation_rim()}} or \code{\link[=separation_flows]{separation_flows()}}. Giving it is what makes this an \strong{instance}
+model: it has no counterpart on a semantic one, so a model carrying it can only mean
+instances, which is how a specification knows its task without anybody typing it. The
+data has to be \code{\link[=instance_data]{instance_data()}} to match. The head's width follows from the signal and
+the number of classes and is derived rather than stated.}
+
+\item{decode}{A \strong{list} of \link{decodings} turning those channels into objects, e.g.
+\code{list(decode_nearest_seed(), decode_connected_components())}. A list rather than one,
+because several decodings share a single forward pass: a second costs seconds where a
+second training run costs an hour, so \code{\link[=evaluate]{evaluate()}} returns a row per model \emph{and}
+decoding. Unset, the engine uses the signal's own decoding plus
+\code{decode_connected_components()}, which ignores the signal and is therefore the row the
+others have to be read against. Only meaningful with \code{separation}.}
 }
 \value{
 A model specification, to be passed to \code{\link[=platypus_spec]{platypus_spec()}}.
