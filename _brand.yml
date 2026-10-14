@@ -1,11 +1,14 @@
-# The look of both platypus sites. This file is meant to be byte-for-byte identical in the R
-# package and in pyplatypus.
+# The look of both platypus sites. This file is identical in the R package and in pyplatypus,
+# line for line, and `rplatypus`'s `tests/testthat/test-brand.R` is what says so: it fetches
+# this file from the engine's default branch and compares it line by line - line rather than
+# byte, so a CRLF checkout on Windows cannot read as a difference.
 #
-# This comment used to say "and a test in each repository says so". Nothing in either
-# repository reads this file - grepped in both on 2026-10-14, after renaming the R package
-# made the two copies diverge and not one test failed. So the identity is held by whoever
-# edits it, which is the arrangement the sentence it replaced says does not work, and §3F's
-# table of pairs does not list this file either. Named here rather than quietly fixed.
+# That test exists because this comment claimed one and there was none. Renaming the R package
+# on 2026-10-14 edited the two copies apart and not one test failed in either suite,
+# `maju116/rplatypus#160`. The check lives on the R side alone, for the reason the field-prose
+# ledger does: the engine owns the look, so R's copy is the copy.
+#
+# So change it here and the R suite goes red until R follows. That is the intended direction.
 #
 # THE PALETTE COMES FROM THE HEXSTICKER, which is the one thing the author asked to keep
 # when both repositories were reset (CLAUDE.md §4c). Measured off
