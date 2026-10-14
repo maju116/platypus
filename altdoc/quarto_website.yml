@@ -10,16 +10,16 @@ project:
 # project is _quarto/, so the brand file is one level up at the repository root.
 brand: ../_brand.yml
 
-# The pipeline renders twice: altdoc converts Rd to qmd and renders, then
-# tools/polish-docs.R restores the cross-reference links and the code fences and
-# Quarto renders again. Freezing means the second pass reuses the first pass's
-# executed chunks instead of running 20 R examples over - which is most of the time.
+# The pipeline renders twice, and this comment claimed that before it was true:
+# altdoc::render_docs() converts Rd to qmd and renders, and because that call empties
+# `_quarto/` first, the generated Overview page has to be written back and rendered
+# afterwards. Freezing is what makes the second pass cheap - it reuses the first pass's
+# executed chunks instead of running 20 R examples over, which is most of the time.
 execute:
   freeze: auto
 
 website:
   title: "$ALTDOC_PACKAGE_NAME"
-  code-links: true
   # Not in _brand.yml on purpose: the sticker lives where this package already keeps
   # its images, and copying a binary so one path works in two repositories is worse
   # than naming it in each.

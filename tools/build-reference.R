@@ -73,16 +73,23 @@ template <- c(
   "# project is _quarto/, so the brand file is one level up at the repository root.",
   "brand: ../_brand.yml",
   "",
-  "# The pipeline renders twice: altdoc converts Rd to qmd and renders, then",
-  "# tools/polish-docs.R restores the cross-reference links and the code fences and",
-  "# Quarto renders again. Freezing means the second pass reuses the first pass's",
-  "# executed chunks instead of running 20 R examples over - which is most of the time.",
+  "# The pipeline renders twice, and this comment claimed that before it was true:",
+  "# altdoc::render_docs() converts Rd to qmd and renders, and because that call empties",
+  "# `_quarto/` first, the generated Overview page has to be written back and rendered",
+  "# afterwards. Freezing is what makes the second pass cheap - it reuses the first pass's",
+  "# executed chunks instead of running 20 R examples over, which is most of the time.",
   "execute:",
   "  freeze: auto",
   "",
   "website:",
   '  title: "$ALTDOC_PACKAGE_NAME"',
-  "  code-links: true",
+  # NO `code-links:` HERE. It is one letter away from the `code-link: true` under
+  # `format: html:` below and does something else entirely: that one is downlit resolving
+  # function names in code blocks, which is wanted and which tools/polish-docs.R exists to
+  # clean up after. `website: code-links:` wants a list of links, and given `true` Quarto
+  # emitted `<a href="undefined">` with no text behind a paperclip in the right-hand
+  # sidebar - measured on the deployed site at 67 of 67 pages, which is every page there
+  # is. The engine's site sets neither and carries none.
   "  # Not in _brand.yml on purpose: the sticker lives where this package already keeps",
   "  # its images, and copying a binary so one path works in two repositories is worse",
   "  # than naming it in each.",
@@ -129,9 +136,19 @@ cat("altdoc/quarto_website.yml:", length(groups), "groups,",
 # quartodoc generates one from the same grouping.
 #
 # Written into `_quarto/` rather than `altdoc/`: altdoc copies `altdoc/` into `docs/` *after*
-# rendering, so a page left there would be published with no theme and no navigation, while
-# `render_docs()` only creates `_quarto/` and never empties it - read out of its source rather
-# than assumed. The project block names no `render:` list, so Quarto renders what is in there.
+# rendering, so a page left there would be published with no theme and no navigation. The
+# project block names no `render:` list, so Quarto renders what is in `_quarto/`.
+#
+# THIS COMMENT USED TO SAY `render_docs()` ONLY CREATES `_quarto/` AND NEVER EMPTIES IT,
+# "read out of its source rather than assumed". It was not read out of its source. altdoc
+# 0.7.3's render_docs() begins with `fs::dir_ls()` over `_quarto/` and `fs::file_delete()`
+# over everything it finds, keeping `_freeze` only when called with `freeze = TRUE`. So this
+# page was deleted before every render it was supposed to appear in: the sidebar carried a
+# `file:` entry Quarto could not resolve, left the href as the literal `overview.qmd`, and
+# the Overview link 404'd on the deployed site from the day it was added - the one broken
+# link in 68, found by a reader rather than by anything here. The docs workflow now writes
+# it back after render_docs() and renders a second time, which is why the comment at the
+# top of the generated config talks about two passes.
 overview <- c(
   "---",
   'title: "Overview"',
