@@ -752,7 +752,7 @@ available_tasks()
 <code id="task">task</code>
 </td>
 <td>
-<code>“semantic_segmentation”</code> or <code>“object_detection”</code>. Which components a specification may name depends on what it is asking for.
+<code>“semantic_segmentation”</code>, <code>“instance_segmentation”</code> or <code>“object_detection”</code>. Which components a specification may name depends on what it is asking for, and for losses the answer differs: <strong>ten</strong> at the semantic task and <strong>thirteen</strong> at the instance one, the three extra being the regression losses a <code><a href="../man/separations.html">separation_flows()</a></code> block can name. This parameter listed two tasks until the pin moved to <code style="white-space: pre;">0.8.0a22</code>; the third arrived in the engine’s <code style="white-space: pre;">0.8.0a20</code>.
 </td>
 </tr></tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>Worth having because the alternative is leaving R for a website. The number of named components grows with every release, and these are read from the engine’s own schema, so a loss added there appears here with nothing in this package edited. Nothing is maintained by hand; a list maintained by hand is a list that will be wrong.</p>

@@ -739,6 +739,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.0] - unreleased</a>
   <ul class="collapse">
   <li><a href="#migrating-from-0.1.1" id="toc-migrating-from-0.1.1" class="nav-link" data-scroll-target="#migrating-from-0.1.1">Migrating from 0.1.1</a></li>
+  <li><a href="#engine-0.8.0a22" id="toc-engine-0.8.0a22" class="nav-link" data-scroll-target="#engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</a></li>
   <li><a href="#engine-0.8.0a2" id="toc-engine-0.8.0a2" class="nav-link" data-scroll-target="#engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</a></li>
   <li><a href="#engine-0.8.0a1" id="toc-engine-0.8.0a1" class="nav-link" data-scroll-target="#engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</a></li>
   <li><a href="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" id="toc-engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1" class="nav-link" data-scroll-target="#engine-0.6.0a2-then-0.6.0a4-then-0.7.0a1">2026-10-07 - engine 0.6.0a2, then 0.6.0a4, then 0.7.0a1</a></li>
@@ -843,6 +844,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 </section>
+<section id="engine-0.8.0a22" class="level3">
+<h3 class="anchored" data-anchor-id="engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</h3>
+<p><strong>This file has a gap and it is named rather than backfilled.</strong> The entry below is dated 2026-10-08 and the pin moved twice between then and here - to <code>0.8.0a12</code> for <code>fives-unet</code> (<code>[#151](https://github.com/maju116/platypus/issues/151)</code>) and to <code>0.8.0a20</code> for the instance task (<code>[#155](https://github.com/maju116/platypus/issues/155)</code>) - so the dates above this heading are not a complete record of what the pin did. Writing those entries now would be writing them from the commit log rather than from the work, which is a different thing from having written them; the heading says what this change is and the omission stays visible.</p>
+<section id="changed" class="level4">
+<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<ul>
+<li><p>Engine pinned to <code>0.8.0a22</code>, for two things R forwards rather than implements.</p></li>
+<li><p><strong>A regression loss is refused as any segmentation model’s own <code>loss</code>, not only an instance model’s.</strong> <code>?losses</code> claimed the narrower rule and was measured when it was written, so it was true rather than wrong - the engine’s refusal lived on the instance class alone, and a <em>semantic</em> model accepted <a href="man/losses.html"><code>loss_mse()</code></a> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <a href="man/losses.html"><code>loss_cce()</code></a> reaches a Dice of 1.0000. The default <code>where = "foreground"</code> is what made that look like a success: it averages the objective only inside the labelled objects and leaves the background unconstrained. <code>pyplatypus[#223](https://github.com/maju116/platypus/issues/223)</code>.</p>
+<p>So <a href="man/available_components.html"><code>available_losses()</code></a> is <strong>ten</strong> rows now rather than thirteen, and <code>available_losses("instance_segmentation")</code> is thirteen - the three regression losses are reachable where they have a target, which is <code>separation_flows(loss = )</code>. Nothing R sends changes: a configuration refused after this pin move was refused by the engine before it.</p></li>
+<li><p><strong><a href="man/evaluate.html"><code>evaluate()</code></a> on an instance fit carries <code>foreground_dice</code>.</strong> It is the mask column to read <em>across</em> models - the binary overlap of anything the model called an object against anything that is one, the same arithmetic whatever the separation is. The <code>dice</code> beside it is a mean over the class channels the head has, three for <a href="man/separations.html"><code>separation_rim()</code></a> against two for <a href="man/separations.html"><code>separation_flows()</code></a>, so it is read down one model’s rows and never across two: on the Data Science Bowl’s validation cases it showed two masks 0.09 apart that are 0.0062 apart, and in the other direction. <code>pyplatypus[#222](https://github.com/maju116/platypus/issues/222)</code>.</p></li>
+</ul>
+</section>
+<section id="fixed" class="level4">
+<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<ul>
+<li><code>?losses</code>’ <code>task</code> parameter listed two tasks and there have been three since the engine’s <code>0.8.0a20</code>.</li>
+</ul>
+</section>
+</section>
 <section id="engine-0.8.0a2" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</h3>
 <section id="added" class="level4">
@@ -853,8 +873,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>include_background</code> defaults to <code>FALSE</code> here and <code>TRUE</code> for the other three. The background’s skeleton lies inside the background by construction, so that class scores 1 whatever the model did.</p></li>
 </ul>
 </section>
-<section id="changed" class="level4">
-<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<section id="changed-1" class="level4">
+<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
 <ul>
 <li>Engine pinned to <code>0.8.0a2</code>.</li>
 </ul>
@@ -868,8 +888,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><a href="man/drawing_style.html"><code>drawing_style()</code></a></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
 </section>
-<section id="changed-1" class="level4">
-<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
+<section id="changed-2" class="level4">
+<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
 <ul>
 <li><p><strong>The drawing decisions now come from the engine.</strong> They were written out in ten places across <code>R/plot.R</code> and <code>R/masks.R</code>, and <code>pyplatypus.style</code> held the same five values - which is two copies that happened to agree, not one source. They agreed because five differences between the two packages’ figures had been found by laying them side by side and fixing them by hand.</p>
 <p>Nothing changes in any picture: the values are identical, and a test compares every one of them against the engine’s, so a change on that side now fails this package’s CI instead of being noticed by eye.</p>
@@ -940,7 +960,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>No aliases: two names for one thing is what this removes. The S3 <strong>class</strong> returned by <code>split_dataset()</code> is still <code>platypus_split</code> - that is the object’s identity, and every class in the package is prefixed.</p>
-<p><a href="man/evaluate.html"><code>evaluate()</code></a>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
+<p><code>evaluate()</code>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
@@ -951,8 +971,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><strong><code>segmentation_data(validation = FALSE)</code></strong>: say a run has no validation set. The third answer to the question a path and a split already answered, and it had to be a stated value rather than an absence, because “I have no validation set” and “I forgot” look identical and only one of them is a decision. It went in the same argument rather than a new one, so nothing can contradict it.</p></li>
 </ul>
 </section>
-<section id="fixed" class="level4">
-<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<section id="fixed-1" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
 <ul>
 <li>The Python shim shipped inside this package is now formatted and linted by ruff in CI, beside lintr. It had never been.</li>
 </ul>
@@ -976,8 +996,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><a href="man/loss_boundary.html"><code>loss_boundary()</code></a></strong>: a region loss plus the signed distance to the truth’s boundary. <code>region</code> and <code>alpha</code> default to <code>NULL</code> here and are left out of the request, so the engine’s own defaults apply - <code>alpha = 0.9</code>, which it pins with a test, because at 0.5 the surface term owns half the objective while the prediction is still random and the volume bias spread goes to +/-28%. What the loss trades is accuracy per case for being unbiased over a series: measured over three seeds, the systematic volume bias went from -5.18% to -0.06% and the per-case absolute error from 16.90% to 22.17%.</li>
 </ul>
 </section>
-<section id="fixed-1" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
+<section id="fixed-2" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-2">Fixed</h4>
 <ul>
 <li>Every help page has an <code>\examples</code> section but one - 47 of 48 at the time, <code>encoders</code> being a concept page with no <code>\usage</code> - and a test parses every example in every <code>.Rd</code>, including inside <code>\dontrun{}</code>, and fails if it names a function that does not exist. What was at risk was never the functionality; it is the example <em>text</em> drifting from the API.</li>
 <li>lintr runs over the package in CI and gates on its findings. Of 906 findings at lintr’s defaults, 890 were the 80-character line limit this package does not use; at 100 characters and <code>lint_package()</code>, 25 - two of which were defects rather than style.</li>
