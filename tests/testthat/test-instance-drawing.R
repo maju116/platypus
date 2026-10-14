@@ -43,7 +43,23 @@ instance_pictures <- function() {
     chain[2:4, (2 * index):(2 * index + 1)] <- index
   }
 
-  list(seam = seam, corner = corner, triangle = triangle, apart = apart, chain = chain)
+  # A gap in the numbering, which is what a decoding with `minimum_area` leaves behind: it
+  # drops the small objects and does not renumber, so this is the ordinary shape of a
+  # prediction rather than a contrived one. The two packages agree on it.
+  #
+  # It is here after a mutation went looking for a hole and found that there is none:
+  # taking `seq_len(max(labels))` instead of the values actually present changes nothing,
+  # because a phantom object has degree 0, so it sorts last in Welsh-Powell and cannot take
+  # a slot from a real neighbour - and its own blend touches no pixels. Recorded because the
+  # conclusion is "equivalent code", not "untested code", and the next person to try that
+  # mutation should not have to work it out twice.
+  gapped <- matrix(0L, nrow = 7, ncol = 9)
+  gapped[2:4, 2:4] <- 1L
+  gapped[2:4, 5:6] <- 3L
+  gapped[5:6, 2:6] <- 7L
+
+  list(seam = seam, corner = corner, triangle = triangle, apart = apart, chain = chain,
+       gapped = gapped)
 }
 
 test_that("the instance colouring is the engine's colouring, pixel for pixel", {
@@ -188,3 +204,4 @@ test_that("objects that touch nothing may share a colour, which is the point", {
   slots <- rplatypus:::instance_colour_index(instance_pictures()$apart, 8L)
   expect_identical(unname(unlist(slots)), c(0L, 0L))
 })
+
