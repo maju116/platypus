@@ -18,8 +18,10 @@ the beginning.}
 \value{
 A one-row data frame: \code{unmatched}, \code{samples_checked}, \code{total_samples}, and
 \code{present_classes} and \code{missing_classes} as comma-separated strings so the frame
-stays printable. The classes are also attached as integer vectors in the attributes
-\code{present} and \code{missing}.
+stays printable - \strong{region names where the specification gave \code{regions}}, and class
+numbers otherwise, which is what the engine's own refusal does. The positions are
+attached as integer vectors in the attributes \code{present} and \code{missing} either way, so
+anything reading them keeps working.
 }
 \description{
 Reads a sample of one split's masks and reports what the specification's colours, or
@@ -38,6 +40,17 @@ that refusal looks wrong.
 learned: its channel of the target is zero everywhere, so there is no gradient towards
 it and the model is never shown the thing it is being asked to find. Either the colours
 do not describe these masks, or they name a class the data does not contain.
+
+\strong{With \code{regions} the classes are named rather than numbered}, because a position is the
+one thing a reader cannot resolve: \code{missing_classes: 1} means the second region, and
+counting entries in a configuration file to find out which is the step nobody takes. The
+positions are still there, as the \code{missing} and \code{present} attributes.
+
+That naming matters most for the one failure \code{regions} invites: \code{of = 3} against a label
+map holding \code{4} is a channel of zeros, so the model trains to predict nothing and scores a
+Dice of 0 for that region while every other number in the run looks ordinary. The engine
+refuses it before training and names the region; this is how to ask the same question over
+more of the data than the refusal reads.
 
 \code{unmatched} is the fraction of mask pixels matching no entry, which fall back to the
 background class. \strong{Read it knowing that it scales with the size of the thing being

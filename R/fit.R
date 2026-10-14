@@ -824,6 +824,36 @@ export_weights <- function(object, path, model = NULL, ...) {
 }
 
 
+#' Class indices as the specification named them, where it named them
+#'
+#' The engine reports classes by position, and with `regions` a position is the one thing a
+#' reader cannot resolve: `missing_classes: 1` means the second region, and counting regions
+#' in a configuration file to find out which is the step nobody takes. With `colormap` or
+#' `labels` the number *is* the class, so it stays a number.
+#'
+#' The mapping is positional and zero-based, measured rather than assumed: on a spec whose
+#' second region matches nothing, the engine returned `missing = 1`. The out-of-range fallback
+#' to the bare number mirrors `EngineBase._describe_classes`, which does the same - so a
+#' report never loses an index it cannot name.
+#'
+#' Derived here rather than returned by the engine because the specification is R's own and
+#' asking for it would mean a release and a pin move for a label. What holds the two together
+#' is a test: the engine's refusal names the same region, so R's naming is compared against
+#' that sentence rather than against an opinion.
+#'
+#' @keywords internal
+#' @noRd
+named_classes <- function(spec, indices) {
+  indices <- unique(as.integer(indices))
+  out <- stats::setNames(as.character(indices), as.character(indices))
+  regions <- as.list(spec)$data$regions
+  if (!length(regions) || !length(indices)) return(out)
+  names_given <- vapply(regions, function(region) as.character(region$name), character(1))
+  inside <- indices >= 0L & indices < length(names_given)
+  out[inside] <- names_given[indices[inside] + 1L]
+  out
+}
+
 #' What the colormap or labels match in your masks
 #'
 #' Reads a sample of one split's masks and reports what the specification's colours, or
@@ -841,6 +871,17 @@ export_weights <- function(object, path, model = NULL, ...) {
 #' it and the model is never shown the thing it is being asked to find. Either the colours
 #' do not describe these masks, or they name a class the data does not contain.
 #'
+#' **With `regions` the classes are named rather than numbered**, because a position is the
+#' one thing a reader cannot resolve: `missing_classes: 1` means the second region, and
+#' counting entries in a configuration file to find out which is the step nobody takes. The
+#' positions are still there, as the `missing` and `present` attributes.
+#'
+#' That naming matters most for the one failure `regions` invites: `of = 3` against a label
+#' map holding `4` is a channel of zeros, so the model trains to predict nothing and scores a
+#' Dice of 0 for that region while every other number in the run looks ordinary. The engine
+#' refuses it before training and names the region; this is how to ask the same question over
+#' more of the data than the refusal reads.
+#'
 #' `unmatched` is the fraction of mask pixels matching no entry, which fall back to the
 #' background class. **Read it knowing that it scales with the size of the thing being
 #' segmented**, so it is loud for a large structure and almost silent for a small lesion.
@@ -856,8 +897,10 @@ export_weights <- function(object, path, model = NULL, ...) {
 #'   the beginning.
 #' @return A one-row data frame: `unmatched`, `samples_checked`, `total_samples`, and
 #'   `present_classes` and `missing_classes` as comma-separated strings so the frame
-#'   stays printable. The classes are also attached as integer vectors in the attributes
-#'   `present` and `missing`.
+#'   stays printable - **region names where the specification gave `regions`**, and class
+#'   numbers otherwise, which is what the engine's own refusal does. The positions are
+#'   attached as integer vectors in the attributes `present` and `missing` either way, so
+#'   anything reading them keeps working.
 #' @export
 #' @examples
 #' \dontrun{
@@ -874,14 +917,15 @@ inspect_masks <- function(spec, split = c("train", "validation", "test"), limit 
 
   present <- as.integer(unlist(result$present_classes))
   missing <- as.integer(unlist(result$missing_classes))
+  named <- named_classes(spec, c(present, missing))
   out <- data.frame(
     split = split,
     unmatched = as.numeric(result$unmatched),
     samples_checked = as.integer(result$samples_checked),
     total_samples = as.integer(result$total_samples),
-    present_classes = paste(present, collapse = ", "),
+    present_classes = paste(named[as.character(present)], collapse = ", "),
     # An empty string rather than NA: nothing missing is a result, not an absence of one.
-    missing_classes = paste(missing, collapse = ", "),
+    missing_classes = paste(named[as.character(missing)], collapse = ", "),
     stringsAsFactors = FALSE
   )
   attr(out, "present") <- present
