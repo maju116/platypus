@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>split_path – platypus</title>
+<title>split_path – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -730,7 +730,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/split_dataset.html">The data on disk</a></li><li class="breadcrumb-item"><a href="../man/split_path.html">The files in one part of a split</a></li></ol></nav></header><section id="the-files-in-one-part-of-a-split" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="the-files-in-one-part-of-a-split">The files in one part of a split</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Reads the CSV that <code><a href="../man/split_dataset.html">split_dataset()</a></code> wrote and hands back the paths ready to use.</p>
+<p>Reads the CSV that <code><a href="https://maju116.github.io/platypus/man/split_dataset.html">split_dataset()</a></code> wrote and hands back the paths ready to use.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">split_path(split, which = c("train", "validation", "test"))
 </code></pre>
@@ -741,7 +741,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="split">split</code>
 </td>
 <td>
-A <code><a href="../man/split_dataset.html">split_dataset()</a></code>.
+A <code><a href="https://maju116.github.io/platypus/man/split_dataset.html">split_dataset()</a></code>.
 </td>
 </tr>
 <tr>
@@ -758,11 +758,11 @@ A <code><a href="../man/split_dataset.html">split_dataset()</a></code>.
 <p>A data frame with <code>key</code>, <code>group</code>, <code>images</code> and <code>masks</code>, the paths made absolute. <code>images</code> and <code>masks</code> hold one path per sample, or several separated by the split’s separator when a sample has several files.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/split_dataset.html">split_dataset</a></span><span class="op">(</span><span class="st">"scans"</span>, <span class="st">"splits"</span>, group_by <span class="op">=</span> <span class="st">"^(patient\\\\d+)_"</span><span class="op">)</span></span>
-<span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/split_path.html">split_path</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span>
-<span><span class="va">images</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/read_images.html">read_images</a></span><span class="op">(</span><span class="va">validation</span><span class="op">$</span><span class="va">images</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">32</span>, <span class="fl">32</span>, <span class="fl">32</span><span class="op">)</span>, channels <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="va">split</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/split_dataset.html">split_dataset</a></span><span class="op">(</span><span class="st">"scans"</span>, <span class="st">"splits"</span>, group_by <span class="op">=</span> <span class="st">"^(patient\\\\d+)_"</span><span class="op">)</span></span>
+<span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/split_path.html">split_path</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span>
+<span><span class="va">images</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/read_images.html">read_images</a></span><span class="op">(</span><span class="va">validation</span><span class="op">$</span><span class="va">images</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">32</span>, <span class="fl">32</span>, <span class="fl">32</span><span class="op">)</span>, channels <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

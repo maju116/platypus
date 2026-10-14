@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>save_volumes – platypus</title>
+<title>save_volumes – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -731,7 +731,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/save_volumes.html">Save predicted volumes as NIfTI</a></li></ol></nav></header><section id="save-predicted-volumes-as-nifti" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="save-predicted-volumes-as-nifti">Save predicted volumes as NIfTI</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Writes each mask as a label-map NIfTI carrying the geometry of the scan it was predicted from. That is the whole reason this is not <code><a href="../man/save_masks.html">save_masks()</a></code> with a different extension: a mask array without an affine cannot be laid over its scan by any viewer, any registration tool or any volume calculation - it either lands in the wrong place or is refused.</p>
+<p>Writes each mask as a label-map NIfTI carrying the geometry of the scan it was predicted from. That is the whole reason this is not <code><a href="https://maju116.github.io/platypus/man/save_masks.html">save_masks()</a></code> with a different extension: a mask array without an affine cannot be laid over its scan by any viewer, any registration tool or any volume calculation - it either lands in the wrong place or is refused.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">save_volumes(masks, dir, reference, names = NULL, suffix = "")
 </code></pre>
@@ -784,14 +784,14 @@ Appended to each name, for telling two models’ output apart.
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>The paths written, invisibly.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/save_masks.html">save_masks()</a></code> for 2D masks as pictures.</p>
+<p><code><a href="https://maju116.github.io/platypus/man/save_masks.html">save_masks()</a></code> for 2D masks as pictures.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/split_path.html">split_path</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span>
+<span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/split_path.html">split_path</a></span><span class="op">(</span><span class="va">split</span>, <span class="st">"validation"</span><span class="op">)</span></span>
 <span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, split <span class="op">=</span> <span class="st">"validation"</span>, space <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../man/save_volumes.html">save_volumes</a></span><span class="op">(</span><span class="va">masks</span>, <span class="st">"predictions"</span>, reference <span class="op">=</span> <span class="va">validation</span><span class="op">$</span><span class="va">images</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/save_volumes.html">save_volumes</a></span><span class="op">(</span><span class="va">masks</span>, <span class="st">"predictions"</span>, reference <span class="op">=</span> <span class="va">validation</span><span class="op">$</span><span class="va">images</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

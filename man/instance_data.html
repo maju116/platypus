@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>instance_data – platypus</title>
+<title>instance_data – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -752,7 +752,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="train">train</code>
 </td>
 <td>
-Training data: a directory, a configuration file, or a <code>platypus_split</code> from <code><a href="../man/split_dataset.html">split_dataset()</a></code>, which carries its own validation set and division.
+Training data: a directory, a configuration file, or a <code>platypus_split</code> from <code><a href="https://maju116.github.io/platypus/man/split_dataset.html">split_dataset()</a></code>, which carries its own validation set and division.
 </td>
 </tr>
 <tr>
@@ -792,7 +792,7 @@ Divide <code>train</code> instead of naming a <code>validation</code> set: a lis
 <code id="window">window</code>
 </td>
 <td>
-How values in real units reach the model, for DICOM and NIfTI. See <code><a href="../man/segmentation_data.html">segmentation_data()</a></code>.
+How values in real units reach the model, for DICOM and NIfTI. See <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code>.
 </td>
 </tr>
 <tr>
@@ -820,18 +820,18 @@ Shuffle the training data between epochs.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p><strong>Why this exists rather than an argument on <code><a href="../man/segmentation_data.html">segmentation_data()</a></code>.</strong> Every field <code><a href="../man/instance_data.html">instance_data()</a></code> takes, that one takes too - what makes it a different constructor is the five it <strong>refuses</strong>: <code>colormap</code>, <code>labels</code>, <code>regions</code>, <code>channels_from</code> and <code>target_spacing</code> do not apply to a directory of per-object masks, and the engine rejects them by name. A constructor whose contract is "these five do not apply" is a contract rather than a label, and it gets that refusal from its own argument list rather than from a table somebody has to keep in step.</p>
-<p>The consequence worth knowing before you choose: <code>task</code> is still read off the constructors rather than typed. Calling this one <em>is</em> how a specification says it is about instances, so there is no <code>task = “instance_segmentation”</code> to write and nothing to keep in agreement with it. See <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.</p>
+<p><strong>Why this exists rather than an argument on <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code>.</strong> Every field <code><a href="https://maju116.github.io/platypus/man/instance_data.html">instance_data()</a></code> takes, that one takes too - what makes it a different constructor is the five it <strong>refuses</strong>: <code>colormap</code>, <code>labels</code>, <code>regions</code>, <code>channels_from</code> and <code>target_spacing</code> do not apply to a directory of per-object masks, and the engine rejects them by name. A constructor whose contract is "these five do not apply" is a contract rather than a label, and it gets that refusal from its own argument list rather than from a table somebody has to keep in step.</p>
+<p>The consequence worth knowing before you choose: <code>task</code> is still read off the constructors rather than typed. Calling this one <em>is</em> how a specification says it is about instances, so there is no <code>task = “instance_segmentation”</code> to write and nothing to keep in agreement with it. See <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.</p>
 <p>What the model does with this is the other half, and it is one block: a model’s <code>separation</code> says what the network predicts - <code>rim</code> or <code>flows</code> - and <code>decode</code> says how those channels become objects. Neither belongs here, because they describe the run and not the data.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A data specification, to be passed to <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.</p>
+<p>A data specification, to be passed to <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/segmentation_data.html">segmentation_data()</a></code> for one mask per image, <code><a href="../man/platypus_spec.html">platypus_spec()</a></code></p>
+<p><code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code> for one mask per image, <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code></p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/instance_data.html">instance_data</a></span><span class="op">(</span><span class="st">"stage1_train/"</span>, <span class="st">"stage1_validation/"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/instance_data.html">instance_data</a></span><span class="op">(</span><span class="st">"stage1_train/"</span>, <span class="st">"stage1_validation/"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$train_path
 [1] "stage1_train/"

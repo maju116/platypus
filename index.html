@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>platypus</title>
+<title>rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -135,7 +135,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -734,7 +734,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#platypus" id="toc-platypus" class="nav-link active" data-scroll-target="#platypus">platypus</a>
+  <li><a href="#rplatypus" id="toc-rplatypus" class="nav-link active" data-scroll-target="#rplatypus">rplatypus</a>
   <ul class="collapse">
   <li><a href="#installing" id="toc-installing" class="nav-link" data-scroll-target="#installing">Installing</a></li>
   <li><a href="#a-worked-example" id="toc-a-worked-example" class="nav-link" data-scroll-target="#a-worked-example">A worked example</a></li>
@@ -757,12 +757,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="platypus" class="level1">
-<h1>platypus</h1>
+<section id="rplatypus" class="level1">
+<h1>rplatypus</h1>
 <p><img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130"></p>
 <p><strong>Segmentation and object detection for medical images, from a folder of pictures to a figure.</strong></p>
 <!-- badges: start -->
-<p><a href="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href=""><img src="https://github.com/maju116/platypus/actions/workflows/docs.yaml/badge.svg" class="img-fluid" alt="docs"></a> <!-- badges: end --></p>
+<p><a href="https://github.com/maju116/rplatypus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/maju116/rplatypus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href=""><img src="https://github.com/maju116/rplatypus/actions/workflows/docs.yaml/badge.svg" class="img-fluid" alt="docs"></a> <!-- badges: end --></p>
 <blockquote class="blockquote">
 <p><strong>This is a rewrite, and an alpha.</strong> The package released in 2020 was built on TensorFlow through the R keras package. This one runs on PyTorch through <a href="https://pypi.org/project/pyplatypus/">pyplatypus</a>, which it installs and isolates for you. The API is different and will still move. The old version is on the <code>master</code> branch.</p>
 </blockquote>
@@ -770,13 +770,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="installing" class="level2">
 <h2 class="anchored" data-anchor-id="installing">Installing</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>There is nothing to set up afterwards. The first call that needs the engine builds an isolated Python environment for it, and everything after that uses the cache. You never choose an interpreter, activate anything, or match a version.</p>
-<p><strong>Coming from platypus 0.1.1?</strong> Code written against the 2020 release will not run on this one, and the <a href="https://github.com/maju116/platypus/blob/main/NEWS.md">changelog</a> says what moved, what is gone, and which three names are still exported and mean something else. It is seventy lines and most readers need none of them, which is why it is there rather than here.</p>
+<p><strong>The package was called <code>platypus</code> until 2026-10-14</strong> and is <code>rplatypus</code> now - one name per language, beside the <code>pyplatypus</code> engine on PyPI. The repository moved with it, so <code>github.com/maju116/platypus</code> redirects here and every link anybody already has still works. What you type changed: <code>library(rplatypus)</code>. The functions did not - they are still <a href="man/platypus_spec.html"><code>platypus_spec()</code></a>, <a href="man/platypus_fit.html"><code>platypus_fit()</code></a> and the rest, because the family is the brand and the package name is only what CRAN and <code>library()</code> see.</p>
+<p><strong>Coming from platypus 0.1.1?</strong> Code written against the 2020 release will not run on this one, and the <a href="https://github.com/maju116/rplatypus/blob/main/NEWS.md">changelog</a> says what moved, what is gone, and which three names are still exported and mean something else. It is seventy lines and most readers need none of them, which is why it is there rather than here.</p>
 </section>
 <section id="a-worked-example" class="level2">
 <h2 class="anchored" data-anchor-id="a-worked-example">A worked example</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rplatypus)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">platypus_spec</span>(</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">segmentation_data</span>(</span>
@@ -828,7 +829,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Augmentation in 3D</strong>, with <code>available_transforms(rank = 3)</code> to say what can be used on a volume — albumentations supports them unevenly, and a transform that cannot is refused by name when the run starts rather than raising <code>KeyError: 'images'</code> from inside the library an hour in.</p>
 <p><strong>The parts that make an analysis fast</strong>, which is what the package was always for: combining the per-object mask files that datasets like the Data Science Bowl ship, converting between class indices and colours, overlaying, and drawing the comparison above. These work on ordinary R arrays and need no Python at all.</p>
 <p><strong>Published weights, by name.</strong> <code>weights = "dsbowl-unet"</code> in an architecture loads a trained model instead of training one — <a href="man/available_weights.html"><code>available_weights()</code></a> lists what is published and what each one can and cannot do. A name is pinned to one commit of the repository holding it, so it means the same numbers next year. <a href="man/export_weights.html"><code>export_weights()</code></a> writes your own the same way, with a sidecar recording what they were trained on, which is what makes them usable by anybody else.</p>
-<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <a href="man/platypus_fit.html"><code>platypus_fit()</code></a> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>inspect_masks(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
+<p><strong>A refusal before a wasted day.</strong> A colormap or set of labels that matches none of your masks is the quietest failure in segmentation: every mask reads as background, the loss falls because background is most of a medical image, the metrics look respectable for the same reason, and the model learns to answer “nothing here”. <code>platypus_fit()</code> reads a sample of the training masks first and <strong>refuses when a class the specification declares appears in none of them</strong> — which is provable rather than suspicious, because a class with no examples has no gradient towards it. <code>inspect_masks(spec)</code> asks the same question over as much of the data as you like, and <code>check_masks = FALSE</code> proceeds regardless.</p>
 <p><strong>A backbone where one helps.</strong> <code>encoder = "resnet34"</code> swaps the contracting path for a timm architecture and <code>pretrained = TRUE</code> loads its ImageNet weights, with <code>freeze_encoder</code> to keep them from being undone. Whether that is worth doing is a measured question rather than a rhetorical one — see below, and <code>?encoders</code> for the table.</p>
 </section>
 <section id="boxes-instead-of-masks" class="level2">
@@ -923,7 +924,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="learning-it" class="level2">
 <h2 class="anchored" data-anchor-id="learning-it">Learning it</h2>
 <p>Three vignettes, all precomputed from real runs — every number and figure in them came out of running the code shown.</p>
-<p><strong>Read them at <a href="">maju116.github.io/platypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
+<p><strong>Read them at <a href="">maju116.github.io/rplatypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
 <p><code>vignette("data-science-bowl")</code> is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.</p>
 <p><code>vignette("blood-cells")</code> is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.</p>
 <p><code>vignette("volumes")</code> is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.</p>
@@ -942,7 +943,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Three things worth knowing.</p>
 <p><strong>The first call downloads about 5 GB</strong>, most of it CUDA libraries that PyTorch ships by default whether or not there is a GPU. It is cached afterwards, and everything works offline once it is — which is the install path for a machine without internet access: run it once somewhere with a connection and carry <code>~/.cache/uv</code> across.</p>
 <p><strong>On a GeForce GTX 10-series card or older</strong>, ask for the older PyTorch first:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(platypus)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rplatypus)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">platypus_use_torch</span>(<span class="st">"pascal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>PyTorch 2.8 onwards ships CUDA 13 builds, and CUDA 13 dropped that whole generation of cards. Without this, everything runs on the processor instead — perhaps ten times slower, with nothing obviously wrong. <a href="man/platypus_device.html"><code>platypus_device()</code></a> will tell you which is happening.</p>
 <p><strong>If the engine will not start and the error says there is no such version of pyplatypus</strong>, the version does exist and uv is answering from a cached copy of the package index — likely because the engine was published minutes ago. Clear the index cache:</p>

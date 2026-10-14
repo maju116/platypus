@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>drawing_style – platypus</title>
+<title>drawing_style – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -730,9 +730,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/plot_masks.html">Looking at the results</a></li><li class="breadcrumb-item"><a href="../man/drawing_style.html">The decisions a drawing makes</a></li></ol></nav></header><section id="the-decisions-a-drawing-makes" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="the-decisions-a-drawing-makes">The decisions a drawing makes</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Every value <code><a href="../man/plot_masks.html">plot_masks()</a></code>, <code><a href="../man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="../man/overlay_mask.html">overlay_mask()</a></code> and <code><a href="../man/overlay_agreement.html">overlay_agreement()</a></code> use when you do not give them one: which colours mean found, missed and invented, one colour per class for <code><a href="../man/plot_anchors.html">plot_anchors()</a></code>, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing at all.</p>
+<p>Every value <code><a href="https://maju116.github.io/platypus/man/plot_masks.html">plot_masks()</a></code>, <code><a href="https://maju116.github.io/platypus/man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="https://maju116.github.io/platypus/man/overlay_mask.html">overlay_mask()</a></code> and <code><a href="https://maju116.github.io/platypus/man/overlay_agreement.html">overlay_agreement()</a></code> use when you do not give them one: which colours mean found, missed and invented, one colour per class for <code><a href="https://maju116.github.io/platypus/man/plot_anchors.html">plot_anchors()</a></code>, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing at all.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R"><a href="../man/drawing_style.html">drawing_style()
+<pre><code class="language-R"><a href="https://maju116.github.io/platypus/man/drawing_style.html">drawing_style()
 </a></code></pre>
 </section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>They belong to the engine - <code>pyplatypus.style</code> - and are mirrored here so that drawing needs no Python. A test holds the two together, so the same call draws the same picture from either package.</p>
@@ -740,17 +740,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A named list: <code>agreement_colours</code>, <code>box_colours</code>, <code>class_colours</code>, <code>overlay_alpha</code>, <code>box_label_format</code> and <code>box_min_score</code>.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/plot_masks.html">plot_masks()</a></code>, <code><a href="../man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="../man/overlay_agreement.html">overlay_agreement()</a></code></p>
+<p><code><a href="https://maju116.github.io/platypus/man/plot_masks.html">plot_masks()</a></code>, <code><a href="https://maju116.github.io/platypus/man/plot_boxes.html">plot_boxes()</a></code>, <code><a href="https://maju116.github.io/platypus/man/overlay_agreement.html">overlay_agreement()</a></code></p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">agreement_colours</span><span class="op">[[</span><span class="st">"missed"</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">agreement_colours</span><span class="op">[[</span><span class="st">"missed"</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "#E63C3C"</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># The same list the engine returns, which is what keeps the two drawings the same.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="fu"><a href="../man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/drawing_style.html">drawing_style</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>List of 6
  $ agreement_colours: Named chr [1:3] "#3CDC5A" "#E63C3C" "#F0C83C"

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>models – platypus</title>
+<title>models – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -892,7 +892,7 @@ Tile size: <code>c(height, width)</code>, or <code>c(depth, height, width)</code
 <code id="channels">channels</code>
 </td>
 <td>
-Input channels. 3 for colour, 1 for greyscale. Derived from <code>channels_from</code> when <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> names one file per channel.
+Input channels. 3 for colour, 1 for greyscale. Derived from <code>channels_from</code> when <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code> names one file per channel.
 </td>
 </tr>
 <tr>
@@ -900,7 +900,7 @@ Input channels. 3 for colour, 1 for greyscale. Derived from <code>channels_from<
 <code id="n_class">n_class</code>
 </td>
 <td>
-<strong>Removed.</strong> The number of classes comes from the data - <code>colormap</code> or <code>labels</code> in <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> - and a model that also declared it could only ever disagree with its own data. Passing it is an error that says so.
+<strong>Removed.</strong> The number of classes comes from the data - <code>colormap</code> or <code>labels</code> in <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code> - and a model that also declared it could only ever disagree with its own data. Passing it is an error that says so.
 </td>
 </tr>
 <tr>
@@ -924,7 +924,7 @@ Filters in the first block; doubled at each level. Taken from the weights file w
 <code id="block_width">block_width</code>
 </td>
 <td>
-Convolutions per block. Two is the usual U-Net block; one trains faster and holds less, three rarely pays for itself. It composes with every architecture, including the residual blocks of <code><a href="../man/models.html">res_u_net()</a></code>, where it is the number of convolutions inside the residual rather than beside it.
+Convolutions per block. Two is the usual U-Net block; one trains faster and holds less, three rarely pays for itself. It composes with every architecture, including the residual blocks of <code><a href="https://maju116.github.io/platypus/man/models.html">res_u_net()</a></code>, where it is the number of convolutions inside the residual rather than beside it.
 </td>
 </tr>
 <tr>
@@ -996,7 +996,7 @@ One of <code>“he_normal”</code>, <code>“he_uniform”</code>, <code>“glo
 <code id="loss">loss</code>
 </td>
 <td>
-The objective trained against, see losses and <code><a href="../man/available_components.html">available_losses()</a></code>. It is what a score table’s <code>loss</code> column is comparable within and not across: a Focal-Tversky of 0.05 is not better than a cross-entropy of 0.14, it is a different question, which is why the table carries the loss’s name beside the number. Unset uses the engine’s default.
+The objective trained against, see losses and <code><a href="https://maju116.github.io/platypus/man/available_components.html">available_losses()</a></code>. It is what a score table’s <code>loss</code> column is comparable within and not across: a Focal-Tversky of 0.05 is not better than a cross-entropy of 0.14, it is a different question, which is why the table carries the loss’s name beside the number. Unset uses the engine’s default.
 </td>
 </tr>
 <tr>
@@ -1028,7 +1028,7 @@ A list of callbacks, see callbacks.
 <code id="augmentation">augmentation</code>
 </td>
 <td>
-A list of <code><a href="../man/augmentation_step.html">augmentation_step()</a></code> steps, applied to training data only.
+A list of <code><a href="https://maju116.github.io/platypus/man/augmentation_step.html">augmentation_step()</a></code> steps, applied to training data only.
 </td>
 </tr>
 <tr>
@@ -1100,7 +1100,7 @@ A separate, smaller rate for the layers that arrived pretrained. The full-resolu
 <code id="separation">separation</code>
 </td>
 <td>
-What the network predicts so that touching objects can be told apart - <code><a href="../man/separations.html">separation_rim()</a></code> or <code><a href="../man/separations.html">separation_flows()</a></code>. Giving it is what makes this an <strong>instance</strong> model: it has no counterpart on a semantic one, so a model carrying it can only mean instances, which is how a specification knows its task without anybody typing it. The data has to be <code><a href="../man/instance_data.html">instance_data()</a></code> to match. The head’s width follows from the signal and the number of classes and is derived rather than stated.
+What the network predicts so that touching objects can be told apart - <code><a href="https://maju116.github.io/platypus/man/separations.html">separation_rim()</a></code> or <code><a href="https://maju116.github.io/platypus/man/separations.html">separation_flows()</a></code>. Giving it is what makes this an <strong>instance</strong> model: it has no counterpart on a semantic one, so a model carrying it can only mean instances, which is how a specification knows its task without anybody typing it. The data has to be <code><a href="https://maju116.github.io/platypus/man/instance_data.html">instance_data()</a></code> to match. The head’s width follows from the signal and the number of classes and is derived rather than stated.
 </td>
 </tr>
 <tr>
@@ -1108,13 +1108,13 @@ What the network predicts so that touching objects can be told apart - <code><a 
 <code id="decode">decode</code>
 </td>
 <td>
-A <strong>list</strong> of decodings turning those channels into objects, e.g. <code>list(decode_nearest_seed(), decode_connected_components())</code>. A list rather than one, because several decodings share a single forward pass: a second costs seconds where a second training run costs an hour, so <code><a href="../man/evaluate.html">evaluate()</a></code> returns a row per model <em>and</em> decoding. Unset, the engine uses the signal’s own decoding plus <code><a href="../man/decodings.html">decode_connected_components()</a></code>, which ignores the signal and is therefore the row the others have to be read against. Only meaningful with <code>separation</code>.
+A <strong>list</strong> of decodings turning those channels into objects, e.g. <code>list(decode_nearest_seed(), decode_connected_components())</code>. A list rather than one, because several decodings share a single forward pass: a second costs seconds where a second training run costs an hour, so <code><a href="https://maju116.github.io/platypus/man/evaluate.html">evaluate()</a></code> returns a row per model <em>and</em> decoding. Unset, the engine uses the signal’s own decoding plus <code><a href="https://maju116.github.io/platypus/man/decodings.html">decode_connected_components()</a></code>, which ignores the signal and is therefore the row the others have to be read against. Only meaningful with <code>separation</code>.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p><code>input_shape</code> is the tile the model sees: two numbers for images, three for volumes. Its length is what makes a model 2D or 3D - there is no separate switch. Every spatial dimension must divide by <code>2^blocks</code>, or the decoder cannot line up with the encoder, and that is checked when the specification is built rather than part-way through training.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A model specification, to be passed to <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.</p>
+<p>A model specification, to be passed to <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.</p>
 </section><section id="where-the-defaults-live" class="level3"><h3 class="anchored" data-anchor-id="where-the-defaults-live">Where the defaults live</h3>
 <p>Every argument below except <code>name</code> and <code>input_shape</code> is <code>NULL</code> unless you set it, and a <code>NULL</code> is left out of the request entirely - so the engine’s own default applies. The defaults are therefore written down once, in <code>pyplatypus</code>, rather than here as well:</p>
 <pre>channels 3        blocks 4          filters 16      block_width 2
@@ -1127,9 +1127,9 @@ epochs 10         batch_size 8      fit TRUE
 <p>The second reason matters more than tidiness. A value sent is indistinguishable from a value chosen, so defaults travelling from here would silence the engine’s own knowledge: <code>weights</code> naming a published file records its architecture, <code>blocks</code> and <code>filters</code>, and those are adopted <strong>only</strong> where the specification stayed silent. Sending <code>blocks = 4</code> because that is what R happened to say would override a file that knows better.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/models.html">u_net</a></span><span class="op">(</span><span class="st">"unet"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, blocks <span class="op">=</span> <span class="fl">4</span>, filters <span class="op">=</span> <span class="fl">16</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/models.html">u_net</a></span><span class="op">(</span><span class="st">"unet"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, blocks <span class="op">=</span> <span class="fl">4</span>, filters <span class="op">=</span> <span class="fl">16</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "unet"
@@ -1147,7 +1147,7 @@ $filters
 [1] 16</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># A large image, tiled rather than shrunk</span></span>
-<span><span class="fu"><a href="../man/models.html">u_net</a></span><span class="op">(</span><span class="st">"hd"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, splits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/models.html">u_net</a></span><span class="op">(</span><span class="st">"hd"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, splits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "hd"

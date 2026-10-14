@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>inspect_masks – platypus</title>
+<title>inspect_masks – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -742,7 +742,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="spec">spec</code>
 </td>
 <td>
-A <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.
+A <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.
 </td>
 </tr>
 <tr>
@@ -762,7 +762,7 @@ How many masks to read. They are spread across the split rather than taken from 
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p><code><a href="../man/platypus_fit.html">platypus_fit()</a></code> does a small version of this before every run and refuses when a declared class appears in none of the masks it read. This is the same question asked deliberately, over as much of the data as you want - which is what to reach for when that refusal looks wrong.</p>
+<p><code><a href="https://maju116.github.io/platypus/man/platypus_fit.html">platypus_fit()</a></code> does a small version of this before every run and refuses when a declared class appears in none of the masks it read. This is the same question asked deliberately, over as much of the data as you want - which is what to reach for when that refusal looks wrong.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A one-row data frame: <code>unmatched</code>, <code>samples_checked</code>, <code>total_samples</code>, and <code>present_classes</code> and <code>missing_classes</code> as comma-separated strings so the frame stays printable. The classes are also attached as integer vectors in the attributes <code>present</code> and <code>missing</code>.</p>
 </section><section id="what-the-numbers-mean" class="level3"><h3 class="anchored" data-anchor-id="what-the-numbers-mean">What the numbers mean</h3>
@@ -770,10 +770,10 @@ How many masks to read. They are spread across the split rather than taken from 
 <p><code>unmatched</code> is the fraction of mask pixels matching no entry, which fall back to the background class. <strong>Read it knowing that it scales with the size of the thing being segmented</strong>, so it is loud for a large structure and almost silent for a small lesion. Measured on masks that are white, with a colormap asking for a colour that is not there: a foreground covering 20% of the image gives 19.8%, and one covering 0.6% gives 0.61% - which is less than the 0.72% that JPEG compression leaves around the edge of a perfectly correct mask. That is why the refusal is built on class presence instead.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/inspect_masks.html">inspect_masks</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../man/inspect_masks.html">inspect_masks</a></span><span class="op">(</span><span class="va">spec</span>, split <span class="op">=</span> <span class="st">"validation"</span>, limit <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/inspect_masks.html">inspect_masks</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/inspect_masks.html">inspect_masks</a></span><span class="op">(</span><span class="va">spec</span>, split <span class="op">=</span> <span class="st">"validation"</span>, limit <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

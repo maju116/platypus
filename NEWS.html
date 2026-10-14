@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>news – platypus</title>
+<title>news – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -135,7 +135,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -739,6 +739,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.0] - unreleased</a>
   <ul class="collapse">
   <li><a href="#migrating-from-0.1.1" id="toc-migrating-from-0.1.1" class="nav-link" data-scroll-target="#migrating-from-0.1.1">Migrating from 0.1.1</a></li>
+  <li><a href="#the-package-is-rplatypus" id="toc-the-package-is-rplatypus" class="nav-link" data-scroll-target="#the-package-is-rplatypus">2026-10-14 - the package is <code>rplatypus</code></a></li>
   <li><a href="#engine-0.8.0a22" id="toc-engine-0.8.0a22" class="nav-link" data-scroll-target="#engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</a></li>
   <li><a href="#engine-0.8.0a2" id="toc-engine-0.8.0a2" class="nav-link" data-scroll-target="#engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</a></li>
   <li><a href="#engine-0.8.0a1" id="toc-engine-0.8.0a1" class="nav-link" data-scroll-target="#engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</a></li>
@@ -766,7 +767,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="change-log" class="level1">
 <h1>Change Log</h1>
 <p>All notable changes to this package will be documented in this file. Two things about its shape are worth stating, because neither is the usual one.</p>
-<p><strong>There is no release yet.</strong> <code>remotes::install_github("maju116/platypus")</code> serves the default branch, so “the version I had working” is a commit rather than a tag. Entries are therefore dated rather than numbered: the heading they sit under is the version in <code>DESCRIPTION</code>, and the <code>0.1.1</code> below it is the 2020 package this one replaced.</p>
+<p><strong>There is no release yet.</strong> <code>remotes::install_github("maju116/rplatypus")</code> serves the default branch, so “the version I had working” is a commit rather than a tag. Entries are therefore dated rather than numbered: the heading they sit under is the version in <code>DESCRIPTION</code>, and the <code>0.1.1</code> below it is the 2020 package this one replaced.</p>
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">[0.2.0] - unreleased</h2>
@@ -841,19 +842,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <p>The annotation readers are gone as functions and are now what <a href="man/detection_data.html"><code>detection_data()</code></a> reads for you: Pascal VOC XML or LabelMe JSON, named rather than guessed.</p>
 <p>The old release is still there and still installable, pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 </section>
-<section id="engine-0.8.0a22" class="level3">
-<h3 class="anchored" data-anchor-id="engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</h3>
-<p><strong>This file has a gap and it is named rather than backfilled.</strong> The entry below is dated 2026-10-08 and the pin moved twice between then and here - to <code>0.8.0a12</code> for <code>fives-unet</code> (<code>[#151](https://github.com/maju116/platypus/issues/151)</code>) and to <code>0.8.0a20</code> for the instance task (<code>[#155](https://github.com/maju116/platypus/issues/155)</code>) - so the dates above this heading are not a complete record of what the pin did. Writing those entries now would be writing them from the commit log rather than from the work, which is a different thing from having written them; the heading says what this change is and the omission stays visible.</p>
+<section id="the-package-is-rplatypus" class="level3">
+<h3 class="anchored" data-anchor-id="the-package-is-rplatypus">2026-10-14 - the package is <code>rplatypus</code></h3>
 <section id="changed" class="level4">
 <h4 class="anchored" data-anchor-id="changed">Changed</h4>
 <ul>
+<li><p><strong><code>library(platypus)</code> is <code>library(rplatypus)</code>.</strong> The name collided with <code>Platypus</code>, archived from CRAN on 2026-02-02 - unrelated work in immunology - and the two differed only in case, which the policy treats as a conflict and which archiving does not release. <code>cran-comments.md</code> had promised to resubmit under another name rather than ask for an exception, so this is that name rather than a new idea: one name per language, beside the <code>pyplatypus</code> engine on PyPI, and a name that says what the package is - the R surface over a Python engine.</p>
+<p><code>rplatypus</code> is in neither CRAN’s current index nor its archive, checked against both with a positive control so that the absence means something.</p></li>
+<li><p><strong>The functions did not change.</strong> <code>platypus_spec()</code>, <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>, <a href="man/platypus_status.html"><code>platypus_status()</code></a>, <a href="man/platypus_device.html"><code>platypus_device()</code></a> and <a href="man/platypus_use_torch.html"><code>platypus_use_torch()</code></a> keep their names, and so do the S3 classes <code>platypus_fit</code>, <code>platypus_spec</code>, <code>platypus_split</code> and the rest, the <code>platypus_*</code> condition classes, the <code>PLATYPUS_*</code> environment variables and the headers <code>print()</code> writes. The rule is that the package’s <em>identity</em> - what <code>library()</code> and CRAN see - is <code>rplatypus</code>, and the <em>brand</em> is still platypus. §3A already said the S3 class keeps the prefix even where its constructor loses it; this is the same line drawn one level up, and it means no released surface moved.</p></li>
+<li><p><strong>The repository was renamed too</strong>, to <code>maju116/rplatypus</code>. Stars, forks, watchers and every issue came with it - read back from the API rather than assumed - and <code>github.com/maju116/platypus</code> redirects, so links in other people’s issue comments keep working. The site moved with the repository and is now at <a href="">maju116.github.io/rplatypus</a>; the former address has no redirect, because a project page is served under the repository’s own name and the only way to hold the old one would be to occupy the name the redirect needs.</p>
+<p>The dated entries below name <code>maju116/platypus</code> where they were written that way. They are the record of what it was called at the time and they still resolve, so they are left alone rather than rewritten.</p></li>
+</ul>
+</section>
+</section>
+<section id="engine-0.8.0a22" class="level3">
+<h3 class="anchored" data-anchor-id="engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</h3>
+<p><strong>This file has a gap and it is named rather than backfilled.</strong> The entry below is dated 2026-10-08 and the pin moved twice between then and here - to <code>0.8.0a12</code> for <code>fives-unet</code> (<code>[#151](https://github.com/maju116/rplatypus/issues/151)</code>) and to <code>0.8.0a20</code> for the instance task (<code>[#155](https://github.com/maju116/rplatypus/issues/155)</code>) - so the dates above this heading are not a complete record of what the pin did. Writing those entries now would be writing them from the commit log rather than from the work, which is a different thing from having written them; the heading says what this change is and the omission stays visible.</p>
+<section id="changed-1" class="level4">
+<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
+<ul>
 <li><p>Engine pinned to <code>0.8.0a22</code>, for two things R forwards rather than implements.</p></li>
-<li><p><strong>A regression loss is refused as any segmentation model’s own <code>loss</code>, not only an instance model’s.</strong> <code>?losses</code> claimed the narrower rule and was measured when it was written, so it was true rather than wrong - the engine’s refusal lived on the instance class alone, and a <em>semantic</em> model accepted <a href="man/losses.html"><code>loss_mse()</code></a> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <a href="man/losses.html"><code>loss_cce()</code></a> reaches a Dice of 1.0000. The default <code>where = "foreground"</code> is what made that look like a success: it averages the objective only inside the labelled objects and leaves the background unconstrained. <code>pyplatypus[#223](https://github.com/maju116/platypus/issues/223)</code>.</p>
+<li><p><strong>A regression loss is refused as any segmentation model’s own <code>loss</code>, not only an instance model’s.</strong> <code>?losses</code> claimed the narrower rule and was measured when it was written, so it was true rather than wrong - the engine’s refusal lived on the instance class alone, and a <em>semantic</em> model accepted <a href="man/losses.html"><code>loss_mse()</code></a> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <a href="man/losses.html"><code>loss_cce()</code></a> reaches a Dice of 1.0000. The default <code>where = "foreground"</code> is what made that look like a success: it averages the objective only inside the labelled objects and leaves the background unconstrained. <code>pyplatypus[#223](https://github.com/maju116/rplatypus/issues/223)</code>.</p>
 <p>So <a href="man/available_components.html"><code>available_losses()</code></a> is <strong>ten</strong> rows now rather than thirteen, and <code>available_losses("instance_segmentation")</code> is thirteen - the three regression losses are reachable where they have a target, which is <code>separation_flows(loss = )</code>. Nothing R sends changes: a configuration refused after this pin move was refused by the engine before it.</p></li>
-<li><p><strong><a href="man/evaluate.html"><code>evaluate()</code></a> on an instance fit carries <code>foreground_dice</code>.</strong> It is the mask column to read <em>across</em> models - the binary overlap of anything the model called an object against anything that is one, the same arithmetic whatever the separation is. The <code>dice</code> beside it is a mean over the class channels the head has, three for <a href="man/separations.html"><code>separation_rim()</code></a> against two for <a href="man/separations.html"><code>separation_flows()</code></a>, so it is read down one model’s rows and never across two: on the Data Science Bowl’s validation cases it showed two masks 0.09 apart that are 0.0062 apart, and in the other direction. <code>pyplatypus[#222](https://github.com/maju116/platypus/issues/222)</code>.</p></li>
+<li><p><strong><a href="man/evaluate.html"><code>evaluate()</code></a> on an instance fit carries <code>foreground_dice</code>.</strong> It is the mask column to read <em>across</em> models - the binary overlap of anything the model called an object against anything that is one, the same arithmetic whatever the separation is. The <code>dice</code> beside it is a mean over the class channels the head has, three for <a href="man/separations.html"><code>separation_rim()</code></a> against two for <a href="man/separations.html"><code>separation_flows()</code></a>, so it is read down one model’s rows and never across two: on the Data Science Bowl’s validation cases it showed two masks 0.09 apart that are 0.0062 apart, and in the other direction. <code>pyplatypus[#222](https://github.com/maju116/rplatypus/issues/222)</code>.</p></li>
 </ul>
 </section>
 <section id="fixed" class="level4">
@@ -873,8 +887,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>include_background</code> defaults to <code>FALSE</code> here and <code>TRUE</code> for the other three. The background’s skeleton lies inside the background by construction, so that class scores 1 whatever the model did.</p></li>
 </ul>
 </section>
-<section id="changed-1" class="level4">
-<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
+<section id="changed-2" class="level4">
+<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
 <ul>
 <li>Engine pinned to <code>0.8.0a2</code>.</li>
 </ul>
@@ -888,8 +902,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><a href="man/drawing_style.html"><code>drawing_style()</code></a></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
 </section>
-<section id="changed-2" class="level4">
-<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
+<section id="changed-3" class="level4">
+<h4 class="anchored" data-anchor-id="changed-3">Changed</h4>
 <ul>
 <li><p><strong>The drawing decisions now come from the engine.</strong> They were written out in ten places across <code>R/plot.R</code> and <code>R/masks.R</code>, and <code>pyplatypus.style</code> held the same five values - which is two copies that happened to agree, not one source. They agreed because five differences between the two packages’ figures had been found by laying them side by side and fixing them by hand.</p>
 <p>Nothing changes in any picture: the values are identical, and a test compares every one of them against the engine’s, so a change on that side now fails this package’s CI instead of being noticed by eye.</p>
@@ -960,7 +974,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>No aliases: two names for one thing is what this removes. The S3 <strong>class</strong> returned by <code>split_dataset()</code> is still <code>platypus_split</code> - that is the object’s identity, and every class in the package is prefixed.</p>
-<p><code>evaluate()</code>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <a href="man/platypus_fit.html"><code>platypus_fit()</code></a>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
+<p><code>evaluate()</code>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <code>platypus_fit()</code>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
@@ -1059,7 +1073,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="engine-0.2.0a1">2026-09-25 - engine 0.2.0a1</h3>
 <p>The package exists.</p>
 <ul>
-<li><strong>The bridge.</strong> <code>py_require()</code> plus uv, resolving an isolated ephemeral environment at <code>library(platypus)</code> - deliberately not the shared-Python arrangement that broke this package’s Keras stack in 2020. <a href="man/platypus_status.html"><code>platypus_status()</code></a> says what it found rather than leaving a failed import to be guessed at, and <code>PLATYPUS_ENGINE_PATH</code> points the bridge at a source tree during development.</li>
+<li><strong>The bridge.</strong> <code>py_require()</code> plus uv, resolving an isolated ephemeral environment at <code>library(rplatypus)</code> - deliberately not the shared-Python arrangement that broke this package’s Keras stack in 2020. <code>platypus_status()</code> says what it found rather than leaving a failed import to be guessed at, and <code>PLATYPUS_ENGINE_PATH</code> points the bridge at a source tree during development.</li>
 <li><strong><code>platypus_spec()</code></strong>, built either from arguments or from a YAML file and producing the same thing. One pipeline, two constructors.</li>
 <li><strong><code>platypus_fit()</code></strong>, <code>evaluate()</code>, <code>predict()</code>, <a href="man/training_history.html"><code>training_history()</code></a>, and the engine’s complaints translated into R conditions rather than passed through as Python tracebacks.</li>
 </ul>
@@ -1069,7 +1083,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="section">[0.1.1] - 2020-10-17</h2>
 <p>The last release of the TensorFlow package, kept here for the record rather than as an ancestor of the entries above. It built Keras models through the R <code>keras</code> package: <code>yolo3()</code> and <code>darknet53()</code> with <code>load_darknet_weights()</code> for the original Darknet weights, a plain <code>u_net()</code>, <code>segmentation_generator()</code>, <code>loss_dice()</code>, the COCO and VOC colormaps, and readers for LabelMe JSON and Pascal VOC XML.</p>
 <p>It is still installable and still pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/platypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch and the issues filed against it stay open. What has aged is its dependencies rather than its code - the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 
 

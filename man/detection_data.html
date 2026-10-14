@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>detection_data – platypus</title>
+<title>detection_data – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -730,7 +730,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/platypus_spec.html">A specification</a></li><li class="breadcrumb-item"><a href="../man/detection_data.html">Where the images and their annotation files are</a></li></ol></nav></header><section id="where-the-images-and-their-annotation-files-are" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="where-the-images-and-their-annotation-files-are">Where the images and their annotation files are</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>The detection counterpart of <code><a href="../man/segmentation_data.html">segmentation_data()</a></code>. Two layouts, the same two as segmentation: <code>nested_dirs</code> expects one directory per sample holding an <code>images</code> and an <code>annotations</code> subdirectory, and <code>config_file</code> expects a CSV with <code>images</code> and <code>annotations</code> columns. A detection dataset in Pascal VOC’s own layout - one flat <code>JPEGImages</code> beside one flat <code>Annotations</code> - is neither, and the way in is to write three CSV files listing the pairs; <code>examples/detect_blood_cells.py</code> in the engine does exactly that for BCCD in a dozen lines.</p>
+<p>The detection counterpart of <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code>. Two layouts, the same two as segmentation: <code>nested_dirs</code> expects one directory per sample holding an <code>images</code> and an <code>annotations</code> subdirectory, and <code>config_file</code> expects a CSV with <code>images</code> and <code>annotations</code> columns. A detection dataset in Pascal VOC’s own layout - one flat <code>JPEGImages</code> beside one flat <code>Annotations</code> - is neither, and the way in is to write three CSV files listing the pairs; <code>examples/detect_blood_cells.py</code> in the engine does exactly that for BCCD in a dozen lines.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">detection_data(
   train,
@@ -772,7 +772,7 @@ There is no background entry, unlike a segmentation colormap. A pixel always bel
 <code id="test">test</code>
 </td>
 <td>
-Optional test data. Annotations are read if they are there, and the split is then scoreable; without them it can be predicted and <code><a href="../man/evaluate.html">evaluate()</a></code> refuses it by name, because scoring against empty truth would report zero and a zero in a table reads as a result.
+Optional test data. Annotations are read if they are there, and the split is then scoreable; without them it can be predicted and <code><a href="https://maju116.github.io/platypus/man/evaluate.html">evaluate()</a></code> refuses it by name, because scoring against empty truth would report zero and a zero in a table reads as a result.
 </td>
 </tr>
 <tr>
@@ -781,7 +781,7 @@ Optional test data. Annotations are read if they are there, and the split is the
 </td>
 <td>
 <p>Divide <code>train</code> instead of naming a <code>validation</code> set: a list with <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is required and may be <code>NULL</code>. Exactly one of <code>split</code> and <code>validation</code>.</p>
-This is the only way to divide one folder for detection. <code><a href="../man/split_dataset.html">split_dataset()</a></code> writes a <code>masks</code> column and so cannot be used here; <code>split</code> divides the samples themselves, so column names never come into it. A test set cut this way carries its annotations, so unlike a separate <code>test</code> folder it can be scored and not only predicted on.
+This is the only way to divide one folder for detection. <code><a href="https://maju116.github.io/platypus/man/split_dataset.html">split_dataset()</a></code> writes a <code>masks</code> column and so cannot be used here; <code>split</code> divides the samples themselves, so column names never come into it. A test set cut this way carries its annotations, so unlike a separate <code>test</code> folder it can be scored and not only predicted on.
 </td>
 </tr>
 <tr>
@@ -822,7 +822,7 @@ Refuse an object whose class is not in <code>classes</code>. <code>FALSE</code> 
 <code id="window">window</code>
 </td>
 <td>
-How values in real units reach the model, for DICOM and NIfTI. See <code><a href="../man/segmentation_data.html">segmentation_data()</a></code>; ignored for ordinary pictures, which is what most detection data is.
+How values in real units reach the model, for DICOM and NIfTI. See <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code>; ignored for ordinary pictures, which is what most detection data is.
 </td>
 </tr>
 <tr>
@@ -850,14 +850,14 @@ Shuffle the training data between epochs.
 </td>
 </tr>
 </tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A data specification, to be passed to <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.</p>
+<p>A data specification, to be passed to <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/yolo3.html">yolo3()</a></code>, <code><a href="../man/plot_boxes.html">plot_boxes()</a></code></p>
+<p><code><a href="https://maju116.github.io/platypus/man/yolo3.html">yolo3()</a></code>, <code><a href="https://maju116.github.io/platypus/man/plot_boxes.html">plot_boxes()</a></code></p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/detection_data.html">detection_data</a></span><span class="op">(</span><span class="st">"train/"</span>, <span class="st">"valid/"</span>, classes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"RBC"</span>, <span class="st">"WBC"</span>, <span class="st">"Platelets"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/detection_data.html">detection_data</a></span><span class="op">(</span><span class="st">"train/"</span>, <span class="st">"valid/"</span>, classes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"RBC"</span>, <span class="st">"WBC"</span>, <span class="st">"Platelets"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$train_path
 [1] "train/"

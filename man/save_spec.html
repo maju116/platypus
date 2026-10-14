@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>save_spec – platypus</title>
+<title>save_spec – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -731,7 +731,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/platypus_spec.html">A specification</a></li><li class="breadcrumb-item"><a href="../man/save_spec.html">Write a specification back out as YAML</a></li></ol></nav></header><section id="write-a-specification-back-out-as-yaml" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="write-a-specification-back-out-as-yaml">Write a specification back out as YAML</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p><code><a href="../man/platypus_spec.html">platypus_spec()</a></code> reads a YAML file and builds a specification from arguments. This is the way back, so the two are one pipeline rather than one and a half: a specification assembled in R becomes a file somebody else can run, or that a script can keep beside its results.</p>
+<p><code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code> reads a YAML file and builds a specification from arguments. This is the way back, so the two are one pipeline rather than one and a half: a specification assembled in R becomes a file somebody else can run, or that a script can keep beside its results.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">save_spec(spec, path, defaults = FALSE)
 </code></pre>
@@ -742,7 +742,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="spec">spec</code>
 </td>
 <td>
-A <code>platypus_spec</code>, from <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>.
+A <code>platypus_spec</code>, from <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>.
 </td>
 </tr>
 <tr>
@@ -767,21 +767,21 @@ Write every field at its resolved value, including the ones you never set.
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>The path, invisibly.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/platypus_spec.html">platypus_spec()</a></code>, which reads one back, and <code><a href="../man/read_record.html">read_record()</a></code> for what a run <em>did</em> as opposed to what it was asked to do.</p>
+<p><code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>, which reads one back, and <code><a href="https://maju116.github.io/platypus/man/read_record.html">read_record()</a></code> for what a run <em>did</em> as opposed to what it was asked to do.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="fu"><a href="../man/segmentation_data.html">segmentation_data</a></span><span class="op">(</span><span class="st">"train/"</span>, <span class="st">"valid/"</span>, colormap <span class="op">=</span> <span class="va">binary_colormap</span><span class="op">)</span>,</span>
-<span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="../man/models.html">u_net</a></span><span class="op">(</span><span class="st">"unet"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data</a></span><span class="op">(</span><span class="st">"train/"</span>, <span class="st">"valid/"</span>, colormap <span class="op">=</span> <span class="va">binary_colormap</span><span class="op">)</span>,</span>
+<span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/models.html">u_net</a></span><span class="op">(</span><span class="st">"unet"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/save_spec.html">save_spec</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"experiment.yaml"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="fu"><a href="../man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span><span class="st">"experiment.yaml"</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/save_spec.html">save_spec</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"experiment.yaml"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span><span class="st">"experiment.yaml"</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Everything the engine resolved, for a run that has to reproduce in five years.</span></span>
-<span><span class="fu"><a href="../man/save_spec.html">save_spec</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"frozen.yaml"</span>, defaults <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/save_spec.html">save_spec</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"frozen.yaml"</span>, defaults <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

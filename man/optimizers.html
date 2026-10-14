@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>optimizers – platypus</title>
+<title>optimizers – rplatypus</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">platypus</span>
+    <span class="navbar-title">rplatypus</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -125,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
 <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/maju116/platypus"> <i class="bi bi-github" role="img" aria-label="platypus GitHub">
+    <a class="nav-link" href="https://github.com/maju116/rplatypus"> <i class="bi bi-github" role="img" aria-label="rplatypus GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -731,7 +731,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/losses.html">What a model is made of</a></li><li class="breadcrumb-item"><a href="../man/optimizers.html">Optimisers</a></li></ol></nav></header><section id="optimisers" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="optimisers">Optimisers</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>How the weights are updated. <code><a href="../man/optimizers.html">optimizer_adam()</a></code> unless there is a reason not to: it adapts the step per parameter, so it usually trains without anything tuned except <code>learning_rate</code>. <code><a href="../man/optimizers.html">optimizer_sgd()</a></code> with <code>momentum</code> is the recipe most of the classification literature’s best numbers were produced with, in exchange for depending on a tuned rate and usually a schedule - see callbacks for those.</p>
+<p>How the weights are updated. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adam()</a></code> unless there is a reason not to: it adapts the step per parameter, so it usually trains without anything tuned except <code>learning_rate</code>. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_sgd()</a></code> with <code>momentum</code> is the recipe most of the classification literature’s best numbers were produced with, in exchange for depending on a tuned rate and usually a schedule - see callbacks for those.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">optimizer_adam(
   learning_rate = 0.001,
@@ -818,7 +818,7 @@ Decay for the running average of the gradient. Lower reacts to the last few batc
 <code id="beta_2">beta_2</code>
 </td>
 <td>
-Decay for the running average of the squared gradient, which is what scales each parameter’s step. Below about 0.99 training gets noticeably noisier. In <code><a href="../man/optimizers.html">optimizer_adamax()</a></code> it decays the largest gradient seen instead.
+Decay for the running average of the squared gradient, which is what scales each parameter’s step. Below about 0.99 training gets noticeably noisier. In <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adamax()</a></code> it decays the largest gradient seen instead.
 </td>
 </tr>
 <tr>
@@ -834,7 +834,7 @@ Added to the denominator so a parameter whose gradient has been zero for a while
 <code id="weight_decay">weight_decay</code>
 </td>
 <td>
-Pull the weights towards zero at every step, which is L2 regularisation. Off by default because it interacts with the loss and is not free: on a small dataset it can cost more than the overfitting it prevents. In <code><a href="../man/optimizers.html">optimizer_adamw()</a></code> it is applied to the weights directly rather than through the gradient, which is the whole difference between the two.
+Pull the weights towards zero at every step, which is L2 regularisation. Off by default because it interacts with the loss and is not free: on a small dataset it can cost more than the overfitting it prevents. In <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adamw()</a></code> it is applied to the weights directly rather than through the gradient, which is the whole difference between the two.
 </td>
 </tr>
 <tr>
@@ -866,7 +866,7 @@ Look ahead to where momentum is about to carry the weights before measuring the 
 <code id="alpha">alpha</code>
 </td>
 <td>
-For <code><a href="../man/optimizers.html">optimizer_rmsprop()</a></code>, the decay for its running average of the squared gradient - the same work <code>beta_2</code> does in the Adam family, under that family’s name.
+For <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_rmsprop()</a></code>, the decay for its running average of the squared gradient - the same work <code>beta_2</code> does in the Adam family, under that family’s name.
 </td>
 </tr>
 <tr>
@@ -874,7 +874,7 @@ For <code><a href="../man/optimizers.html">optimizer_rmsprop()</a></code>, the d
 <code id="lr_decay">lr_decay</code>
 </td>
 <td>
-For <code><a href="../man/optimizers.html">optimizer_adagrad()</a></code>, shrink the rate further as training goes on, on top of the shrinking Adagrad already does by accumulating every squared gradient it has seen.
+For <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adagrad()</a></code>, shrink the rate further as training goes on, on top of the shrinking Adagrad already does by accumulating every squared gradient it has seen.
 </td>
 </tr>
 <tr>
@@ -882,22 +882,22 @@ For <code><a href="../man/optimizers.html">optimizer_adagrad()</a></code>, shrin
 <code id="rho">rho</code>
 </td>
 <td>
-For <code><a href="../man/optimizers.html">optimizer_adadelta()</a></code>, how long a window of squared gradients to remember. Adadelta exists to avoid Adagrad’s ever-shrinking step and this is the parameter that does it.
+For <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adadelta()</a></code>, how long a window of squared gradients to remember. Adadelta exists to avoid Adagrad’s ever-shrinking step and this is the parameter that does it.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p><strong>No run in this project has compared them on segmentation</strong>, so this page says what each one does differently rather than which is better. <code><a href="../man/available_components.html">available_optimizers()</a></code> lists them with the arguments each accepts.</p>
-<p>The rest are here because a configuration should be able to name what torch offers. <code><a href="../man/optimizers.html">optimizer_adamw()</a></code> is Adam with weight decay applied to the weights rather than through the gradient, which is why its decay defaults to 0.01 rather than 0 - choosing it and leaving the decay at zero leaves nothing to choose. <code><a href="../man/optimizers.html">optimizer_adagrad()</a></code> accumulates every squared gradient it has seen, so its step only ever shrinks and a long run can stop learning; <code><a href="../man/optimizers.html">optimizer_adadelta()</a></code> is the same idea with a window instead of a sum. <code><a href="../man/optimizers.html">optimizer_adamax()</a></code> tracks the largest gradient rather than the average of their squares, which is steadier where a few batches carry very large ones. <code><a href="../man/optimizers.html">optimizer_rmsprop()</a></code> is Adam’s denominator without its momentum, and <code><a href="../man/optimizers.html">optimizer_nadam()</a></code> is Adam with the look-ahead that SGD calls <code>nesterov</code>.</p>
+<p><strong>No run in this project has compared them on segmentation</strong>, so this page says what each one does differently rather than which is better. <code><a href="https://maju116.github.io/platypus/man/available_components.html">available_optimizers()</a></code> lists them with the arguments each accepts.</p>
+<p>The rest are here because a configuration should be able to name what torch offers. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adamw()</a></code> is Adam with weight decay applied to the weights rather than through the gradient, which is why its decay defaults to 0.01 rather than 0 - choosing it and leaving the decay at zero leaves nothing to choose. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adagrad()</a></code> accumulates every squared gradient it has seen, so its step only ever shrinks and a long run can stop learning; <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adadelta()</a></code> is the same idea with a window instead of a sum. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adamax()</a></code> tracks the largest gradient rather than the average of their squares, which is steadier where a few batches carry very large ones. <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_rmsprop()</a></code> is Adam’s denominator without its momentum, and <code><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_nadam()</a></code> is Adam with the look-ahead that SGD calls <code>nesterov</code>.</p>
 <p>Every argument left unset is decided by the engine, which is where the defaults live.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>An optimiser specification.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="../man/available_components.html">available_optimizers()</a></code> for the same list with its arguments, and <a href="../man/callbacks.html"><code>callbacks()</code></a> for moving the rate during a run.</p>
+<p><code><a href="https://maju116.github.io/platypus/man/available_components.html">available_optimizers()</a></code> for the same list with its arguments, and <a href="../man/callbacks.html"><code>callbacks()</code></a> for moving the rate during a run.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/platypus">"platypus"</a></span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../man/optimizers.html">optimizer_adam</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_adam</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "adam"
@@ -920,7 +920,7 @@ $weight_decay
 $amsgrad
 [1] FALSE</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="../man/optimizers.html">optimizer_sgd</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>, nesterov <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://maju116.github.io/platypus/man/optimizers.html">optimizer_sgd</a></span><span class="op">(</span>learning_rate <span class="op">=</span> <span class="fl">0.01</span>, momentum <span class="op">=</span> <span class="fl">0.9</span>, nesterov <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "sgd"
