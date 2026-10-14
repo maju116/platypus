@@ -984,6 +984,138 @@
     ]
   },
   {
+    "objectID": "overview.html",
+    "href": "overview.html",
+    "title": "Overview",
+    "section": "",
+    "text": "Every exported function, grouped by what you are doing. The same groups in the same order as the engine’s reference, each side showing the ones it has.",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#setting-up",
+    "href": "overview.html#setting-up",
+    "title": "Overview",
+    "section": "Setting up",
+    "text": "Setting up\nThe engine is Python, installed on first use. These three say where it is, what it found, and which build of PyTorch to ask for.\n\nplatypus_status\nplatypus_device\nplatypus_use_torch",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#a-specification",
+    "href": "overview.html#a-specification",
+    "title": "Overview",
+    "section": "A specification",
+    "text": "A specification\nOne object says what to train, on what data, with what. Built from arguments or from YAML - the same specification either way.\n\nplatypus_spec\nsegmentation_data\ndetection_data\ninstance_data\nmodels\nyolo3\nsave_spec\nas.list.platypus_spec",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#what-a-model-is-made-of",
+    "href": "overview.html#what-a-model-is-made-of",
+    "title": "Overview",
+    "section": "What a model is made of",
+    "text": "What a model is made of\nLosses, metrics, optimisers, callbacks, augmentation, encoders - and the listings that ask the engine what those names are, rather than asking you to remember them.\n\nlosses\nloss_boundary\nmetrics\noptimizers\ncallbacks\ncallback_swa\nseparations\ndecodings\naugmentation_step\navailable_components\navailable_transforms\nencoders",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#the-data-on-disk",
+    "href": "overview.html#the-data-on-disk",
+    "title": "Overview",
+    "section": "The data on disk",
+    "text": "The data on disk\nSplitting by patient rather than by slice, and looking at what is actually there before spending an afternoon training on it.\n\nsplit_dataset\nsplit_path\nread_images\nread_masks\nvolume_info\nseries_report\ninspect_masks",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#training",
+    "href": "overview.html#training",
+    "title": "Overview",
+    "section": "Training",
+    "text": "Training\nFitting, and what the run says while and after it happens - one row per epoch, and a figure of it.\n\nplatypus_fit\ntraining_history\nplot.platypus_fit",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#predicting-and-scoring",
+    "href": "overview.html#predicting-and-scoring",
+    "title": "Overview",
+    "section": "Predicting and scoring",
+    "text": "Predicting and scoring\nMasks and boxes out, and the numbers that say whether to believe them: over a dataset, per case, per class, per image.\n\npredict.platypus_fit\nevaluate\nevaluate_cases\nevaluate_classes\nevaluate_images\ndetection_anchors\ndetection_crops",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#weights",
+    "href": "overview.html#weights",
+    "title": "Overview",
+    "section": "Weights",
+    "text": "Weights\nPublished weights, and your own. A registry name carries the commit it was published at, so one name means one set of numbers for good.\n\nexport_weights\navailable_weights",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#records",
+    "href": "overview.html#records",
+    "title": "Overview",
+    "section": "Records",
+    "text": "Records\nWhat a run wrote down about itself, including the engine version that made it. Reading one needs no Python: a record you cannot read without the thing that wrote it is worth less than one you can.\n\nread_record",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#looking-at-the-results",
+    "href": "overview.html#looking-at-the-results",
+    "title": "Overview",
+    "section": "Looking at the results",
+    "text": "Looking at the results\nA figure is the point. These are the ones you put in a paper.\n\nplot_masks\nplot_boxes\nplot_anchors\noverlay_mask\noverlay_agreement\ndrawing_style",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#masks-and-volumes",
+    "href": "overview.html#masks-and-volumes",
+    "title": "Overview",
+    "section": "Masks and volumes",
+    "text": "Masks and volumes\nReading masks, joining them, measuring them and writing them back. Millilitres rather than voxels, and a NIfTI that carries the affine of the scan it was predicted from.\n\ncolours_to_classes\nclasses_to_colours\nmask_coverage\nmask_volume\nunite_masks\ncolormaps\nct_windows\nsave_masks\nsave_volumes",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "overview.html#when-something-is-wrong",
+    "href": "overview.html#when-something-is-wrong",
+    "title": "Overview",
+    "section": "When something is wrong",
+    "text": "When something is wrong\nEvery failure arrives as a classed condition, so a script can tell a specification it cannot run from a dataset that is not there. platypus_error catches all of them.\n\nplatypus_conditions",
+    "crumbs": [
+      "Reference",
+      "Overview"
+    ]
+  },
+  {
     "objectID": "LICENSE.html",
     "href": "LICENSE.html",
     "title": "platypus",
