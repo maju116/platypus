@@ -606,3 +606,138 @@ test_that("masks that would overwrite each other are refused", {
                           names = c("case_a", "case_b", "case_c"))
   expect_length(unique(basename(written)), 3)
 })
+
+
+# --- overlapping classes have no label map, and this is the case `regions` was built for --
+#
+# BraTS names three overlapping regions and stores them as volumes, so the volume writer is
+# where this matters most - and `#152` named `save_masks()` while `save_volumes()` reduced a
+# prediction in **two** places: a 4-dimensional array inside a list and a 5-dimensional
+# stack. A label-map NIfTI holds one integer per voxel, so there is nothing an overlap could
+# be written as.
+
+overlapping_volumes <- function(cases = 2L, shape = c(8, 8, 4)) {
+  # A label map of {0, 1, 2} turned into unions, so the overlap is a consequence of the data
+  # rather than something a test asserted into existence.
+  labels <- array(0L, dim = shape)
+  labels[1:4, , ] <- 1L
+  labels[5:8, , ] <- 2L
+  channels <- lapply(list(c(1, 2), 2), function(of) as.numeric(labels %in% of))
+  one <- array(unlist(channels), dim = c(shape, 2L))
+  lapply(seq_len(cases), function(i) one)
+}
+
+test_that("save_volumes refuses an overlapping prediction in a list", {
+  expect_error(
+    save_volumes(overlapping_volumes(), withr::local_tempdir(), reference = c("a", "b")),
+    "2 classes at once"
+  )
+  expect_error(
+    save_volumes(overlapping_volumes(), withr::local_tempdir(), reference = c("a", "b")),
+    "save_class_volumes"
+  )
+})
+
+test_that("save_volumes refuses an overlapping prediction as a stack", {
+  stacked <- array(unlist(overlapping_volumes(cases = 2L)), dim = c(2, 8, 8, 4, 2))
+  expect_error(
+    save_volumes(stacked, withr::local_tempdir(), reference = c("a", "b")),
+    "2 classes at once"
+  )
+})
+
+test_that("an exclusive volume prediction is still reduced rather than refused", {
+  # The control, and the one that matters: a softmax prediction must pass both of the places
+  # the refusal was added, or every ordinary volume run would start failing.
+  skip_if_no_volumes()
+  root <- tiny_volume_dataset(cases = 1)
+  scan <- list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE, full.names = TRUE)
+  softmax <- array(0, dim = c(8, 8, 4, 2))
+  softmax[, , , 1] <- 0.7
+  softmax[, , , 2] <- 0.3
+  written <- save_volumes(list(softmax), withr::local_tempdir(), reference = scan)
+  expect_length(written, 1L)
+  stacked <- array(softmax, dim = c(1, 8, 8, 4, 2))
+  expect_length(save_volumes(stacked, withr::local_tempdir(), reference = scan), 1L)
+})
+
+test_that("save_class_volumes writes one NIfTI per class, carrying the scan's geometry", {
+  skip_if_no_volumes()
+  root <- tiny_volume_dataset(cases = 2)
+  scans <- sort(list.files(root, pattern = "ct[.]nii[.]gz$", recursive = TRUE,
+                           full.names = TRUE))
+  out <- withr::local_tempdir()
+  written <- save_class_volumes(
+    overlapping_volumes(cases = 2L), out, reference = scans,
+    classes = c("whole tumour", "enhancing"),
+    names = c("case_a", "case_b")
+  )
+
+  # Volume by volume, class within volume - the order a caller zips against its case names.
+  expect_identical(
+    basename(written),
+    c("case_a_whole_tumour.nii.gz", "case_a_enhancing.nii.gz",
+      "case_b_whole_tumour.nii.gz", "case_b_enhancing.nii.gz")
+  )
+  # Read back the content, not the count: a writer that put the same channel in both would
+  # pass a test that only looked at the names. `whole tumour` is both halves, `enhancing` is
+  # the second half alone, and the overlap is what no label map could have held.
+  read_back <- function(path) {
+    reticulate::py_run_string(sprintf(
+      "import nibabel as nib, numpy as np\nout = np.asarray(nib.load(%s).dataobj)",
+      shQuote(path, type = "cmd")
+    ))$out
+  }
+  whole <- read_back(file.path(out, "case_a_whole_tumour.nii.gz"))
+  enhancing <- read_back(file.path(out, "case_a_enhancing.nii.gz"))
+  expect_true(all(whole == 1L))
+  expect_true(all(enhancing[1:4, , ] == 0L))
+  expect_true(all(enhancing[5:8, , ] == 1L))
+
+  # And the geometry, which is the only reason this is not `save_class_masks()` with another
+  # extension: every class of a scan carries that scan's spacing.
+  expect_equal(volume_info(written)$spacing_3, rep(volume_info(scans)$spacing_3, each = 2))
+})
+
+test_that("save_class_volumes counts its class names against the channels", {
+  expect_error(
+    save_class_volumes(overlapping_volumes(), withr::local_tempdir(),
+                       reference = c("a", "b"), classes = "only one"),
+    "2 channels and 1 class names"
+  )
+})
+
+test_that("save_class_volumes refuses two class names that become one file", {
+  expect_error(
+    save_class_volumes(overlapping_volumes(), withr::local_tempdir(),
+                       reference = c("a", "b"), classes = c("core 1", "core_1")),
+    "same filename"
+  )
+})
+
+test_that("save_class_volumes states the ranks it takes rather than guessing", {
+  # Unlike `save_volumes()`, no rank here is ambiguous: a prediction with a class axis always
+  # has one dimension more than the volume, so there is nothing to guess between.
+  expect_error(
+    save_class_volumes(array(1L, dim = c(8, 8, 4)), withr::local_tempdir(),
+                       reference = "a", classes = c("x", "y")),
+    "3 dimensions; expected 4"
+  )
+})
+
+test_that("R's filename rule and the engine's are the same rule", {
+  # Two copies of one rule, which is what §3F exists to catch: `save_class_masks()` forwards
+  # to the engine's `class_filename` and `save_class_volumes()` cannot, so this holds them to
+  # each other over the names that are actually awkward rather than over a comment.
+  skip_if_no_engine()
+  awkward <- c("whole tumour", "Core / rim", "oedema (T2)", "a.b-c_d", "  padded  ",
+               "two  spaces")
+  mine <- rplatypus:::class_file_names(awkward)
+  theirs <- vapply(awkward, function(name) {
+    reticulate::py_run_string(sprintf(
+      "from pyplatypus.data.masks import class_filename\nout = class_filename(%s)",
+      shQuote(name, type = "cmd")
+    ))$out
+  }, character(1))
+  expect_identical(mine, unname(theirs))
+})

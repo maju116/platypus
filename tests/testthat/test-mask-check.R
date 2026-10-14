@@ -231,3 +231,64 @@ test_that("without `regions` the classes are still numbers", {
   expect_identical(report$present_classes, "0, 1, 2")
   expect_identical(attr(report, "present"), c(0L, 1L, 2L))
 })
+
+
+# --- `predict()` has no class mask to return for overlapping classes ---------------------
+#
+# The lever is R's own: the specification this fit carries says whether the classes overlap,
+# and the shape of the returned array cannot - sigmoid channels and a softmax's channels are
+# the same array. Without this guard `type = "class"`, which is the default, reaches the
+# shim's `argmax + 1` and names one of the classes a pixel is in while dropping the rest,
+# with nothing in the result to say it happened. `#152`.
+
+test_that("predict() refuses a class mask when the classes overlap", {
+  skip_if_no_volumes()
+  skip_if_no_regions()
+  root <- tiny_label_dataset(background = TRUE)
+  spec <- regions_spec(root, list(list(name = "one", of = 1),
+                                  list(name = "both", of = c(1, 2))))
+  # Not trained on purpose: the guard runs before the engine is consulted, so a real run
+  # would spend four minutes proving something the specification already carries. The spec
+  # itself is real, which is the part that matters - `as.list()` on it goes through the
+  # engine, so this also proves `regions` survives the round trip.
+  fit <- structure(list(spec = spec, task = "semantic_segmentation", models = "m"),
+                   class = "platypus_fit")
+  expect_error(predict(fit, "m", split = "validation"), "no one class per pixel")
+  expect_error(predict(fit, "m", split = "validation"), "save_class_masks")
+
+  # The control, and it is the one that matters: without `regions` this must not fire, or
+  # every ordinary run would refuse. The call then fails on something else entirely.
+  plain <- structure(
+    list(
+      spec = platypus_spec(
+        data = segmentation_data(root, root, window = "soft_tissue", labels = c(0, 1, 2)),
+        models = list(u_net("m", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                            filters = 4, epochs = 1, batch_size = 1))
+      ),
+      task = "semantic_segmentation", models = "m"
+    ),
+    class = "platypus_fit"
+  )
+  elsewhere <- tryCatch(predict(plain, "m", split = "validation"),
+                        error = conditionMessage)
+  expect_false(grepl("no one class per pixel", elsewhere, fixed = TRUE))
+})
+
+test_that("predict(type = \"probability\") is the way through, and says the channel order", {
+  skip_if_no_volumes()
+  skip_if_no_regions()
+  root <- tiny_label_dataset(background = TRUE)
+  spec <- regions_spec(root, list(list(name = "one", of = 1),
+                                  list(name = "both", of = c(1, 2))))
+  # The names `save_class_masks()` wants, in the order it wants them, from the same place
+  # `inspect_masks()` reads them. Asserted here rather than left to prose because the order
+  # is what pairs a file on disk with a score in a table.
+  # `:::`, because this is internal and the `engine` job runs `test_dir()` against the
+  # installed package with no `package =` argument. A bare call works under `load_all()` and
+  # under `test_dir(package = )`, and fails in the one place that matters - which is §4's
+  # "installed is not source", met for the third time in a new costume.
+  expect_identical(
+    unname(rplatypus:::named_classes(spec, 0:1)),
+    c("one", "both")
+  )
+})

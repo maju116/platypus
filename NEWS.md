@@ -81,7 +81,61 @@ drifted underneath it.
   `labels` and `regions`, in one message, matching the engine's own sentence - and the
   message now says which arguments it found rather than only that one was expected.
 
+- **`save_class_masks()` writes an overlapping prediction, one file per class.** Needs
+  **pyplatypus 0.8.0a23**, which is what the pin moves to here, and where the writer lives; this side forwards to it rather than
+  keeping a second copy of the rules, because the filenames are part of what somebody's next
+  script reads. `<name><suffix>_<class>.png`, black and white, and a class name becomes a
+  filename by replacing anything a path cannot hold with `_` - so `whole tumour` is
+  `whole_tumour`. Two class names that become the **same** filename are refused rather than
+  written: one file would hold the second class, the first would be silently gone, and the
+  number of returned paths would still be right.
+
+  The argument is `classes` and not `names`, which is §3A applied before the surface
+  existed: `names` in this family is the **files** - `save_masks()` and `save_volumes()` both
+  use it that way - and a sibling writer where the same word means the classes instead would
+  accept a call copied from one to the other whenever the counts happened to match. The
+  engine's own function calls them `classes` too, for the same reason.
+
 #### Fixed
+
+- **`save_masks()` and `save_volumes()` refuse an overlapping prediction instead of silently
+  reducing it.** Both took `which.max` over the channel axis, which for sigmoid channels
+  writes one of the classes a voxel is in and leaves nothing in the file to say so. They now
+  count how many channels are hot at the most ambitious voxel and refuse with that number,
+  each pointing at its own per-class writer.
+
+  `#152` named `save_masks()` and there turned out to be **three** reduction sites, not one:
+  `save_volumes()` has two, a 4-dimensional array inside a list and a 5-dimensional stack.
+  Found by asking what a BraTS user would actually run, which is §4's *a feature is not
+  shipped until something has used it the way a user reaches it* applied to a refusal.
+
+  Detected **from the array** rather than from the specification, which is the same test the
+  engine applies in `onehot_to_colours` - so both halves refuse the same arrays, and a caller
+  holding only a prediction can answer the question. A softmax prediction never trips it,
+  since its channels sum to one and at most one can reach half; that control is a test rather
+  than a sentence, because without it every ordinary run would start refusing.
+
+- **`save_class_volumes()` is the same thing for volumes, and it is the case `regions` was
+  built for.** BraTS names three overlapping regions and stores them as volumes, so a writer
+  that only handled pictures would have left the motivating dataset with a refusal and no
+  route to disk. One NIfTI per class, each carrying the geometry of the scan it was predicted
+  from - which is the whole reason this is not `save_class_masks()` with another extension.
+
+  It needs no engine release: it goes through the same volume writer `save_volumes()` uses,
+  so the affine, the integer labels and the grid check are those rather than a second copy.
+  What *is* a second copy is the rule turning a class name into a filename, because the
+  volume path never reaches the engine's `class_filename` - so a test holds R's rule to the
+  engine's over the names that are actually awkward, rather than a comment claiming they
+  agree.
+
+- **`predict(type = "class")` refused rather than computed when the classes overlap**, and
+  `"class"` is the default, so this is the first call an R user makes on such a fit. There is
+  no one class per pixel to return: the channels are independent binary questions, they do
+  not compete, and an `argmax` across them names one of the classes a pixel is in. The
+  refusal says to ask for `type = "probability"` and names what writes it.
+
+  Read off the specification the fit carries, which is a lever this package owns - the shape
+  cannot answer it, because sigmoid channels and a softmax's channels are the same array.
 
 - **A single `of` value would have crossed over as a number rather than a list.** reticulate
   turns a length-1 integer vector into a Python scalar, and the schema wants an array, so

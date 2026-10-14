@@ -24,7 +24,13 @@ first one trained.}
 \item{split}{Which data to predict on.}
 
 \item{type}{\code{"class"} gives the class index per pixel, which is the mask to look at;
-\code{"probability"} keeps the per-class channel.}
+\code{"probability"} keeps the per-class channel.
+
+With \code{regions} - overlapping classes - \code{"class"} is \strong{refused} rather than computed.
+The channels are independent binary questions and do not compete, so the most likely
+one is not an answer: a pixel may be in three classes and naming one of them drops the
+rest with nothing in the result to say so. Ask for \code{"probability"} and write it with
+\code{\link[=save_class_masks]{save_class_masks()}}.}
 
 \item{space}{\code{"model"} or \code{"source"}; see above. Note that the two return different
 shapes of thing, an array and a list, because they are different things.}

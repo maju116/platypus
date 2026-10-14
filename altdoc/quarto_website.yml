@@ -118,7 +118,9 @@ website:
               - man/colormaps.qmd
               - man/ct_windows.qmd
               - man/save_masks.qmd
+              - man/save_class_masks.qmd
               - man/save_volumes.qmd
+              - man/save_class_volumes.qmd
           - section: "When something is wrong"
             contents:
               - man/platypus_conditions.qmd

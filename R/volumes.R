@@ -70,6 +70,27 @@ mask_volume <- function(mask, spacing, class = 2L) {
   voxels * prod(as.numeric(spacing)) / 1000
 }
 
+#' Refuse a volume prediction a label map cannot hold
+#'
+#' The same check `save_masks()` makes, at the two places a volume prediction is reduced -
+#' and this is the one that matters most, because `regions` was motivated by BraTS and BraTS
+#' is volumes. A label-map NIfTI holds one integer per voxel, so an overlapping prediction
+#' written this way names one of the classes a voxel is in and loses the rest, with nothing
+#' in the file to say so.
+#' @keywords internal
+#' @noRd
+refuse_overlapping_volume <- function(masks) {
+  overlapping <- overlapping_channels(masks)
+  if (overlapping > 1L) {
+    stop("a voxel is in ", overlapping, " classes at once, and a label map holds one ",
+         "integer per voxel - taking the strongest would write a plausible volume of ",
+         "something else. These are overlapping classes (`regions`), so write them one ",
+         "file per class with `save_class_volumes()`.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+
 #' One volume per element, whatever form the masks arrived in
 #'
 #' A list from `predict(space = "source")` passes through untouched, which is the point of that
@@ -83,6 +104,7 @@ as_volume_list <- function(masks) {
       dims <- length(dim(one))
       if (dims == 4L) {
         # (d, h, w, class): probabilities for one volume.
+        refuse_overlapping_volume(one)
         apply(one, seq_len(3L), which.max)
       } else if (dims == 3L) {
         one
@@ -97,6 +119,7 @@ as_volume_list <- function(masks) {
   dimensions <- length(dim(masks))
   if (dimensions == 5L) {
     # Probabilities: (n, d, h, w, class). Collapse as predict(type = "class") would.
+    refuse_overlapping_volume(masks)
     masks <- apply(masks, seq_len(4L), which.max)
   } else if (dimensions == 3L) {
     masks <- array(masks, dim = c(1L, dim(masks)))
@@ -270,4 +293,134 @@ print.platypus_series_report <- function(x, ...) {
     }
   }
   invisible(x)
+}
+
+
+#' Save overlapping classes as one NIfTI per class
+#'
+#' The volume counterpart of [save_class_masks()], and the one `regions` was motivated by:
+#' BraTS names three overlapping regions and stores them as volumes. A label-map NIfTI holds
+#' one integer per voxel, so [save_volumes()] refuses an overlapping prediction rather than
+#' reducing it, and this is what it refuses it in favour of - one binary volume per class,
+#' each carrying the geometry of the scan it was predicted from.
+#'
+#' Each file is `<name><suffix>_<class>.nii.gz`. The class name becomes part of a filename the
+#' same way [save_class_masks()] does, and two class names that become the same filename are
+#' refused rather than written.
+#'
+#' Why one file per class rather than one file with several values: a voxel in the tumour core
+#' is also in the whole tumour, and no single integer says both. Any viewer can load three
+#' binary masks over one scan; none can unpack an overlap out of one label map.
+#'
+#' @param masks Channel probabilities - a list of `depth x height x width x class` arrays,
+#'   which is what `predict(type = "probability", space = "source")` gives, or one stacked
+#'   `volume x depth x height x width x class` array.
+#' @param dir Directory to write into; created if it does not exist.
+#' @param reference The scan each mask was predicted from, as paths. Every class of one scan
+#'   is written with that scan's geometry, which is the whole reason this is not
+#'   [save_class_masks()] with a different extension.
+#' @param classes One name per channel, in channel order, which is the order the regions were
+#'   written in. `inspect_masks()` names them the same way.
+#' @param names File name stems, one per volume. Defaults to the reference file names with
+#'   their extensions removed - and names that collide are refused, because one directory per
+#'   case usually means the same filename inside each.
+#' @param suffix Added before the class, so predictions from different models can sit in one
+#'   directory.
+#' @param threshold A class is written where its channel reaches this. 0.5 is what every
+#'   metric in the engine thresholds a channel at.
+#' @return The paths written, invisibly, volume by volume and within a volume class by class.
+#' @seealso [save_class_masks()] for 2D, [save_volumes()] for exclusive classes.
+#' @export
+#' @examples
+#' \dontrun{
+#' channels <- predict(fit, "brats", split = "test", type = "probability", space = "source")
+#' save_class_volumes(channels, "predictions",
+#'                    reference = split_path(split, "test")$image,
+#'                    classes = c("whole tumour", "tumour core", "enhancing"))
+#' }
+save_class_volumes <- function(masks, dir, reference, classes, names = NULL, suffix = "",
+                               threshold = 0.5) {
+  channels <- as_channel_volume_list(masks)
+
+  count <- length(channels)
+  reference <- as.character(reference)
+  if (length(reference) != count) {
+    stop("`reference` has ", length(reference), " entries but there are ", count,
+         " predictions. Each class is written with the geometry of the scan it came from, ",
+         "so they have to line up.", call. = FALSE)
+  }
+
+  names <- if (is.null(names)) {
+    sub("[.]nii([.]gz)?$", "", basename(reference), ignore.case = TRUE)
+  } else {
+    as.character(names)
+  }
+  if (length(names) != count) {
+    stop("`names` has ", length(names), " entries but there are ", count, " predictions.",
+         call. = FALSE)
+  }
+  if (anyDuplicated(names)) {
+    repeated <- unique(names[duplicated(names)])
+    stop("the predictions would be written to the same names: ",
+         paste(utils::head(repeated, 3), collapse = ", "),
+         if (length(repeated) > 3) ", ..." else "",
+         ". Names come from the reference files, and one directory per case usually means ",
+         "the same filename in each. Pass `names`.", call. = FALSE)
+  }
+
+  classes <- as.character(classes)
+  widths <- unique(vapply(channels, function(one) dim(one)[4], integer(1)))
+  if (length(widths) != 1L || widths != length(classes)) {
+    stop("the predictions have ", paste(widths, collapse = "/"), " channels and ",
+         length(classes), " class names were given. One name per channel, in the order ",
+         "the regions were written.", call. = FALSE)
+  }
+  files <- class_file_names(classes)
+
+  # Written class by class through the ordinary volume writer, so the affine, the integer
+  # labels and the grid check are the same ones `save_volumes()` gets rather than a second
+  # copy of them. One `write_volumes` call per class: it takes a list of volumes and a list
+  # of references, which is exactly a class across all the scans.
+  written <- character()
+  for (index in seq_along(files)) {
+    volumes <- lapply(channels, function(one) {
+      binary <- one[, , , index, drop = TRUE] >= threshold
+      array(as.integer(binary), dim = dim(binary))
+    })
+    paths <- file.path(dir, paste0(names, suffix, "_", files[[index]], ".nii.gz"))
+    result <- shim()$write_volumes(volumes, as.list(paths), as.list(reference))
+    if (!isTRUE(result$ok)) abort_engine(result)
+    written <- c(written, unlist(result$paths))
+  }
+  # Volume by volume rather than class by class, matching `save_class_masks()`: the order
+  # the paths come back in is what a caller zips against its case names.
+  invisible(as.vector(t(matrix(written, nrow = count))))
+}
+
+#' Channel probabilities per volume, whatever form they arrived in
+#'
+#' Deliberately stricter than `as_volume_list()`: there is no rank here that could be either
+#' thing, because a prediction with a class axis always has one more dimension than the
+#' volume. So the ambiguity that function documents does not exist in this one, and a rank
+#' that is not 4 or 5 is a mistake rather than a guess.
+#' @keywords internal
+#' @noRd
+as_channel_volume_list <- function(masks) {
+  if (is.list(masks)) {
+    lapply(masks, function(one) {
+      if (length(dim(one)) != 4L) {
+        stop("a prediction in the list has ", length(dim(one)), " dimensions; expected 4 - ",
+             "`depth x height x width x class`.", call. = FALSE)
+      }
+      one
+    })
+  } else if (length(dim(masks)) == 5L) {
+    lapply(seq_len(dim(masks)[1]), function(i) masks[i, , , , , drop = TRUE])
+  } else if (length(dim(masks)) == 4L) {
+    list(masks)
+  } else {
+    stop("`masks` has ", length(dim(masks)), " dimensions; expected 4 (one volume's ",
+         "channels), 5 (a stack of them) or a list of 4-dimensional arrays. ",
+         "`predict(type = \"probability\")` returns those.", call. = FALSE)
+  }
 }

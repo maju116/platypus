@@ -14,7 +14,12 @@ the most likely class.
 For \strong{volumes} use \code{\link[=save_volumes]{save_volumes()}}, which writes NIfTI carrying the geometry of the
 scan each mask came from. This function cannot reliably tell a stack of volumes from a
 stack of images with a class axis - the ranks are identical - so it does not try; it
-refuses only the case a shape can prove.}
+refuses only the case a shape can prove.
+
+For \strong{overlapping classes} use \code{\link[=save_class_masks]{save_class_masks()}}. A prediction where some pixel is
+in two classes at once is refused here rather than reduced: one pixel gets one colour,
+so writing it as a colour map would mean choosing one of the classes it is in and
+leaving nothing in the file to say that happened.}
 
 \item{dir}{Directory to write into; created if it does not exist.}
 

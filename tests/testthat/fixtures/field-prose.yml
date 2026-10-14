@@ -6,7 +6,7 @@
 #
 # A digest that no longer matches is not the engine's failure. It is a question - does R's
 # prose still say the right thing? - asked at the only moment anybody would ask it.
-engine: 0.8.0a22
+engine: 0.8.0a23
 fields:
   - field: activation
     engine_digest: 4822b126e39826a504979a6b123cc241
@@ -73,7 +73,7 @@ fields:
     documented_in: [segmentation_data]
   - field: classes
     engine_digest: d7528902252d396a40fc6c43f9b9dd87
-    documented_in: [detection_data]
+    documented_in: [detection_data, save_class_masks, save_class_volumes]
   - field: colormap
     engine_digest: b35573b635a5deb0e831d638c5270fef
     documented_in: [classes_to_colours, colours_to_classes, overlay_mask, plot_masks, read_masks, save_masks, segmentation_data]
@@ -213,7 +213,7 @@ fields:
     engine_digest: d8278773867744f0bd3f8895e9d22023
     documented_in: []
   - field: path
-    engine_digest: 2a2235c61bce2ece0ff562db6c1489ff
+    engine_digest: 44dbc2655b83e63ba89920ecb2da6aad
     documented_in: [callbacks, export_weights, read_record, save_spec]
   - field: patience
     engine_digest: 4a7007e48113bbfc10e8649df4c5b0bd
