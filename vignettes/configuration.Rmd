@@ -192,6 +192,85 @@ shorter, because support for volumes is uneven. Each step is probed at the model
 size while the pipeline is built, so a transform that cannot do the job says so before the
 first epoch rather than during it.
 
+## Overlapping classes instead of one per voxel
+
+`colormap` and `labels` both say the same thing about a voxel: it is in exactly one class.
+`regions` is the third way of naming classes and the only one that drops that assumption -
+classes named as unions of a label map's values, which is how BraTS and the
+lesion-inside-an-organ family actually store their ground truth.
+
+```yaml
+task: semantic_segmentation
+data:
+  train_path: data/train
+  validation_path: data/validation
+  regions:
+    - {name: whole tumour, of: [1, 2, 4]}
+    - {name: tumour core, of: [1, 4]}
+    - {name: enhancing, of: [4]}
+models:
+  - name: brats
+    input_shape: [240, 240]
+    loss: {name: focal}
+```
+
+The same from R. A region is a `list(name = , of = )`, and `of` takes the label-map values
+that belong to it:
+
+```{r}
+spec <- platypus_spec(
+  data = segmentation_data(
+    "data/train", "data/validation",
+    regions = list(
+      list(name = "whole tumour", of = c(1, 2, 4)),
+      list(name = "tumour core", of = c(1, 4)),
+      list(name = "enhancing", of = 4)
+    )
+  ),
+  models = list(u_net("brats", input_shape = c(240, 240), loss = loss_focal()))
+)
+```
+
+The last region shows that a single value is **ordinary** rather than an edge case: BraTS's
+enhancing tumour is one label.
+
+The task is still `semantic_segmentation`. What changes is what a channel means.
+
+**There is no background entry, so the class count is not the one you would write as
+`labels`.** Those same masks as `labels = c(0, 1, 2, 4)` are **four** classes; as the three
+regions above they are **three** channels. And a voxel whose value is `4` is in all three of
+them at once, which is the point rather than a tolerated side effect.
+
+**Each channel is an independent binary question** - a sigmoid per channel rather than one
+softmax across them - so the channels do not compete and do not sum to one. That is what
+makes the overlap expressible, and it is also why a prediction cannot be written back as a
+single picture with `save_masks()`: one voxel gets one colour, and a voxel here may belong to
+three classes.
+
+**Two regions are the minimum**, because one region is ordinary binary segmentation and
+`labels = c(0, 1)` already says that - with a background channel, which `regions` has none
+of. Disjoint regions are allowed and are not a mistake: they group several values into one
+class and drop the background channel, which is a useful thing to ask for and is refused
+nowhere.
+
+**The failure this invites is quiet, so it is refused loudly.** A region whose `of` matches
+nothing in the data - `of = 3` against a label map holding `1`, `2` and `4` - is a channel of
+zeros. It trains to predict nothing and scores a Dice of 0 for that region while every other
+number in the run looks ordinary, which is the kind of result that gets read as "that class
+is hard". `platypus_fit()` refuses it before training, and `inspect_masks()` asks the same
+question over as much of the data as you want - **naming the region rather than giving its
+position**, because `missing_classes: 1` would leave you counting entries in the file above:
+
+```{r}
+inspect_masks(spec)
+#>   split unmatched samples_checked total_samples present_classes      missing_classes
+#> 1 train    0.0000             500          1251 whole tumour, ...    enhancing
+```
+
+`classes_from` - one binary file per class, the only way to express an overlap that is not a
+union of label values - is **deliberately not here**. It is deferred in `pyplatypus#91`, where
+the decision was nested regions first.
+
 ## Instances instead of one mask
 
 `task: instance_segmentation` keeps the objects apart rather than uniting them. The data
