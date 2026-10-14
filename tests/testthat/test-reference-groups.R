@@ -215,7 +215,12 @@ shared_placement <- c(
   # array and forwards, that one takes numpy and writes - but they are the same answer to
   # the same question, and a reader of one site looking for the other's has to find it in
   # the same group.
-  save_class_masks = "Masks and volumes"
+  save_class_masks = "Masks and volumes",
+  # Shared from `#154`. The engine has had both since `0.8.0a19` and this package drew
+  # neither until now, so a reader of one site looking for the other's found nothing rather
+  # than finding it filed elsewhere - which the subsequence test cannot catch.
+  overlay_instances = "Looking at the results",
+  overlay_instance_agreement = "Looking at the results"
 )
 
 test_that("the shared names are filed where pyplatypus files them", {
