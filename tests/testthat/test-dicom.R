@@ -11,7 +11,7 @@ test_that("the copy kept here matches the engine's", {
   # Two lists of the same constants drift, and the one that drifts is always the one
   # nobody is testing. This is that test.
   skip_if_no_dicom()
-  theirs <- platypus:::shim()$window_presets()
+  theirs <- rplatypus:::shim()$window_presets()
   ours <- ct_windows()
   expect_setequal(names(ours), names(theirs))
   for (name in names(ours)) {

@@ -25,10 +25,12 @@ available_tasks()
 \arguments{
 \item{task}{\code{"semantic_segmentation"}, \code{"instance_segmentation"} or
 \code{"object_detection"}. Which components a specification may name depends on what it is
-asking for, and for losses the answer differs: \strong{ten} at the semantic task and
-\strong{thirteen} at the instance one, the three extra being the regression losses a
-\code{\link[=separation_flows]{separation_flows()}} block can name. This parameter listed two tasks until the pin
-moved to \verb{0.8.0a22}; the third arrived in the engine's \verb{0.8.0a20}.}
+asking for, and for losses it genuinely differs: the three regression losses are listed
+only at the instance task, which is the only one with a target for them. No count is
+written here on purpose - the counts are asserted in the test suite against the pinned
+engine, which is where a number nobody can re-measure from a help page belongs. This
+parameter listed two tasks until the pin moved to \verb{0.8.0a22}; the third arrived in the
+engine's \verb{0.8.0a20}.}
 }
 \value{
 A data frame with \code{name}, \code{arguments} and \code{description}. \code{arguments} is a single

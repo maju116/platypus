@@ -13,7 +13,7 @@ test_that("the four encoder fields are absent unless asked for", {
     expect_null(plain[[field]], info = field)
   }
 
-  config <- platypus:::compact(plain)
+  config <- rplatypus:::compact(plain)
   expect_false("encoder" %in% names(config))
   expect_false("pretrained" %in% names(config))
 })
@@ -26,7 +26,7 @@ test_that("asking for a backbone puts it in the request", {
   expect_identical(model$freeze_encoder, 5L)
   expect_identical(model$encoder_learning_rate, 1e-4)
 
-  config <- platypus:::compact(model)
+  config <- rplatypus:::compact(model)
   expect_true(all(c("encoder", "pretrained", "freeze_encoder", "encoder_learning_rate")
                   %in% names(config)))
 })
@@ -46,7 +46,7 @@ test_that("every architecture takes a backbone", {
 })
 
 test_that("the bridge always asks for both extras, on either route", {
-  requirement <- platypus:::.platypus_requirement()
+  requirement <- rplatypus:::.platypus_requirement()
 
   # Both extras, every time. Leaving one out is how `weights = "dsbowl-unet"` shipped
   # unusable from R: the pin's test surface is the package, never its extras.
@@ -62,7 +62,7 @@ test_that("the bridge always asks for both extras, on either route", {
   if (grepl("^/", requirement)) {
     expect_true(dir.exists(sub("\\[.*$", "", requirement)))
   } else {
-    expect_match(requirement, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
+    expect_match(requirement, paste0("==", rplatypus:::pyplatypus_version), fixed = TRUE)
   }
 })
 

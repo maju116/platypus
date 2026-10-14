@@ -8,7 +8,7 @@
 # 1. 186 LINKS ON 50 PAGES ARE ABSOLUTE URLS INTO THIS SITE.
 #    Quarto's `code-link: true` resolves function names through downlit, which reads the
 #    package's *published* index - so `platypus_fit()` in a code block comes out as
-#    `https://maju116.github.io/platypus/<somewhere>/platypus_fit.html`, and `<somewhere>`
+#    `https://maju116.github.io/rplatypus/<somewhere>/platypus_fit.html`, and `<somewhere>`
 #    is whatever the published index currently says.
 #
 #    That is not a stable thing to depend on, measured twice on the same day: while pkgdown
@@ -53,7 +53,7 @@ for (page in pages) {
   up <- if (depth > 0) strrep("../", depth) else ""
 
   # --- 1. any absolute URL into this site -> site-relative
-  pattern <- 'href="https://maju116\\.github\\.io/platypus/([^"]*)"'
+  pattern <- 'href="https://maju116\\.github\\.io/rplatypus/([^"]*)"'
   hits <- gregexpr(pattern, html)
   n <- if (hits[[1]][1] == -1L) 0L else length(hits[[1]])
   if (n) {
@@ -96,7 +96,7 @@ cat(sprintf("polished %d pages: %d absolute links made relative, %d prose mentio
 left <- 0L
 for (page in pages) {
   html <- paste(readLines(page, warn = FALSE), collapse = "\n")
-  found <- gregexpr('href="https://maju116\\.github\\.io/platypus/', html)[[1]]
+  found <- gregexpr('href="https://maju116\\.github\\.io/rplatypus/', html)[[1]]
   if (found[1] != -1L) left <- left + length(found)
 }
 if (left) stop(sprintf("%d links into this site are still absolute", left))

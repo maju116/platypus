@@ -123,7 +123,7 @@ print.platypus_fit <- function(x, ...) {
 #' `evaluate` is also exported by the **evaluate** package, which knitr depends on, so the
 #' two mask each other depending on which was attached last. It is a generic here, so
 #' `evaluate(fit)` dispatches on the fit's class whichever one you reach - and
-#' `platypus::evaluate(fit)` says so outright. The name is kept because it is the word for
+#' `rplatypus::evaluate(fit)` says so outright. The name is kept because it is the word for
 #' what this does; `platypus_fit()` carries a prefix only because `fit` is a generic in the
 #' tidymodels packages and a plain `fit` would have been theirs to own.
 #'

@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   # exits zero, which ships a vignette full of `object 'fit' not found` and calls it a success.
   error = FALSE
 )
-library(platypus)
+library(rplatypus)
 ```
 
 ```{r machine, include = FALSE}

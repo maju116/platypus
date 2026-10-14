@@ -126,7 +126,7 @@ test_that("the family is spelled one way across both packages", {
   # §3A: one concept, one name. Seven exported functions answering "what can this do",
   # and `show_available_*` for any of them would be the divergence the rule exists to
   # prevent. Checked against the namespace rather than by reading the file.
-  exported <- getNamespaceExports("platypus")
+  exported <- getNamespaceExports("rplatypus")
   family <- sort(grep("^available_", exported, value = TRUE))
   expect_identical(
     family,

@@ -7,7 +7,7 @@
 ^examples/data$
 ^examples/output$
 ^CODE_OF_CONDUCT\.md$
-^platypus_.*\.tar\.gz$
+^rplatypus_.*\.tar\.gz$
 ^vignettes/.*\.Rmd\.orig$
 ^vignettes/precompute\.R$
 ^inst/python/__pycache__$

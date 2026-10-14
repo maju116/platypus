@@ -71,7 +71,7 @@ jobs:
       # to break the site, and two seconds beats four minutes.
       - name: Check the reference index
         run: |
-          Rscript -e 'library(testthat); library(platypus);
+          Rscript -e 'library(testthat); library(rplatypus);
             out <- test_file("tests/testthat/test-reference-groups.R", reporter = "summary");
             results <- as.data.frame(out);
             if (sum(results$failed) + sum(results$error) > 0) stop("the reference index is wrong")'

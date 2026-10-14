@@ -309,7 +309,7 @@ the older build before anything else:
 
 
 ``` r
-library(platypus)
+library(rplatypus)
 platypus_use_torch("pascal")
 ```
 

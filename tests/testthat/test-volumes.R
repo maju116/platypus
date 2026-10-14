@@ -29,7 +29,7 @@ test_that("an unset window is left out of the request entirely", {
   # Same reason as when DICOM arrived: sending a default nobody asked for would break every
   # run against an engine that does not know the field.
   data <- segmentation_data("a", "b", labels = c(0, 1))
-  expect_false("window" %in% names(platypus:::compact(data)))
+  expect_false("window" %in% names(rplatypus:::compact(data)))
 })
 
 test_that("mask_volume turns voxels into millilitres", {
@@ -257,7 +257,7 @@ test_that("`target_spacing` is checked before Python starts", {
 
 test_that("an unset target_spacing is left out of the request", {
   data <- segmentation_data("a", "b", labels = c(0, 1))
-  expect_false("target_spacing" %in% names(platypus:::compact(data)))
+  expect_false("target_spacing" %in% names(rplatypus:::compact(data)))
 })
 
 test_that("target_spacing crosses to the engine intact", {

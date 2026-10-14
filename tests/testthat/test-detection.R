@@ -24,7 +24,7 @@ test_that("detection_data carries the task so nobody has to type it", {
 test_that("a segmentation data block has no task attribute and defaults to segmentation", {
   data <- segmentation_data("train/", "valid/", colormap = binary_colormap)
   expect_null(attr(data, "task"))
-  expect_identical(platypus:::task_of(data), "semantic_segmentation")
+  expect_identical(rplatypus:::task_of(data), "semantic_segmentation")
 })
 
 test_that("classes must be named, distinct and non-empty", {
@@ -126,7 +126,7 @@ test_that("the wrong number of groups is refused", {
 
 test_that("mixing a detection data block with a segmentation model is refused by name", {
   expect_error(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       detection_data("a/", "b/", classes = "cell"),
       list(u_net("u", input_shape = c(64, 64)))
     ),
@@ -136,7 +136,7 @@ test_that("mixing a detection data block with a segmentation model is refused by
 
 test_that("the refusal names the model that disagrees", {
   caught <- tryCatch(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       detection_data("a/", "b/", classes = "cell"),
       list(yolo3("good", input_shape = c(416, 416)),
            u_net("bad", input_shape = c(64, 64)))
@@ -149,13 +149,13 @@ test_that("the refusal names the model that disagrees", {
 
 test_that("an agreeing specification reports its one task", {
   expect_identical(
-    platypus:::agreed_task(detection_data("a/", "b/", classes = "cell"),
-                           list(yolo3("d", input_shape = c(416, 416)))),
+    rplatypus:::agreed_task(detection_data("a/", "b/", classes = "cell"),
+                            list(yolo3("d", input_shape = c(416, 416)))),
     "object_detection"
   )
   expect_identical(
-    platypus:::agreed_task(segmentation_data("a/", "b/", colormap = binary_colormap),
-                           list(u_net("u", input_shape = c(64, 64)))),
+    rplatypus:::agreed_task(segmentation_data("a/", "b/", colormap = binary_colormap),
+                            list(u_net("u", input_shape = c(64, 64)))),
     "semantic_segmentation"
   )
 })
@@ -184,8 +184,8 @@ test_that("plot_boxes flips y, so a box near the top of the image is drawn near 
   images <- array(60, dim = c(1, 100, 100, 3))
   near_top <- data.frame(xmin = 10, ymin = 5, xmax = 30, ymax = 25, score = 1,
                          name = "a")
-  rows <- platypus:::box_rows(near_top, "prediction", offset = 0, tile_h = 100,
-                              min_score = 0.5)
+  rows <- rplatypus:::box_rows(near_top, "prediction", offset = 0, tile_h = 100,
+                               min_score = 0.5)
   expect_equal(rows$ymin, 100 - 25)
   expect_equal(rows$ymax, 100 - 5)
   expect_gt(rows$ymax, 50)
@@ -195,7 +195,7 @@ test_that("plot_boxes drops boxes below min_score and keeps the rest", {
   skip_if_not_installed("ggplot2")
   frame <- data.frame(xmin = c(1, 2), ymin = c(1, 2), xmax = c(10, 20),
                       ymax = c(10, 20), score = c(0.2, 0.9), name = c("a", "b"))
-  kept <- platypus:::box_rows(frame, "prediction", 0, 100, min_score = 0.5)
+  kept <- rplatypus:::box_rows(frame, "prediction", 0, 100, min_score = 0.5)
   expect_equal(nrow(kept), 1L)
   expect_match(kept$label, "^b 0.90$")
 })
@@ -362,7 +362,7 @@ test_that("every callback the engine offers has an R constructor", {
     "sorted(s.model_fields['name'].default for s in ",
     "__import__('pyplatypus.training.callbacks', fromlist=['x'])._BUILDERS)"
   ))
-  in_r <- sort(sub("^callback_", "", grep("^callback_", getNamespaceExports("platypus"),
+  in_r <- sort(sub("^callback_", "", grep("^callback_", getNamespaceExports("rplatypus"),
                                           value = TRUE)))
 
   expect_setequal(names_in_engine, in_r)
@@ -571,7 +571,7 @@ test_that("an image where nothing matched arrives as NA rather than zero", {
     list(key = "b", n_truth = 2L, n_predicted = 3L, matched = 0L, missed = 2L,
          spurious = 3L, mean_matched_iou = NULL)
   )
-  frame <- platypus:::rows_to_frame(rows)
+  frame <- rplatypus:::rows_to_frame(rows)
   expect_true(is.numeric(frame$mean_matched_iou))
   expect_true(is.na(frame$mean_matched_iou[2]))
   expect_false(isTRUE(frame$mean_matched_iou[2] == 0))
@@ -584,18 +584,18 @@ test_that("task is derived when unset and checked when given", {
   models <- list(u_net("u", input_shape = c(32, 32)))
 
   # Derived: the constructors already decided, so nothing has to be typed.
-  expect_identical(platypus:::agreed_task(data, models), "semantic_segmentation")
+  expect_identical(rplatypus:::agreed_task(data, models), "semantic_segmentation")
 
   # Agreeing is allowed - being explicit is the point of permitting it at all.
   expect_identical(
-    platypus:::agreed_task(data, models, stated = "semantic_segmentation"),
+    rplatypus:::agreed_task(data, models, stated = "semantic_segmentation"),
     "semantic_segmentation"
   )
 
   # Disagreeing is refused. Stating the task is a way of being explicit, never a way of
   # overriding what `segmentation_data()` and `u_net()` plainly are.
   expect_error(
-    platypus:::agreed_task(data, models, stated = "object_detection"),
+    rplatypus:::agreed_task(data, models, stated = "object_detection"),
     "disagrees with what this specification is built from"
   )
 })
@@ -604,11 +604,11 @@ test_that("the task names that were renamed are named back", {
   data <- segmentation_data("train", "valid", colormap = binary_colormap)
   models <- list(u_net("u", input_shape = c(32, 32)))
 
-  expect_error(platypus:::agreed_task(data, models, stated = "segmentation"),
+  expect_error(rplatypus:::agreed_task(data, models, stated = "segmentation"),
                "renamed to \"semantic_segmentation\"")
-  expect_error(platypus:::agreed_task(data, models, stated = "detection"),
+  expect_error(rplatypus:::agreed_task(data, models, stated = "detection"),
                "renamed to \"object_detection\"")
-  expect_error(platypus:::agreed_task(data, models, stated = "classification"),
+  expect_error(rplatypus:::agreed_task(data, models, stated = "classification"),
                "must be one of")
 })
 

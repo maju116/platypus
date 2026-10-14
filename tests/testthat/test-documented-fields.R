@@ -13,7 +13,7 @@
 
 #' Fields the engine describes, flattened across every definition in the schema
 described_fields <- function() {
-  defs <- platypus:::engine()$spec_schema()$`$defs`
+  defs <- rplatypus:::engine()$spec_schema()$`$defs`
   found <- character(0)
   for (definition in defs) {
     properties <- definition$properties

@@ -119,7 +119,7 @@ test_that("the three regression losses exist in R, because separation_flows asks
 
 test_that("an instance data block and an instance model agree on one task", {
   expect_identical(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       instance_data("a/", "b/"),
       list(u_net("u", input_shape = c(64, 64), separation = separation_rim()))
     ),
@@ -131,7 +131,7 @@ test_that("instance data with a plain segmentation model is refused, and named",
   # The pair that would otherwise be silent: the same directory layout and the same
   # architecture, differing only in whether a signal is predicted at all.
   caught <- tryCatch(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       instance_data("a/", "b/"),
       list(u_net("plain", input_shape = c(64, 64)))
     ),
@@ -145,7 +145,7 @@ test_that("instance data with a plain segmentation model is refused, and named",
 test_that("stating the task is still checked rather than trusted", {
   # The rule the whole decision turned on: a constructor decides, `task` confirms.
   expect_identical(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       instance_data("a/", "b/"),
       list(u_net("u", input_shape = c(64, 64), separation = separation_flows())),
       stated = "instance_segmentation"
@@ -153,7 +153,7 @@ test_that("stating the task is still checked rather than trusted", {
     "instance_segmentation"
   )
   expect_error(
-    platypus:::agreed_task(
+    rplatypus:::agreed_task(
       instance_data("a/", "b/"),
       list(u_net("u", input_shape = c(64, 64), separation = separation_flows())),
       stated = "semantic_segmentation"
@@ -162,8 +162,8 @@ test_that("stating the task is still checked rather than trusted", {
   )
   # And it is a known value now, so it no longer reaches the "must be one of" refusal.
   expect_error(
-    platypus:::agreed_task(instance_data("a/", "b/"), list(u_net("u", input_shape = c(64, 64))),
-                           stated = "instances"),
+    rplatypus:::agreed_task(instance_data("a/", "b/"), list(u_net("u", input_shape = c(64, 64))),
+                            stated = "instances"),
     "`task` must be one of"
   )
 })

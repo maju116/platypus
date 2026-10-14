@@ -69,13 +69,13 @@ test_that("the engine's defaults are the ones R used to send", {
   # against the schema rather than assumed, so the day the engine moves one of its own
   # defaults this test says that R is no longer in the way of it.
   skip_if_no_engine()
-  properties <- platypus:::engine()$spec_schema()$`$defs`$SegmentationData$properties
+  properties <- rplatypus:::engine()$spec_schema()$`$defs`$SegmentationData$properties
   expect_identical(properties$mode$default, "nested_dirs")
   expect_identical(unlist(properties$subdirs$default), c("images", "masks"))
   expect_identical(properties$column_sep$default, ";")
   expect_identical(properties$shuffle$default, TRUE)
 
-  detection <- platypus:::engine()$spec_schema()$`$defs`$DetectionData$properties
+  detection <- rplatypus:::engine()$spec_schema()$`$defs`$DetectionData$properties
   expect_identical(detection$annotation_format$default, "pascal_voc")
   expect_identical(detection$strict_labels$default, TRUE)
 })

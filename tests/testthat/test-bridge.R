@@ -1,5 +1,5 @@
 test_that("loading the package does not start Python", {
-  # The reason library(platypus) is instant and works on a machine that has never seen
+  # The reason library(rplatypus) is instant and works on a machine that has never seen
   # Python. If this ever fails, delay_load has been lost somewhere.
   #
   # In a fresh process on purpose. Asking the current session would make the answer
@@ -7,7 +7,7 @@ test_that("loading the package does not start Python", {
   # quietly stop meaning anything the moment another test ran first.
   skip_if_not_installed("callr")
   started <- callr::r(function() {
-    library(platypus)
+    library(rplatypus)
     reticulate::py_available(initialize = FALSE)
   })
   expect_false(started)
@@ -24,7 +24,7 @@ test_that("platypus_use_torch replaces the requirement instead of adding a secon
   # session-global, so asking the current session would make this depend on what ran first.
   #
   # **The child loads whatever this run loaded, which is not the same thing as loading the
-  # package.** It used to call `library(platypus)`, which reaches the user library - so the
+  # package.** It used to call `library(rplatypus)`, which reaches the user library - so the
   # last assertion compared the *installed* package's pin against the *source's* version and
   # failed on every pin move until somebody reinstalled, reporting it as a wrong pin. §4's
   # "installed is not source" from the inside: the two were both here, and the test read one
@@ -35,7 +35,7 @@ test_that("platypus_use_torch replaces the requirement instead of adding a secon
   loaded_from_source <- file.exists(file.path(source_tree, "DESCRIPTION"))
   asked <- callr::r(
     function(source_tree, loaded_from_source) {
-      if (loaded_from_source) pkgload::load_all(source_tree, quiet = TRUE) else library(platypus)
+      if (loaded_from_source) pkgload::load_all(source_tree, quiet = TRUE) else library(rplatypus)
       platypus_use_torch("pascal")
       grep("pyplatypus", reticulate::py_require()$packages, fixed = TRUE, value = TRUE)
     },
@@ -54,7 +54,7 @@ test_that("platypus_use_torch replaces the requirement instead of adding a secon
     expect_true(dir.exists(tree))
     expect_true(file.exists(file.path(tree, "pyproject.toml")))
   } else {
-    expect_match(asked, platypus:::pyplatypus_version, fixed = TRUE)
+    expect_match(asked, rplatypus:::pyplatypus_version, fixed = TRUE)
   }
 })
 
@@ -88,7 +88,7 @@ test_that("status reports the pinned engine before anything has started", {
     }
     expect_match(
       status$requirement,
-      paste0("==", platypus:::pyplatypus_version, "$"),
+      paste0("==", rplatypus:::pyplatypus_version, "$"),
       fixed = FALSE
     )
   }
@@ -106,7 +106,7 @@ test_that("a broken RETICULATE_PYTHON is reported rather than left to fail later
   # somewhere inside reticulate much later.
   withr::with_envvar(c(RETICULATE_PYTHON = "/definitely/not/a/python"), {
     expect_message(
-      platypus:::check_reticulate_python(),
+      rplatypus:::check_reticulate_python(),
       "does not exist"
     )
   })
@@ -115,7 +115,7 @@ test_that("a broken RETICULATE_PYTHON is reported rather than left to fail later
 test_that("a RETICULATE_PYTHON that exists is still called out", {
   withr::with_envvar(c(RETICULATE_PYTHON = tempdir()), {
     expect_message(
-      platypus:::check_reticulate_python(),
+      rplatypus:::check_reticulate_python(),
       "instead of the isolated environment"
     )
   })
@@ -123,7 +123,7 @@ test_that("a RETICULATE_PYTHON that exists is still called out", {
 
 test_that("an unset RETICULATE_PYTHON says nothing at all", {
   withr::with_envvar(c(RETICULATE_PYTHON = NA), {
-    expect_silent(platypus:::check_reticulate_python())
+    expect_silent(rplatypus:::check_reticulate_python())
   })
 })
 
@@ -136,7 +136,7 @@ test_that("the engine starts and is the version this package pins", {
   # honoured instead of restating it. A source tree named by PLATYPUS_ENGINE_PATH is
   # allowed to be ahead of the pin - that is what the escape hatch is for.
   if (!nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
-    expect_identical(status$engine_version, platypus:::pyplatypus_version)
+    expect_identical(status$engine_version, rplatypus:::pyplatypus_version)
   }
 })
 
@@ -144,7 +144,7 @@ test_that("data crosses back from Python as ordinary R objects", {
   # The bridge is only useful if what returns is something R code can work with, rather
   # than a handle a user has to keep asking Python about.
   skip_if_no_engine()
-  schema <- platypus:::engine()$spec_schema()
+  schema <- rplatypus:::engine()$spec_schema()
   expect_type(schema, "list")
   expect_true(grepl("spec.schema.json", schema[["$id"]], fixed = TRUE))
 })
@@ -162,7 +162,7 @@ test_that("a bad specification comes back as a readable R error, not a traceback
                        loss = list(name = "focaal")))
   )
   error <- tryCatch(
-    platypus:::engine()$from_dict(broken, check_paths = FALSE),
+    rplatypus:::engine()$from_dict(broken, check_paths = FALSE),
     error = function(e) e
   )
   expect_s3_class(error, "error")
@@ -195,7 +195,7 @@ test_that("a stale uv index cache is explained, because it sounds permanent", {
     "Because there is no version of pyplatypus==0.2.0a2 and you require",
     "pyplatypus==0.2.0a2, we can conclude that your requirements are unsatisfiable."
   )
-  explained <- platypus:::engine_start_failure(uv_said)
+  explained <- rplatypus:::engine_start_failure(uv_said)
   # The advice points at the index cache, and says why the obvious command is not the one:
   # `uv cache clean pyplatypus` removes that package's built artifacts and leaves the index
   # response claiming the version does not exist. Measured on 2026-09-27 against 0.3.0a6.
@@ -207,7 +207,7 @@ test_that("a stale uv index cache is explained, because it sounds permanent", {
 })
 
 test_that("any other startup failure still gets the download advice", {
-  explained <- platypus:::engine_start_failure("Connection refused")
+  explained <- rplatypus:::engine_start_failure("Connection refused")
   expect_match(explained, "needs a network", fixed = TRUE)
   expect_match(explained, "works offline", fixed = TRUE)
   expect_false(grepl("uv cache clean", explained, fixed = TRUE))
@@ -226,20 +226,20 @@ test_that("the always-on extras are asked for whatever else is", {
   always <- c("hub", "encoders")
 
   withr::with_envvar(c(PLATYPUS_ENGINE_PATH = NA), {
-    on.exit(platypus:::.platypus_requirement(set = NULL), add = TRUE)
+    on.exit(rplatypus:::.platypus_requirement(set = NULL), add = TRUE)
 
-    platypus:::.platypus_requirement(set = NULL)
-    plain <- platypus:::.platypus_requirement()
+    rplatypus:::.platypus_requirement(set = NULL)
+    plain <- rplatypus:::.platypus_requirement()
     expect_match(plain, "^pyplatypus\\[")
     for (extra in always) expect_match(plain, extra, fixed = TRUE)
-    expect_match(plain, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
+    expect_match(plain, paste0("==", rplatypus:::pyplatypus_version), fixed = TRUE)
 
-    platypus:::.platypus_requirement(set = "pascal")
-    pascal <- platypus:::.platypus_requirement()
+    rplatypus:::.platypus_requirement(set = "pascal")
+    pascal <- rplatypus:::.platypus_requirement()
     # A torch build asked for explicitly comes first, so the thing the user chose is the
     # thing they see at the front of the message platypus_status() prints.
     expect_match(pascal, "^pyplatypus\\[pascal,")
     for (extra in always) expect_match(pascal, extra, fixed = TRUE)
-    expect_match(pascal, paste0("==", platypus:::pyplatypus_version), fixed = TRUE)
+    expect_match(pascal, paste0("==", rplatypus:::pyplatypus_version), fixed = TRUE)
   })
 })

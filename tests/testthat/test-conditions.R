@@ -55,7 +55,7 @@ _kinds = sorted({cls.kind for cls in _walk(PlatypusError)})
 
 test_that("the class vector names the specific kind, then the base, and says nothing twice", {
   expect_identical(
-    platypus:::condition_classes("config_error"),
+    rplatypus:::condition_classes("config_error"),
     c("platypus_config_error", "platypus_error", "error", "condition")
   )
 
@@ -63,18 +63,18 @@ test_that("the class vector names the specific kind, then the base, and says not
   # prefix onto: `platypus_platypus_error`, a class in nobody's documentation and nobody's
   # `tryCatch()`. Found by writing the documentation, not by reading the code.
   expect_identical(
-    platypus:::condition_classes("platypus_error"),
+    rplatypus:::condition_classes("platypus_error"),
     c("platypus_error", "error", "condition")
   )
 
   # And a failure with no kind said `platypus_error` twice in one vector.
   expect_identical(
-    platypus:::condition_classes(NULL),
+    rplatypus:::condition_classes(NULL),
     c("platypus_error", "error", "condition")
   )
 
   for (kind in c("config_error", "platypus_error", "unknown_case", NULL)) {
-    classes <- platypus:::condition_classes(kind)
+    classes <- rplatypus:::condition_classes(kind)
     expect_false(any(duplicated(classes)), info = kind)
     expect_false(any(grepl("platypus_platypus", classes, fixed = TRUE)), info = kind)
     expect_identical(classes[length(classes) - 1L], "error", info = kind)
@@ -86,7 +86,7 @@ test_that("a raised condition carries the classes and the problems as data", {
     ok = FALSE, kind = "config_error", source = "spec.yml",
     problems = list(list(where = "models[1]$loss", problem = "no such loss", got = "'focaal'"))
   )
-  condition <- tryCatch(platypus:::abort_engine(failure), condition = identity)
+  condition <- tryCatch(rplatypus:::abort_engine(failure), condition = identity)
 
   expect_s3_class(condition, "platypus_config_error")
   expect_s3_class(condition, "platypus_error")
@@ -144,7 +144,7 @@ test_that("the bridge raises the one kind the engine does not define", {
   # is an error rather than an empty result. So it failed in the one run that matters most
   # and failed unreadably. pkgload shims `system.file()` onto the source tree, so this
   # finds the shim from a checkout, an installed package and a built tarball alike.
-  path <- system.file("python", "platypus_shim.py", package = "platypus")
+  path <- system.file("python", "platypus_shim.py", package = "rplatypus")
   expect_true(nzchar(path), info = "the shim is not where the package says it is")
 
   shim <- readLines(path, warn = FALSE)

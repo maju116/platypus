@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   # printed four times. Chunks that demonstrate a refusal set `error = TRUE` themselves.
   error = FALSE
 )
-library(platypus)
+library(rplatypus)
 ```
 
 ```{r machine, include = FALSE}
@@ -290,7 +290,7 @@ If `platypus_device()` reports `cpu` on a machine that has a GPU, restart R and 
 the older build before anything else:
 
 ```{r torch-note, eval = FALSE}
-library(platypus)
+library(rplatypus)
 platypus_use_torch("pascal")
 ```
 

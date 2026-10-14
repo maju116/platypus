@@ -17,7 +17,7 @@
 test_that("every loss and metric default matches the engine's", {
   skip_if_no_engine()
 
-  schema <- platypus:::engine()$spec_schema()$`$defs`
+  schema <- rplatypus:::engine()$spec_schema()$`$defs`
   theirs <- list()
   for (key in names(schema)) {
     props <- schema[[key]]$properties
@@ -27,15 +27,15 @@ test_that("every loss and metric default matches the engine's", {
     theirs[[paste0(family, tag)]] <- props
   }
 
-  ours <- grep("^(loss|metric)_", getNamespaceExports("platypus"), value = TRUE)
+  ours <- grep("^(loss|metric)_", getNamespaceExports("rplatypus"), value = TRUE)
   expect_gt(length(ours), 10)
 
   for (name in sort(ours)) {
     props <- theirs[[name]]
     expect_false(is.null(props), info = paste(name, "names nothing the engine accepts"))
 
-    for (argument in names(formals(get(name, asNamespace("platypus"))))) {
-      ours_default <- formals(get(name, asNamespace("platypus")))[[argument]]
+    for (argument in names(formals(get(name, asNamespace("rplatypus"))))) {
+      ours_default <- formals(get(name, asNamespace("rplatypus")))[[argument]]
       # R sends nothing for an unset argument, so the engine's default applies and there is
       # nothing to compare - which is the arrangement the model constructors all use.
       if (is.null(ours_default) || identical(ours_default, quote(expr = ))) next
@@ -60,6 +60,6 @@ test_that("clDice is the one whose background default differs, on both sides", {
     expect_true(eval(formals(get(other))$include_background), info = other)
   }
 
-  theirs <- platypus:::engine()$spec_schema()$`$defs`$ClDiceMetric$properties
+  theirs <- rplatypus:::engine()$spec_schema()$`$defs`$ClDiceMetric$properties
   expect_false(theirs$include_background$default)
 })

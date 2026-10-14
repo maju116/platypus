@@ -33,7 +33,7 @@ they measure the mask rather than the objective.
 \code{evaluate} is also exported by the \strong{evaluate} package, which knitr depends on, so the
 two mask each other depending on which was attached last. It is a generic here, so
 \code{evaluate(fit)} dispatches on the fit's class whichever one you reach - and
-\code{platypus::evaluate(fit)} says so outright. The name is kept because it is the word for
+\code{rplatypus::evaluate(fit)} says so outright. The name is kept because it is the word for
 what this does; \code{platypus_fit()} carries a prefix only because \code{fit} is a generic in the
 tidymodels packages and a plain \code{fit} would have been theirs to own.
 }

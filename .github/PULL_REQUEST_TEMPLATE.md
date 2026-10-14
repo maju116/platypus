@@ -18,8 +18,8 @@ caught more than it has cost.
 
 - [ ] `Rscript -e 'pkgload::load_all(); testthat::test_dir("tests/testthat")'` - and **0 skipped**, not just 0 failed
 - [ ] `Rscript -e 'lintr::lint_package()'` - 0 findings
-- [ ] `R CMD build . && R CMD check platypus_*.tar.gz --no-manual` - the way it ships, vignettes included
-- [ ] the installed package, not the sources: `library(platypus)` + `testthat::test_dir()`, never `load_all()`
+- [ ] `R CMD build . && R CMD check rplatypus_*.tar.gz --no-manual` - the way it ships, vignettes included
+- [ ] the installed package, not the sources: `library(rplatypus)` + `testthat::test_dir()`, never `load_all()`
 - [ ] every new test was mutated to prove it can fail
 - [ ] documentation updated, if an exported name, an argument or a number in prose changed
 

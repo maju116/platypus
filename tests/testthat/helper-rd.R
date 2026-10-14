@@ -2,7 +2,7 @@
 #'
 #' Source `man/` first, installed package second, and the order matters.
 #'
-#' `tools::Rd_db("platypus")` reads the *installed* package - correct under `R CMD check`,
+#' `tools::Rd_db("rplatypus")` reads the *installed* package - correct under `R CMD check`,
 #' which has just built one, and empty under `pkgload::load_all()`, which is how this package
 #' is most often worked on locally. Reading only the installed database left a test skipping
 #' in exactly that case: 2 skipped where 0 was expected, and a silently inert tripwire is
@@ -19,7 +19,7 @@ rd_database <- function() {
       if (length(db)) return(db)
     }
   }
-  tryCatch(tools::Rd_db("platypus"), error = function(e) list())
+  tryCatch(tools::Rd_db("rplatypus"), error = function(e) list())
 }
 
 #' Every name documented as an argument, anywhere in the package
@@ -123,7 +123,7 @@ argument_text_lengths <- function(db = rd_database()) {
 #' @keywords internal
 #' @noRd
 prose_lengths <- function() {
-  schema <- platypus:::engine()$spec_schema()
+  schema <- rplatypus:::engine()$spec_schema()
   engine <- list()
   for (definition in schema$`$defs`) {
     properties <- definition$properties

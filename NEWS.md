@@ -3,7 +3,7 @@
 All notable changes to this package will be documented in this file. Two things about its
 shape are worth stating, because neither is the usual one.
 
-**There is no release yet.** `remotes::install_github("maju116/platypus")` serves the
+**There is no release yet.** `remotes::install_github("maju116/rplatypus")` serves the
 default branch, so "the version I had working" is a commit rather than a tag. Entries are
 therefore dated rather than numbered: the heading they sit under is the version in
 `DESCRIPTION`, and the `0.1.1` below it is the 2020 package this one replaced.
@@ -63,12 +63,48 @@ you: Pascal VOC XML or LabelMe JSON, named rather than guessed.
 The old release is still there and still installable, pinned:
 
 ```r
-remotes::install_github("maju116/platypus@0.1.1")
+remotes::install_github("maju116/rplatypus@0.1.1")
 ```
 
 Its source is on the `master` branch, and the issues filed against it stay open. What has aged
 is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
 Python, which is the reason for a rewrite rather than a consequence of one.
+
+### 2026-10-14 - the package is `rplatypus`
+
+#### Changed
+
+- **`library(platypus)` is `library(rplatypus)`.** The name collided with `Platypus`,
+  archived from CRAN on 2026-02-02 - unrelated work in immunology - and the two differed
+  only in case, which the policy treats as a conflict and which archiving does not release.
+  `cran-comments.md` had promised to resubmit under another name rather than ask for an
+  exception, so this is that name rather than a new idea: one name per language, beside the
+  `pyplatypus` engine on PyPI, and a name that says what the package is - the R surface over
+  a Python engine.
+
+  `rplatypus` is in neither CRAN's current index nor its archive, checked against both with
+  a positive control so that the absence means something.
+
+- **The functions did not change.** `platypus_spec()`, `platypus_fit()`, `platypus_status()`,
+  `platypus_device()` and `platypus_use_torch()` keep their names, and so do the S3 classes
+  `platypus_fit`, `platypus_spec`, `platypus_split` and the rest, the `platypus_*` condition
+  classes, the `PLATYPUS_*` environment variables and the headers `print()` writes. The rule
+  is that the package's *identity* - what `library()` and CRAN see - is `rplatypus`, and the
+  *brand* is still platypus. §3A already said the S3 class keeps the prefix even where its
+  constructor loses it; this is the same line drawn one level up, and it means no released
+  surface moved.
+
+- **The repository was renamed too**, to `maju116/rplatypus`. Stars, forks, watchers and
+  every issue came with it - read back from the API rather than assumed - and
+  `github.com/maju116/platypus` redirects, so links in other people's issue comments keep
+  working. The site moved with the repository and is now at
+  [maju116.github.io/rplatypus](https://maju116.github.io/rplatypus/); the former address has
+  no redirect, because a project page is served under the repository's own name and the only
+  way to hold the old one would be to occupy the name the redirect needs.
+
+  The dated entries below name `maju116/platypus` where they were written that way. They are
+  the record of what it was called at the time and they still resolve, so they are left alone
+  rather than rewritten.
 
 ### 2026-10-14 - engine 0.8.0a22
 
@@ -380,7 +416,7 @@ followed here.
 The package exists.
 
  - **The bridge.** `py_require()` plus uv, resolving an isolated ephemeral environment at
-   `library(platypus)` - deliberately not the shared-Python arrangement that broke this
+   `library(rplatypus)` - deliberately not the shared-Python arrangement that broke this
    package's Keras stack in 2020. `platypus_status()` says what it found rather than leaving
    a failed import to be guessed at, and `PLATYPUS_ENGINE_PATH` points the bridge at a source
    tree during development.
@@ -400,7 +436,7 @@ readers for LabelMe JSON and Pascal VOC XML.
 It is still installable and still pinned:
 
 ```r
-remotes::install_github("maju116/platypus@0.1.1")
+remotes::install_github("maju116/rplatypus@0.1.1")
 ```
 
 Its source is on the `master` branch and the issues filed against it stay open. What has

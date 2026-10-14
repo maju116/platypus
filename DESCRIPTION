@@ -1,4 +1,4 @@
-Package: platypus
+Package: rplatypus
 Type: Package
 Title: Computer Vision for Medical Imaging
 Version: 0.2.0
@@ -11,8 +11,8 @@ Description: Semantic segmentation and object detection for medical images, from
     has to be set up by hand. R keeps the parts that make an analysis fast - reading and
     combining masks, drawing boxes, plotting, comparing models.
 License: MIT + file LICENSE
-URL: https://github.com/maju116/platypus, https://maju116.github.io/platypus/
-BugReports: https://github.com/maju116/platypus/issues
+URL: https://github.com/maju116/rplatypus, https://maju116.github.io/rplatypus/
+BugReports: https://github.com/maju116/rplatypus/issues
 SystemRequirements: Python (>= 3.10). Not a prerequisite the user installs:
     the package declares what it needs through 'reticulate' and 'uv' provisions an
     isolated environment on first use, leaving any system Python untouched.

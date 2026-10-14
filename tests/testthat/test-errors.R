@@ -1,11 +1,11 @@
 test_that("python paths are rewritten as the R that produced them", {
   # Zero-based indices in an R error message are a small cruelty, and `.` is not how one
   # reaches into a list.
-  expect_identical(platypus:::r_path("models[0].loss"), "models[[1]]$loss")
-  expect_identical(platypus:::r_path("data.colormap"), "data$colormap")
-  expect_identical(platypus:::r_path("models[2].augmentation[0].name"),
+  expect_identical(rplatypus:::r_path("models[0].loss"), "models[[1]]$loss")
+  expect_identical(rplatypus:::r_path("data.colormap"), "data$colormap")
+  expect_identical(rplatypus:::r_path("models[2].augmentation[0].name"),
                    "models[[3]]$augmentation[[1]]$name")
-  expect_identical(platypus:::r_path(""), "(top level)")
+  expect_identical(rplatypus:::r_path(""), "(top level)")
 })
 
 test_that("every problem is reported, not only the first", {

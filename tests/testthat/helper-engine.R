@@ -125,7 +125,7 @@ tiny_spec <- function(root, ...) {
 engine_reads_dicom <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    length(platypus:::shim()$window_presets()) > 0
+    length(rplatypus:::shim()$window_presets()) > 0
   }, error = function(e) FALSE))
 }
 
@@ -146,7 +146,7 @@ skip_if_no_dicom <- function() {
 engine_splits_data <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    engine <- platypus:::engine()
+    engine <- rplatypus:::engine()
     reticulate::py_has_attr(engine, "split_dataset") &&
       reticulate::py_has_attr(engine, "summarise_cases")
   }, error = function(e) FALSE))
@@ -194,7 +194,7 @@ for p in range(%d):
 #' Can the engine in use read volumes?
 engine_reads_volumes <- function() {
   if (!engine_available()) return(FALSE)
-  isTRUE(tryCatch(platypus:::shim()$volume_support(), error = function(e) FALSE))
+  isTRUE(tryCatch(rplatypus:::shim()$volume_support(), error = function(e) FALSE))
 }
 
 skip_if_no_volumes <- function() {
@@ -237,7 +237,7 @@ for n in range(%d):
 #' Can the engine in use assemble a DICOM series?
 engine_reads_series <- function() {
   if (!engine_available()) return(FALSE)
-  isTRUE(tryCatch(platypus:::shim()$series_support(), error = function(e) FALSE))
+  isTRUE(tryCatch(rplatypus:::shim()$series_support(), error = function(e) FALSE))
 }
 
 skip_if_no_series <- function() {
@@ -287,7 +287,7 @@ for index, position in enumerate(positions):
 engine_resamples <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    schema <- platypus:::engine()$spec_schema()
+    schema <- rplatypus:::engine()$spec_schema()
     "target_spacing" %in% names(schema$`$defs`$SegmentationData$properties)
   }, error = function(e) FALSE))
 }
@@ -334,7 +334,7 @@ for index, thickness in enumerate([%s]):
 engine_stacks_channels <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    schema <- platypus:::engine()$spec_schema()
+    schema <- rplatypus:::engine()$spec_schema()
     "channels_from" %in% names(schema$`$defs`$SegmentationData$properties)
   }, error = function(e) FALSE))
 }
@@ -380,7 +380,7 @@ for index in range(%d):
 engine_augments_volumes <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    result <- platypus:::shim()$transform_names(rank = 3L)
+    result <- rplatypus:::shim()$transform_names(rank = 3L)
     isTRUE(result$ok) && length(result$transforms) > 0
   }, error = function(e) FALSE))
 }
@@ -399,7 +399,7 @@ engine_maps_to_source <- function() {
   isTRUE(tryCatch({
     # Called for the side effect, not the value: it starts the engine, which is what
     # makes the version answerable below. Assigning the result said the opposite.
-    platypus:::engine()$spec_schema()
+    rplatypus:::engine()$spec_schema()
     version <- platypus_status()$engine_version
     !is.na(version) && utils::compareVersion(gsub("a", ".", version), "0.3.0.6") >= 0
   }, error = function(e) FALSE))
@@ -417,7 +417,7 @@ skip_if_no_source_space <- function() {
 engine_has_weights_registry <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    result <- platypus:::shim()$weights_listing()
+    result <- rplatypus:::shim()$weights_listing()
     isTRUE(result$ok)
   }, error = function(e) FALSE))
 }
@@ -440,7 +440,7 @@ skip_if_no_weights_registry <- function() {
 engine_has_encoders <- function() {
   if (!engine_available()) return(FALSE)
   isTRUE(tryCatch({
-    result <- platypus:::shim()$build_spec(
+    result <- rplatypus:::shim()$build_spec(
       list(
         # `task` has to be here, and its absence is how this probe lied once: without it
         # the engine refuses the configuration for a reason that has nothing to do with
