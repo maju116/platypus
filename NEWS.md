@@ -46,6 +46,19 @@ drifted underneath it.
   each channel is an **independent binary question** - a sigmoid per channel rather than one
   softmax across them - so a voxel may be in several regions at once, which is the point.
 
+- **The configuration vignette has a section on overlapping classes**, *Overlapping classes
+  instead of one per voxel*, between the augmentation section and the instance one - because
+  `regions` is still `semantic_segmentation` and what changes is what a channel means rather
+  than what the task is. The section list is pinned by a test here and by the same list in the
+  engine's suite, so it landed in both repositories together: `pyplatypus#229` first, because
+  this side compares itself against that list.
+
+  Two things in it are R's own: a region is a `list(name = , of = )` and the last one shows
+  that `of = 4` is ordinary rather than an edge case, and `inspect_masks()` **names** the
+  region that matched nothing instead of giving its position. Both the YAML block and the R
+  chunk are validated - checked by breaking each, which fails the test that reads it rather
+  than passing quietly.
+
 - **`inspect_masks()` names regions rather than numbering them.** The engine reports classes
   by position, and with `regions` a position is the one thing a reader cannot resolve:
   `missing_classes: 1` means the second region, and counting entries in a configuration file
