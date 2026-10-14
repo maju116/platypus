@@ -234,6 +234,42 @@ for n in range(%d):
 }
 
 
+#' A dataset of NIfTI volumes whose masks are label maps with two classes
+#'
+#' Two shapes of the same data, and the second is why this exists rather than a flag on
+#' `tiny_volume_dataset()`. With `background = TRUE` the masks hold 0, 1 and 2, so
+#' `labels = c(1, 2)` leaves every background voxel matching nothing. With
+#' `background = FALSE` every voxel is 1 or 2, so the same `labels` is **correct** and has
+#' to keep working.
+#'
+#' A fixture that could only produce the first would make "refuse whenever 0 is missing"
+#' indistinguishable from what the engine actually does, which is to refuse only when the
+#' data has unmatched voxels. §4's probe that cannot fail for the reason it is asking about.
+tiny_label_dataset <- function(background = TRUE, cases = 4, shape = c(8, 8, 4),
+                               envir = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = envir)
+  reticulate::py_run_string(sprintf("
+import numpy as np, pathlib, nibabel as nib
+root = pathlib.Path(%s)
+shape = (%d, %d, %d)
+affine = np.diag([2.0, 2.0, 5.0, 1.0])
+background = %s
+for n in range(%d):
+    sample = root / f'case_{n:02d}'
+    (sample / 'images').mkdir(parents=True, exist_ok=True)
+    (sample / 'masks').mkdir(parents=True, exist_ok=True)
+    labels = np.zeros(shape, np.float32) if background else np.ones(shape, np.float32)
+    labels[2:6, 2:6, 1:3] = 1
+    labels[0:2, 0:8, 0:4] = 2
+    scan = np.where(labels > 1, 40.0, -1000.0).astype(np.float32)
+    nib.save(nib.Nifti1Image(scan, affine), str(sample / 'images' / 'ct.nii.gz'))
+    nib.save(nib.Nifti1Image(labels, affine), str(sample / 'masks' / 'seg.nii.gz'))
+", shQuote(root), shape[1], shape[2], shape[3],
+   if (background) "True" else "False", cases))  # nolint: indentation_linter.
+  root
+}
+
+
 #' Can the engine in use assemble a DICOM series?
 engine_reads_series <- function() {
   if (!engine_available()) return(FALSE)
