@@ -736,7 +736,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#change-log" id="toc-change-log" class="nav-link active" data-scroll-target="#change-log">Change Log</a>
   <ul class="collapse">
-  <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.0] - unreleased</a>
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.1] - unreleased</a>
+  <ul class="collapse">
+  <li><a href="#regions-from-r-overlapping-classes" id="toc-regions-from-r-overlapping-classes" class="nav-link" data-scroll-target="#regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</a></li>
+  </ul></li>
+  <li><a href="#submitted-to-cran-on-2026-10-14" id="toc-submitted-to-cran-on-2026-10-14" class="nav-link" data-scroll-target="#submitted-to-cran-on-2026-10-14">[0.2.0] - submitted to CRAN on 2026-10-14</a>
   <ul class="collapse">
   <li><a href="#migrating-from-0.1.1" id="toc-migrating-from-0.1.1" class="nav-link" data-scroll-target="#migrating-from-0.1.1">Migrating from 0.1.1</a></li>
   <li><a href="#the-package-is-rplatypus" id="toc-the-package-is-rplatypus" class="nav-link" data-scroll-target="#the-package-is-rplatypus">2026-10-14 - the package is <code>rplatypus</code></a></li>
@@ -770,7 +774,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>There is no release yet.</strong> <code>remotes::install_github("maju116/rplatypus")</code> serves the default branch, so “the version I had working” is a commit rather than a tag. Entries are therefore dated rather than numbered: the heading they sit under is the version in <code>DESCRIPTION</code>, and the <code>0.1.1</code> below it is the 2020 package this one replaced.</p>
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
-<h2 class="anchored" data-anchor-id="unreleased">[0.2.0] - unreleased</h2>
+<h2 class="anchored" data-anchor-id="unreleased">[0.2.1] - unreleased</h2>
+<section id="regions-from-r-overlapping-classes" class="level3">
+<h3 class="anchored" data-anchor-id="regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</h3>
+<section id="added" class="level4">
+<h4 class="anchored" data-anchor-id="added">Added</h4>
+<ul>
+<li><p><strong><code>segmentation_data(regions = )</code></strong>, the third way of saying what a mask’s classes are and the only one that lets a voxel belong to more than one. A list of <code>list(name = , of = )</code>, where <code>of</code> holds the label-map values making up that region:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">segmentation_data</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"train/"</span>, <span class="st">"valid/"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">regions =</span> <span class="fu">list</span>(<span class="fu">list</span>(<span class="at">name =</span> <span class="st">"whole tumour"</span>, <span class="at">of =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>)),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">list</span>(<span class="at">name =</span> <span class="st">"enhancing"</span>, <span class="at">of =</span> <span class="dv">4</span>))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That is the BraTS shape, and the second entry shows that a single value is ordinary rather than an edge case. The engine has had the field since <code>0.8.0a14</code>; <strong>R forwarding it was a code change rather than a pin bump</strong>, which is worth saying because the first guess was the opposite: <a href="man/segmentation_data.html"><code>segmentation_data()</code></a> enumerates its parameters, so <code>regions</code> was an <code>unused argument</code> while a bare <code>data</code> list and a YAML file both reached the engine’s own validator and were accepted. The constructor refusing what YAML took is the asymmetry this closes. <code>pyplatypus[#91](https://github.com/maju116/rplatypus/issues/91)</code>, <code>[#152](https://github.com/maju116/rplatypus/issues/152)</code>.</p>
+<p>Two things <code>?segmentation_data</code> now says that the field name does not. There is <strong>no background entry</strong>, so <code>n_class</code> is not the number it would be for that many <code>labels</code>. And each channel is an <strong>independent binary question</strong> - a sigmoid per channel rather than one softmax across them - so a voxel may be in several regions at once, which is the point.</p></li>
+<li><p><strong>The exclusivity check is three-way and names what was given.</strong> One of <code>colormap</code>, <code>labels</code> and <code>regions</code>, in one message, matching the engine’s own sentence - and the message now says which arguments it found rather than only that one was expected.</p></li>
+</ul>
+</section>
+<section id="fixed" class="level4">
+<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<ul>
+<li><p><strong>A single <code>of</code> value would have crossed over as a number rather than a list.</strong> reticulate turns a length-1 integer vector into a Python scalar, and the schema wants an array, so <code>of = 4</code> had to be built with <code>as.list()</code>. Measured both ways before the code was written, and the engine refuses the scalar - so this would have been a refusal nobody could read rather than a silent wrong answer, on the most ordinary region there is.</p>
+<p><strong>Still in <code>[#152](https://github.com/maju116/rplatypus/issues/152)</code>, deliberately not here</strong>, and written as a paragraph rather than a heading because <code>R CMD check</code> reads every <code>###</code> in this file as a version and says so: <a href="man/save_masks.html"><code>save_masks()</code></a> refusing an overlapping prediction and the per-class writer that replaces it, <a href="man/inspect_masks.html"><code>inspect_masks()</code></a> naming regions rather than numbering them, and the guide section. Each is independently worth having, which is why none waits for the others.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="submitted-to-cran-on-2026-10-14" class="level2">
+<h2 class="anchored" data-anchor-id="submitted-to-cran-on-2026-10-14">[0.2.0] - submitted to CRAN on 2026-10-14</h2>
 <p>A different package from 0.1.1 under the same name, and the section below says how different.</p>
 <section id="migrating-from-0.1.1" class="level3">
 <h3 class="anchored" data-anchor-id="migrating-from-0.1.1">Migrating from 0.1.1</h3>
@@ -842,7 +873,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <p>The annotation readers are gone as functions and are now what <a href="man/detection_data.html"><code>detection_data()</code></a> reads for you: Pascal VOC XML or LabelMe JSON, named rather than guessed.</p>
 <p>The old release is still there and still installable, pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch, and the issues filed against it stay open. What has aged is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 </section>
 <section id="the-package-is-rplatypus" class="level3">
@@ -870,8 +901,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><strong><a href="man/evaluate.html"><code>evaluate()</code></a> on an instance fit carries <code>foreground_dice</code>.</strong> It is the mask column to read <em>across</em> models - the binary overlap of anything the model called an object against anything that is one, the same arithmetic whatever the separation is. The <code>dice</code> beside it is a mean over the class channels the head has, three for <a href="man/separations.html"><code>separation_rim()</code></a> against two for <a href="man/separations.html"><code>separation_flows()</code></a>, so it is read down one model’s rows and never across two: on the Data Science Bowl’s validation cases it showed two masks 0.09 apart that are 0.0062 apart, and in the other direction. <code>pyplatypus[#222](https://github.com/maju116/rplatypus/issues/222)</code>.</p></li>
 </ul>
 </section>
-<section id="fixed" class="level4">
-<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<section id="fixed-1" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
 <ul>
 <li><code>?losses</code>’ <code>task</code> parameter listed two tasks and there have been three since the engine’s <code>0.8.0a20</code>.</li>
 </ul>
@@ -879,8 +910,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a2" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</h3>
-<section id="added" class="level4">
-<h4 class="anchored" data-anchor-id="added">Added</h4>
+<section id="added-1" class="level4">
+<h4 class="anchored" data-anchor-id="added-1">Added</h4>
 <ul>
 <li><p><strong><a href="man/metrics.html"><code>metric_cldice()</code></a></strong>, for structures where Dice asks the wrong question. It scores each mask against the other’s skeleton, so it measures whether a vessel is <em>connected</em> rather than whether its pixels coincide. Vessels, airways, neurons, cracks, catheters.</p>
 <p>The two disagree in a way worth knowing, measured on a nine-pixel vessel: one drawn two pixels thin scores Dice <strong>0.875</strong>, and the same vessel severed in the middle scores <strong>0.947</strong> - Dice prefers the severed one. clDice gives them 1.000 and 0.943. Its limit is measured too: at one pixel wide, a one-pixel displacement leaves no overlap at all and every overlap-based metric reads 0, this one included.</p>
@@ -896,8 +927,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</h3>
-<section id="added-1" class="level4">
-<h4 class="anchored" data-anchor-id="added-1">Added</h4>
+<section id="added-2" class="level4">
+<h4 class="anchored" data-anchor-id="added-2">Added</h4>
 <ul>
 <li><strong><a href="man/drawing_style.html"><code>drawing_style()</code></a></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
@@ -943,7 +974,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td><code>mask_report()</code></td>
-<td><a href="man/inspect_masks.html"><code>inspect_masks()</code></a></td>
+<td><code>inspect_masks()</code></td>
 <td>the engine’s name, and the method it calls</td>
 </tr>
 <tr class="even">
@@ -978,15 +1009,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
-<section id="added-2" class="level4">
-<h4 class="anchored" data-anchor-id="added-2">Added</h4>
+<section id="added-3" class="level4">
+<h4 class="anchored" data-anchor-id="added-3">Added</h4>
 <ul>
 <li><p><strong><a href="man/callback_swa.html"><code>callback_swa()</code></a></strong>: average the weights over the last part of the run. What it is worth is not in the score column - Dice and per-case error do not move - it is in the spread. Measured over three seeds, the volume bias went from <code>+4.5% / +12.2% / -11.6%</code> to <code>-0.1% / +4.2% / +2.1%</code>, 5.7 times tighter. The help page says so in those words, because somebody reading “weight averaging” will look at Dice, find nothing, and conclude wrongly. Refused beside <a href="man/callbacks.html"><code>callback_cosine_annealing()</code></a>: a cosine has decayed to its floor by the time averaging begins, so the average is the last epoch.</p></li>
 <li><p><strong><code>segmentation_data(validation = FALSE)</code></strong>: say a run has no validation set. The third answer to the question a path and a split already answered, and it had to be a stated value rather than an absence, because “I have no validation set” and “I forgot” look identical and only one of them is a decision. It went in the same argument rather than a new one, so nothing can contradict it.</p></li>
 </ul>
 </section>
-<section id="fixed-1" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
+<section id="fixed-2" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-2">Fixed</h4>
 <ul>
 <li>The Python shim shipped inside this package is now formatted and linted by ruff in CI, beside lintr. It had never been.</li>
 </ul>
@@ -1001,8 +1032,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.5.0a1-through-0.6.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</h3>
-<section id="added-3" class="level4">
-<h4 class="anchored" data-anchor-id="added-3">Added</h4>
+<section id="added-4" class="level4">
+<h4 class="anchored" data-anchor-id="added-4">Added</h4>
 <ul>
 <li><strong><code>segmentation_data(split = )</code></strong> and <code>detection_data(split = )</code>: divide one training folder into splits without writing any files. The argument is a list of <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is a <strong>required key that may be <code>NULL</code></strong>. The mistake it prevents leaves no trace: slices of one patient on both sides make validation measure memory rather than generalisation, and nothing in the output says so. An omitted key would be that choice made silently; <code>NULL</code> is the same choice made on purpose. For detection this is the only way to divide one folder, because <code>split_dataset()</code> writes a <code>masks</code> column.</li>
 <li><strong><a href="man/detection_crops.html"><code>detection_crops()</code></a></strong>: cut the detected objects out of the images they were found in, at a fixed size, for handing to a classifier. Crops come from the source image through the same reader the dataset uses, are rounded outward so the whole box survives, and letterbox rather than stretch.</li>
@@ -1010,8 +1041,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><a href="man/loss_boundary.html"><code>loss_boundary()</code></a></strong>: a region loss plus the signed distance to the truth’s boundary. <code>region</code> and <code>alpha</code> default to <code>NULL</code> here and are left out of the request, so the engine’s own defaults apply - <code>alpha = 0.9</code>, which it pins with a test, because at 0.5 the surface term owns half the objective while the prediction is still random and the volume bias spread goes to +/-28%. What the loss trades is accuracy per case for being unbiased over a series: measured over three seeds, the systematic volume bias went from -5.18% to -0.06% and the per-case absolute error from 16.90% to 22.17%.</li>
 </ul>
 </section>
-<section id="fixed-2" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-2">Fixed</h4>
+<section id="fixed-3" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-3">Fixed</h4>
 <ul>
 <li>Every help page has an <code>\examples</code> section but one - 47 of 48 at the time, <code>encoders</code> being a concept page with no <code>\usage</code> - and a test parses every example in every <code>.Rd</code>, including inside <code>\dontrun{}</code>, and fails if it names a function that does not exist. What was at risk was never the functionality; it is the example <em>text</em> drifting from the API.</li>
 <li>lintr runs over the package in CI and gates on its findings. Of 906 findings at lintr’s defaults, 890 were the 80-character line limit this package does not use; at 100 characters and <code>lint_package()</code>, 25 - two of which were defects rather than style.</li>
@@ -1022,7 +1053,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="engine-0.3.0a15-then-0.4.0a1">2026-10-05 - engine 0.3.0a15, then 0.4.0a1</h3>
 <ul>
 <li><strong><code>evaluate_images()</code></strong>: one row per image for a detector - <code>n_truth</code>, <code>n_predicted</code>, <code>matched</code>, <code>missed</code>, <code>spurious</code>, <code>mean_matched_iou</code>. Order by <code>missed</code> for the frames it cannot see, by <code>mean_matched_iou</code> for the ones where it finds everything and places it badly. No average precision per image: AP is the area under a ranking’s curve and on one picture it moves on a single box.</li>
-<li><strong><code>platypus_spec(task = )</code></strong> can be stated, and is checked rather than trusted - it can confirm or refuse, never override. Unset, it is still derived from the constructors. Required in YAML and optional here is not an inconsistency: <code>task</code> is needed exactly where the type is not already stated, and <a href="man/segmentation_data.html"><code>segmentation_data()</code></a> with <code>u_net()</code> can only mean one thing.</li>
+<li><strong><code>platypus_spec(task = )</code></strong> can be stated, and is checked rather than trusted - it can confirm or refuse, never override. Unset, it is still derived from the constructors. Required in YAML and optional here is not an inconsistency: <code>task</code> is needed exactly where the type is not already stated, and <code>segmentation_data()</code> with <code>u_net()</code> can only mean one thing.</li>
 </ul>
 </section>
 <section id="engine-0.3.0a12-then-0.3.0a13" class="level3">
@@ -1083,7 +1114,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="section">[0.1.1] - 2020-10-17</h2>
 <p>The last release of the TensorFlow package, kept here for the record rather than as an ancestor of the entries above. It built Keras models through the R <code>keras</code> package: <code>yolo3()</code> and <code>darknet53()</code> with <code>load_darknet_weights()</code> for the original Darknet weights, a plain <code>u_net()</code>, <code>segmentation_generator()</code>, <code>loss_dice()</code>, the COCO and VOC colormaps, and readers for LabelMe JSON and Pascal VOC XML.</p>
 <p>It is still installable and still pinned:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"maju116/rplatypus@0.1.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Its source is on the <code>master</code> branch and the issues filed against it stay open. What has aged is its dependencies rather than its code - the pinned TensorFlow no longer installs on a current Python, which is the reason for a rewrite rather than a consequence of one.</p>
 
 
