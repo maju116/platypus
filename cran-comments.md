@@ -10,14 +10,28 @@ First submission of `rplatypus`.
 
 ## R CMD check results
 
-`R CMD check --as-cran`, with the manual, gives one NOTE on the maintainer's machine:
+`R CMD check --as-cran`, with the manual, on the maintainer's machine: **no ERRORs, no
+WARNINGs, three NOTEs**, and none of the three is a finding about the package.
+
+    * checking CRAN incoming feasibility ... NOTE
+      Maintainer: 'Michal Maj <michalmaj116@gmail.com>'
+      New submission
+
+    * checking for future file timestamps ... NOTE
+      unable to verify current time
 
     * checking HTML version of manual ... NOTE
       Skipping checking HTML validation: no command 'tidy' found.
 
-That is a missing local tool rather than a finding. There are no ERRORs and no WARNINGs.
+The first is expected of a first submission. The second is this machine being unable to
+reach the time server the check consults. The third is a local tool that is not installed
+here; it is present on CRAN's machines, so the HTML validation will actually run there.
 
-The expected `New submission` NOTE will also appear.
+The run was made with the manual built (`R_RD4PDF='times,hyper'`, which drops the
+`inconsolata` font this machine does not carry). That matters rather than being a detail:
+with `--no-manual` LaTeX never reads the `.Rd` files, and LaTeX is the only reader strict
+enough to catch, for instance, a Unicode minus sign where a hyphen belongs. One such
+character shipped undetected for six releases before a run like this one found it.
 
 ## The package name
 
@@ -48,9 +62,11 @@ network, so:
 - **No system Python is touched.** `reticulate::py_require()` declares one exact version of
   `pyplatypus` and `uv` builds an isolated ephemeral environment for it. Nothing is installed
   into a user's Python, and no `PATH` Python is modified or required.
-- **Every test that needs the engine skips without it.** The suite is 766 assertions; on a
-  machine where the engine cannot start, the ones that need it skip and the rest pass.
-  `checking tests ... OK` in the run above was produced that way — the engine never started.
+- **Every test that needs the engine skips without it.** On a machine where the engine cannot
+  start, the tests that need it skip and the rest pass; `checking tests ... OK` in the run
+  above was produced exactly that way, with the engine never started. No assertion count is
+  quoted here on purpose - this file is outside the package and nothing holds a number in it
+  to a measurement, and the one it used to quote had been wrong for several releases.
 - **The vignettes do not compute.** Each one that trains a model is precomputed from an
   `.Rmd.orig` on the maintainer's machine and ships as a static `.Rmd`, so building the
   vignettes on a CRAN machine renders prose and runs no model. `vignettes/precompute.R`
