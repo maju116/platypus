@@ -195,6 +195,12 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #' @param split Which data to predict on.
 #' @param type `"class"` gives the class index per pixel, which is the mask to look at;
 #'   `"probability"` keeps the per-class channel.
+#'
+#'   With `regions` - overlapping classes - `"class"` is **refused** rather than computed.
+#'   The channels are independent binary questions and do not compete, so the most likely
+#'   one is not an answer: a pixel may be in three classes and naming one of them drops the
+#'   rest with nothing in the result to say so. Ask for `"probability"` and write it with
+#'   [save_class_masks()].
 #' @param space `"model"` or `"source"`; see above. Note that the two return different
 #'   shapes of thing, an array and a list, because they are different things.
 #' @param cases Case names to predict, as [evaluate_cases()] reports them. With this the
@@ -267,6 +273,20 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
          "`evaluate()` gives a row per model and decoding - but there is no way yet to get ",
          "the objects themselves back into R: the bridge has no call that returns a label ",
          "map of them. platypus#103.", call. = FALSE)
+  }
+
+  # Overlapping classes have no class index to return: each channel is an independent
+  # question, the channels do not compete, and an `argmax` across them names one of the
+  # classes a pixel is in and drops the others. The shape cannot answer this - sigmoid
+  # channels and a softmax's channels are the same array - so it is read off the
+  # specification this fit carries, which is a lever R owns rather than one it borrows.
+  if (identical(type, "class") && length(as.list(object$spec)$data$regions)) {
+    stop("this specification names overlapping classes (`regions`), so there is no one ",
+         "class per pixel to return - each channel is an independent question and a pixel ",
+         "may be in several at once. Ask for `type = \"probability\"`, which gives one ",
+         "channel per region in the order they were written, and `save_class_masks()` ",
+         "writes those one file per class. `inspect_masks()` names the channels.",
+         call. = FALSE)
   }
 
   if (is.null(cases) && is.null(each)) {

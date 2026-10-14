@@ -44,7 +44,13 @@ metric name, such as \code{"val_dice"}.}
 the last - which are by definition the ones that were not improving. On by default.
 Note that \code{callback_swa()} replaces nothing if a run stops before averaging began.}
 
-\item{path}{Where to write.}
+\item{path}{Where to write. For \code{callback_checkpoint()} that is the weights file; for
+\code{callback_csv_logger()} it is one row per epoch appended as the epoch ends - the same
+numbers \code{\link[=training_history]{training_history()}} returns, so a run that is interrupted still leaves its
+history behind. Re-read against the engine's own text when it changed in \verb{0.8.0a23},
+which is what the field-prose ledger is for: the engine's sentence had named this
+package's \code{training_history()} to a Python reader, and the fix there left R's \verb{@param}
+saying three words about two different files.}
 
 \item{save_best_only}{Only write when the watched quantity improves, which is the
 default. \code{FALSE} writes every epoch, which is what to use when a run may be

@@ -247,6 +247,13 @@ makes the overlap expressible, and it is also why a prediction cannot be written
 single picture with `save_masks()`: one voxel gets one colour, and a voxel here may belong to
 three classes.
 
+So `save_masks()` refuses such a prediction rather than taking the strongest channel, and
+`predict()` refuses `type = "class"` for the same reason - there is no one class per voxel to
+return. Ask for `type = "probability"` and write it with `save_class_masks()`, which gives one
+binary file per region, named after the region. The channel order is the order the regions
+were written in, which is also the order `inspect_masks()` names them in and the order every
+per-class score is reported in.
+
 **Two regions are the minimum**, because one region is ordinary binary segmentation and
 `labels = c(0, 1)` already says that - with a background channel, which `regions` has none
 of. Disjoint regions are allowed and are not a mistake: they group several values into one

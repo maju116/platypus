@@ -139,11 +139,17 @@ test_that("the About section is in the agreed order and every entry has a file",
 })
 
 # The reference groups, in the order both sites show them. Each package carries the subset it
-# has: "Setting up" is the reticulate bridge and exists only here, "Looking at the results" is
-# plotting which the engine deliberately does not carry, "Masks and volumes" has no public
-# counterpart there - measured, the engine's `__all__` holds 24 names and not one is a mask,
-# volume or colormap utility - and "Records" and "When something is wrong" are the engine's,
-# because this package has no record reader and documents no condition classes.
+# has: "Setting up" is the reticulate bridge and exists only here, and "Records" and "When
+# something is wrong" are the engine's, because this package has no record reader and
+# documents no condition classes.
+#
+# Two sentences here were true when they were written and are not now, which is why they are
+# replaced rather than kept. "Looking at the results" was described as plotting the engine
+# deliberately does not carry: it has carried it since `0.8.0a1`, and this package mirrors its
+# six drawing decisions rather than restating them. "Masks and volumes" was described as
+# having no public counterpart there, measured against an `__all__` of 24 names with no mask
+# utility among them: `save_class_masks` arrived in `0.8.0a23` and is filed under that title
+# on both sides, which is what the entry in `shared_placement` below holds it to.
 #
 # **Asserting the two lists are equal would assert something false**, which CLAUDE.md did for
 # a while: "the same eight groups" was written down and five of eight titles matched. A shared
@@ -204,7 +210,12 @@ shared_placement <- c(
   available_weights = "Weights",
   # Shared from pyplatypus 0.8.0a1, when this package stopped restating the engine's
   # drawing decisions and started mirroring them.
-  drawing_style = "Looking at the results"
+  drawing_style = "Looking at the results",
+  # Shared from pyplatypus 0.8.0a23. The two are not the same call - this one takes an R
+  # array and forwards, that one takes numpy and writes - but they are the same answer to
+  # the same question, and a reader of one site looking for the other's has to find it in
+  # the same group.
+  save_class_masks = "Masks and volumes"
 )
 
 test_that("the shared names are filed where pyplatypus files them", {

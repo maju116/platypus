@@ -177,3 +177,147 @@ test_that("the output directory is created rather than demanded", {
   paths <- save_masks(array(1L, dim = c(1, 8, 8)), out, binary_colormap)
   expect_true(file.exists(paths))
 })
+
+
+# --- overlapping classes cannot be one colour -------------------------------------------
+#
+# `regions` gives a channel per named class and a sigmoid per channel, so two channels can
+# both be hot at one pixel - that is the point of the field. A colour map cannot hold it:
+# one pixel gets one colour, so writing such a prediction as a picture means choosing one
+# of the classes the pixel is in and leaving nothing in the file to say that happened.
+#
+# The detection is read off the array rather than off the specification, which is the same
+# test the engine's `onehot_to_colours` applies - so both halves refuse the same arrays, and
+# a caller holding only a prediction can answer the question. A softmax output never trips
+# it: its channels sum to one, so at most one can reach half. `#152`.
+
+overlapping_prediction <- function(images = 1L, size = 8L) {
+  # Built the way the data stores it - a label map of {0, 1, 2, 4} turned into unions -
+  # rather than by setting channels directly, so the overlap is a consequence rather than
+  # something the test asserted into existence.
+  labels <- array(0L, dim = c(images, size, size))
+  labels[, 1, ] <- 2L
+  labels[, 2, ] <- 1L
+  labels[, 3, ] <- 4L
+  channels <- lapply(list(c(1, 2, 4), c(1, 4), 4), function(of) {
+    as.numeric(labels %in% of)
+  })
+  array(unlist(channels), dim = c(dim(labels), 3L))
+}
+
+test_that("a pixel in several classes is counted rather than guessed at", {
+  expect_identical(rplatypus:::overlapping_channels(overlapping_prediction()), 3L)
+  # The control, and it is the one that matters: a softmax prediction must not be read as
+  # overlapping, or `save_masks()` would refuse every ordinary run.
+  softmax <- array(0, dim = c(1, 8, 8, 3))
+  softmax[, , , 1] <- 0.6
+  softmax[, , , 2] <- 0.3
+  softmax[, , , 3] <- 0.1
+  expect_identical(rplatypus:::overlapping_channels(softmax), 1L)
+})
+
+test_that("save_masks() refuses an overlapping prediction and names where to go", {
+  out <- withr::local_tempdir()
+  expect_error(
+    save_masks(overlapping_prediction(), out, binary_colormap),
+    "3 classes at once"
+  )
+  expect_error(
+    save_masks(overlapping_prediction(), out, binary_colormap),
+    "save_class_masks"
+  )
+  # Refused before anything is written, not after some of it: a directory holding two of
+  # three classes is worse than an error, because it looks like a result.
+  expect_length(list.files(out), 0L)
+})
+
+test_that("save_class_masks() writes one file per class, named after the class", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  paths <- save_class_masks(
+    overlapping_prediction(),
+    out,
+    classes = c("whole tumour", "tumour core", "enhancing")
+  )
+  expect_identical(
+    basename(paths),
+    c("mask_0001_whole_tumour.png", "mask_0001_tumour_core.png", "mask_0001_enhancing.png")
+  )
+  # Read back rather than trusting the returned paths, and read back the class each file is
+  # supposed to hold: a writer that put the same channel in all three would pass a test
+  # that only counted files.
+  written <- lapply(paths, function(path) read_masks(path, binary_colormap))
+  names(written) <- basename(paths)
+  expect_true(all(written[["mask_0001_whole_tumour.png"]][1, 2, ] == 2L))
+  expect_true(all(written[["mask_0001_enhancing.png"]][1, 2, ] == 1L))
+  # Row 3 is the pixel value a colour map could not have held: in all three at once.
+  expect_true(all(vapply(written, function(mask) all(mask[1, 3, ] == 2L), logical(1))))
+})
+
+test_that("save_class_masks() takes file names per image and a suffix per model", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  paths <- save_class_masks(
+    overlapping_prediction(images = 2L), out,
+    classes = c("a", "b", "c"),
+    names = c("x/scan_01.png", "y/scan_02.tif"), suffix = "_unet"
+  )
+  expect_identical(basename(paths)[c(1, 4)],
+                   c("scan_01_unet_a.png", "scan_02_unet_a.png"))
+})
+
+test_that("save_class_masks() refuses a class name count that does not match", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  expect_error(
+    save_class_masks(overlapping_prediction(), out, classes = c("a", "b")),
+    "3 channels and 2 class names"
+  )
+  expect_length(list.files(out), 0L)
+})
+
+test_that("save_class_masks() refuses two class names that become one file", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  # The quiet failure this guards: one file would hold the second class, the first would be
+  # silently gone, and the number of returned paths would still be three.
+  expect_error(
+    save_class_masks(overlapping_prediction(), out, classes = c("core 1", "core_1", "x")),
+    "same filename"
+  )
+  expect_length(list.files(out), 0L)
+})
+
+test_that("save_class_masks() refuses class indices where a value can prove it", {
+  out <- withr::local_tempdir()
+  # Provable: no probability exceeds 1. `predict(type = "class")` returns 1-based indices,
+  # so a two-class mask holds a 2.
+  expect_error(
+    save_class_masks(array(2L, dim = c(1, 8, 8, 2)), out, classes = c("a", "b")),
+    "class indices rather than channel probabilities"
+  )
+  expect_length(list.files(out), 0L)
+})
+
+test_that("the case a rank cannot prove is stated rather than detected", {
+  skip_if_no_engine()
+  out <- withr::local_tempdir()
+  # A stack of two all-background class masks has the same rank and the same values as one
+  # image with eight channels, so this is read as the latter - exactly as `save_masks()`
+  # cannot tell a stack of volumes from a stack of images. What catches it is the count.
+  expect_error(
+    save_class_masks(array(1L, dim = c(2, 8, 8)), out, classes = c("a", "b")),
+    "8 channels and 2 class names"
+  )
+  expect_length(list.files(out), 0L)
+})
+
+test_that("save_class_masks() counts its file names against the images", {
+  out <- withr::local_tempdir()
+  expect_error(
+    save_class_masks(overlapping_prediction(images = 3L), out,
+                     classes = c("a", "b", "c"), names = c("one", "two")),
+    "2 entries but there are 3"
+  )
+  expect_length(list.files(out), 0L)
+})

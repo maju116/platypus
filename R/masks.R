@@ -296,6 +296,22 @@ check_classes <- function(mask, n_class) {
   invisible(TRUE)
 }
 
+#' How many classes the most ambitious pixel is in
+#'
+#' Read off the array rather than from the specification, because that is what a caller
+#' holding only a prediction can answer - and it is the same test the engine's
+#' `onehot_to_colours` applies, so the two halves refuse the same arrays. A softmax output
+#' never trips it: its channels sum to one, so at most one can reach half.
+#'
+#' `rowSums(..., dims = )` rather than `apply()`: a split of 200 retinas at 2048 px is
+#' 3.4e9 elements and `apply` would build a list over all of them.
+#' @keywords internal
+#' @noRd
+overlapping_channels <- function(masks, threshold = 0.5) {
+  spatial <- length(dim(masks)) - 1L
+  as.integer(max(rowSums(masks >= threshold, dims = spatial)))
+}
+
 #' Write masks to files
 #'
 #' Predictions are only half useful while they are an array in a session. This writes them
@@ -314,6 +330,11 @@ check_classes <- function(mask, n_class) {
 #'   scan each mask came from. This function cannot reliably tell a stack of volumes from a
 #'   stack of images with a class axis - the ranks are identical - so it does not try; it
 #'   refuses only the case a shape can prove.
+#'
+#'   For **overlapping classes** use [save_class_masks()]. A prediction where some pixel is
+#'   in two classes at once is refused here rather than reduced: one pixel gets one colour,
+#'   so writing it as a colour map would mean choosing one of the classes it is in and
+#'   leaving nothing in the file to say that happened.
 #' @param dir Directory to write into; created if it does not exist.
 #' @param colormap A list of RGB triples, one per class.
 #' @param names File names, or the source image paths to take names from. Defaults to
@@ -338,6 +359,16 @@ save_masks <- function(masks, dir, colormap, names = NULL, suffix = "") {
          call. = FALSE)
   }
   if (length(dim(masks)) == 4L) {
+    # Before the `which.max` below, not after: taking the strongest channel of an
+    # overlapping prediction writes a plausible picture of something else, and once it is
+    # written there is nothing in the file that says so.
+    overlapping <- overlapping_channels(masks)
+    if (overlapping > 1L) {
+      stop("a pixel is in ", overlapping, " classes at once, and one pixel gets one ",
+           "colour - taking the strongest would write a plausible picture of something ",
+           "else. These are overlapping classes (`regions`), so write them one file per ",
+           "class with `save_class_masks()`.", call. = FALSE)
+    }
     # Probabilities rather than classes: take the most likely, as predict() would.
     masks <- apply(masks, seq_len(length(dim(masks)) - 1L), which.max)
   }
@@ -358,6 +389,130 @@ save_masks <- function(masks, dir, colormap, names = NULL, suffix = "") {
   paths <- file.path(dir, paste0(names, suffix, ".png"))
 
   result <- shim()$write_masks(coloured, as.list(paths))
+  if (!isTRUE(result$ok)) abort_engine(result)
+  invisible(unlist(result$paths))
+}
+
+#' Class names as filename fragments, refusing a pair the filesystem cannot keep apart
+#'
+#' Used by [save_class_volumes()] alone, because [save_class_masks()] forwards to the
+#' engine's `class_filename` and gets the rule from there. This is therefore a **second copy
+#' of one rule**, which is the shape §3F exists to catch - so a test holds the two to each
+#' other over a list of awkward names rather than a comment claiming they agree.
+#'
+#' The refusal is the part worth having on both sides: two names that become one filename
+#' would mean one file holding the second class, the first silently gone, and the number of
+#' written paths still right.
+#' @keywords internal
+#' @noRd
+class_file_names <- function(classes) {
+  cleaned <- gsub("^_+|_+$", "", gsub("[^A-Za-z0-9._-]+", "_", as.character(classes)))
+  empty <- !nzchar(cleaned)
+  if (any(empty)) {
+    stop("the class name \"", as.character(classes)[which(empty)[1]], "\" has no character ",
+         "a filename can hold, so there is nothing to call its file. Name it in letters, ",
+         "digits, dot, dash or underscore.", call. = FALSE)
+  }
+  if (anyDuplicated(cleaned)) {
+    clash <- unique(cleaned[duplicated(cleaned)])
+    stop("two class names become the same filename: ", paste(clash, collapse = ", "),
+         ". They differ as prose and not as paths, so one class would overwrite the other.",
+         call. = FALSE)
+  }
+  cleaned
+}
+
+#' Write overlapping classes, one file per class
+#'
+#' `regions` gives a channel per named class and a sigmoid per channel, so a pixel may be in
+#' several classes at once - that is the point of it. A colour map cannot hold that: one
+#' pixel gets one colour. [save_masks()] therefore refuses such a prediction, and this is
+#' what it refuses it in favour of - one binary picture per class, named after the class.
+#'
+#' Each file is `<name><suffix>_<class>.png`, black and white, so it opens in anything and
+#' thresholds back to exactly what was written. A class name becomes a filename by replacing
+#' anything outside letters, digits, dot, dash and underscore with `_`, so `whole tumour` is
+#' `whole_tumour` on disk; two class names that become the same filename are refused rather
+#' than written, because one file would hold the second class with the first silently gone.
+#'
+#' A class nothing reaches is written as an empty picture rather than skipped. A missing file
+#' reads as *this run did not produce that class* and an empty one as *it did and the answer
+#' was nothing*, which are different findings and only one of them is true.
+#'
+#' @param masks Channel probabilities from `predict(fit, type = "probability")` - an
+#'   `image x height x width x class` array, or one `height x width x class` array.
+#'
+#'   Class indices are the wrong input and are refused where a shape or a value can prove
+#'   it: any value above 1 is not a probability. What cannot be proved is a stack of
+#'   class-index masks whose values are all 1 - `image x height x width` has the same rank
+#'   as one image's `height x width x class`, exactly as `save_masks()` cannot tell a stack
+#'   of volumes from a stack of images - so that one is read as one image with eight
+#'   channels and caught by `classes` not having eight names.
+#' @param dir Directory to write into; created if it does not exist.
+#' @param classes One name per channel, in channel order, which is the order the regions were
+#'   written in and the order every per-class score is reported in. `inspect_masks()` names
+#'   them the same way. Called `classes` and not `names` because `names` in this family is
+#'   the files - see below.
+#' @param names File name stems, one per image, or the source image paths to take them from.
+#'   Defaults to `mask_0001` and so on. The engine's own function calls this `cases`; in R it
+#'   is `names`, matching [save_masks()] and [save_volumes()], and `classes` carries what the
+#'   engine calls `names`.
+#' @param suffix Added before the class, so predictions from different models can sit in one
+#'   directory without overwriting each other.
+#' @param threshold A class is written where its channel reaches this. 0.5 is what every
+#'   metric in the engine thresholds a channel at, so a different number here writes pictures
+#'   that disagree with the scores printed beside them.
+#' @return The paths written, invisibly, image by image and within an image class by class.
+#' @seealso [save_masks()] for exclusive classes as one colour picture, [save_volumes()] for
+#'   volumes as NIfTI.
+#' @export
+#' @examples
+#' \dontrun{
+#' spec <- platypus_spec(... )
+#' channels <- predict(fit, "brats", split = "test", type = "probability")
+#' save_class_masks(channels, "predictions", classes = c("whole tumour", "core", "enhancing"))
+#' }
+save_class_masks <- function(masks, dir, classes, names = NULL, suffix = "",
+                             threshold = 0.5) {
+  if (length(dim(masks)) == 3L) masks <- array(masks, dim = c(1L, dim(masks)))
+  if (length(dim(masks)) != 4L) {
+    stop("expected channel probabilities - `image x height x width x class`, or one ",
+         "`height x width x class` - got ",
+         paste(dim(masks) %||% length(masks), collapse = " x "),
+         ". `predict(type = \"probability\")` returns that shape.", call. = FALSE)
+  }
+  # Provable rather than guessed: no probability exceeds 1, so a value above it is class
+  # indices. The converse is not provable - a stack of class-index masks that are all
+  # background has the same rank and the same values as a one-hot single image - and that
+  # one is left to the `classes` count, which is the honest division of the two cases.
+  if (max(masks, na.rm = TRUE) > 1 + 1e-8) {
+    stop("these are class indices rather than channel probabilities - the largest value is ",
+         format(max(masks, na.rm = TRUE)), " and no probability exceeds 1. Overlapping ",
+         "classes have no class index: ask `predict()` for ",
+         "`type = \"probability\"`.", call. = FALSE)
+  }
+
+  count <- dim(masks)[1]
+  names <- if (is.null(names)) {
+    sprintf("mask_%04d", seq_len(count))
+  } else {
+    tools::file_path_sans_ext(basename(as.character(names)))
+  }
+  if (length(names) != count) {
+    stop("`names` has ", length(names), " entries but there are ", count, " predictions.",
+         call. = FALSE)
+  }
+
+  # The naming, the thresholding and the refusals are the engine's, deliberately: two
+  # implementations of one set of rules is two things to keep in step, and the filenames
+  # are part of what a user's next script reads.
+  result <- shim()$class_masks(
+    masks, path.expand(dir),
+    classes = as.list(as.character(classes)),
+    cases = as.list(names),
+    threshold = as.numeric(threshold),
+    suffix = as.character(suffix)
+  )
   if (!isTRUE(result$ok)) abort_engine(result)
   invisible(unlist(result$paths))
 }

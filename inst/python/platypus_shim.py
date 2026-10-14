@@ -660,6 +660,48 @@ def write_masks(masks, paths: list) -> dict:
     return {"ok": True, "paths": [str(p) for p in paths]}
 
 
+def class_masks(
+    prediction,
+    directory: str,
+    classes: list,
+    cases: list | None = None,
+    threshold: float = 0.5,
+    suffix: str = "",
+) -> dict:
+    """One file per class, through the engine's own writer.
+
+    Forwarding rather than reimplementing. The filenames, the threshold and every refusal
+    live in `pyplatypus.save_class_masks`, so the two packages cannot disagree about what a
+    region is called on disk - and the filenames are part of what a user's next script
+    reads, which makes them a contract rather than a detail.
+
+    Added for `0.8.0a23`, which is the release that writer arrived in; against an older
+    engine the call fails by name here rather than producing half of it.
+    """
+    import numpy as np
+    import pyplatypus
+
+    if not hasattr(pyplatypus, "save_class_masks"):
+        return _failure_message(
+            "this engine has no `save_class_masks`; one file per class arrived in "
+            f"pyplatypus 0.8.0a23 and the engine in use is {pyplatypus.__version__}"
+        )
+    try:
+        paths = pyplatypus.save_class_masks(
+            np.asarray(prediction, dtype=np.float32),
+            directory,
+            classes=[str(name) for name in classes],
+            cases=None if cases is None else [str(case) for case in cases],
+            threshold=float(threshold),
+            suffix=str(suffix),
+        )
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "paths": [str(path) for path in paths]}
+
+
 def window_presets() -> dict:
     """The named CT windows, so R does not keep its own copy to drift out of step."""
     from pyplatypus.spec.common import WINDOWS
