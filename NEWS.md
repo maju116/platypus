@@ -17,6 +17,66 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - instances come back into R
+
+#### Added
+
+- **`predict()` returns the objects.** It refused an instance fit until now, and the refusal
+  was right for as long as the bridge had no call that returned a label map. A **named list**
+  of integer maps, one per image, objects numbered from 1 and 0 for background.
+
+  Named rather than ordered, and that is the part worth stating: the engine's own list is
+  unnamed, and anything pairing two sequences by position is one dropped batch away from
+  naming the wrong picture - the mistake `predict_stream()` exists on the semantic side to
+  avoid. The names are read from the same two objects the engine pairs internally, and a test
+  asserts they are the keys `evaluate_cases()` reports.
+
+  A list rather than an array for the reason the detection one is a list: images differ in
+  size and so does the number of objects.
+
+- **`decode = ` picks which decoding turns the channels into objects**, by the name in the
+  model's `decode` list. Unset takes the model's first, which is the engine's default rather
+  than one restated here - and an unknown name is refused by the engine, naming the ones the
+  model does ask for. Refused outright on a fit that decodes nothing.
+
+- **`instance_sizes()`** is one row per object: `voxels`, and with `spacing` either
+  `area_mm2` or `volume_ml`. The question `#103` opens with is *how many nuclei, and how big
+  is each one*, which the published weights' card cannot answer.
+
+  The unit is in the **column's name** rather than in the documentation, because a column
+  whose unit lives elsewhere ends up in a paper as a bare number. Without `spacing` there is
+  no such column at all, rather than a count pretending to be a measurement. Millilitres for
+  a volume, as [mask_volume()] reports them, and a test holds the two to the same arithmetic.
+
+- **`flow_to_colours()`** draws a two-channel vector field: hue is the direction, value is
+  the length. A convention rather than a decision - which is why it is not in
+  `drawing_style()` - and it is what makes a `separation_flows()` model debuggable, because a
+  field that is right everywhere except reversed looks obviously reversed here and identical
+  in any loss.
+
+  Pixel-identical to the engine's on random fields, which is the only thing that can hold a
+  convention.
+
+#### Fixed
+
+- **`type = "probability"` is refused on an instance fit, by name.** An instance model's
+  channels are not all probabilities: the class channels are and a flow field's components
+  are **raw**, because a softmax across a flow component and a class returns a number that
+  means nothing. The engine refuses to conflate the two and so does this - the value is
+  `type = "channels"`, which says what it gives.
+
+- **`space` is refused on an instance fit, with the reason rather than "unsupported".**
+  Resampling a label map interpolates between object numbers, so object 3 beside object 5
+  comes back with a rim of object 4. A refusal saying only that it is not supported would
+  read as a gap somebody might fill.
+
+#### Measured
+
+- **A one-row flow field had no dimensions.** `field[1, , ]` on a `2 x 1 x w` array drops to
+  a vector, so the picture came back with no `dim` at all - and a tiled model hands back
+  exactly that shape at the edge of an image. Found because the comparison against the engine
+  ran three shapes rather than one; with only the first it would have shipped.
+
 ### 2026-10-15 - drawing instances
 
 #### Added

@@ -8,10 +8,11 @@
   object,
   model = NULL,
   split = "test",
-  type = c("class", "probability"),
+  type = c("class", "probability", "channels"),
   space = c("model", "source"),
   cases = NULL,
   each = NULL,
+  decode = NULL,
   ...
 )
 }
@@ -24,7 +25,14 @@ first one trained.}
 \item{split}{Which data to predict on.}
 
 \item{type}{\code{"class"} gives the class index per pixel, which is the mask to look at;
-\code{"probability"} keeps the per-class channel.
+\code{"probability"} keeps the per-class channel. \code{"channels"} is for an \strong{instance} model
+only and means the model's own output before any decoding: the class channels are
+probabilities and a flow field's components are \strong{raw}, which is why they are not
+called probabilities here - a softmax across a flow component and a class returns a
+number that means nothing. Read them with \code{\link[=flow_to_colours]{flow_to_colours()}}.
+
+On an instance fit, \code{"class"} is a label map of \strong{objects}, numbered from 1, and
+\code{"probability"} is refused by name for the reason above.
 
 With \code{regions} - overlapping classes - \code{"class"} is \strong{refused} rather than computed.
 The channels are independent binary questions and do not compete, so the most likely
@@ -44,6 +52,11 @@ predictions being returned together. Whatever it returns is collected under the 
 name; return \code{NULL} from it and nothing accumulates. This is the form that does not
 need the split to fit in memory.}
 
+\item{decode}{Which decoding turns the predicted channels into objects, by the name used
+in the model's \code{decode} list. Unset takes the model's first, which is the engine's own
+default rather than one restated here. \strong{Instance models only}; for anything else it
+is refused, because a semantic or detection fit decodes nothing.}
+
 \item{...}{Unused.}
 }
 \value{
@@ -53,6 +66,12 @@ With \code{space = "model"}: for \code{"class"}, an integer array of
 original size, reassembled.
 
 With \code{space = "source"}: a list of such arrays, one per scan, each on that scan's grid.
+
+On an \strong{instance} fit: a list of integer label maps \strong{named by case}, objects numbered
+from 1 and 0 for background, one entry per image. A list rather than an array for the
+reason the detection one is a list, and named rather than ordered because a list paired
+against case names by position is one dropped batch away from naming the wrong picture.
+Draw them with \code{\link[=overlay_instances]{overlay_instances()}} and measure them with \code{\link[=instance_sizes]{instance_sizes()}}.
 }
 \description{
 Predict masks

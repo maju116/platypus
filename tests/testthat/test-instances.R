@@ -299,21 +299,119 @@ r_regions = int(ndimage.label(union)[1])
   expect_identical(reticulate::py$r_regions, 1L)
 })
 
-test_that("predict() refuses instances by name rather than leaking a TypeError", {
-  # Measured before it was written: without the guard this reaches the instance engine's
-  # own predict, which takes no `space`, and the user sees
-  # "TypeError: InstanceEngine.predict() got an unexpected keyword argument 'space'" -
-  # about an argument they never wrote, from a library they never invoked.
-  #
-  # The first wording of the refusal named the engine's Python function, and
-  # test-messages-name-real-functions.R failed it: a message may not point an R reader at
-  # something they cannot call, which is the same rule that caught `summarise_cases()`.
+# --- `predict()` brings the objects back ------------------------------------------------
+#
+# This refused by name until `#103`, and the refusal was right for as long as the bridge had
+# no call that returned a label map. The refusal's own test is replaced rather than kept
+# beside the new behaviour, because a test asserting the old message would now be asserting
+# that the feature is absent.
+#
+# What is still refused, and for reasons rather than for lack of code, is below: `space`,
+# because resampling a label map interpolates between object numbers, and
+# `type = "probability"`, because an instance model's vector channels are not probabilities.
+
+test_that("predict() returns one label map per case, named by the case", {
   skip_if_no_engine()
   root <- tiny_instance_dataset(n = 2)
   fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
-  expect_error(predict(fit, split = "validation"), "does not return instances yet")
-  expect_error(predict(fit, split = "validation"), "platypus#103", fixed = TRUE)
-  # And the half that does work is named in the same breath, so the message says what to do
-  # instead rather than only what is missing.
-  expect_error(predict(fit, split = "validation"), "evaluate()", fixed = TRUE)
+  maps <- predict(fit, split = "validation")
+
+  expect_type(maps, "list")
+  expect_length(maps, 2L)
+  # Named rather than ordered. The engine's own list is unnamed, and anything pairing two
+  # sequences by position is one dropped batch away from naming the wrong picture - which is
+  # the reason `predict_stream` exists on the semantic side.
+  expect_true(all(nzchar(names(maps))))
+  expect_identical(names(maps), unique(names(maps)))
+  for (one in maps) {
+    expect_identical(length(dim(one)), 2L)
+    expect_type(as.vector(one), "integer")
+    expect_gte(min(one), 0L)
+  }
+})
+
+test_that("the names are the keys evaluate_cases() reports, not positions", {
+  # The pairing this is worth having: if the names came from somewhere else than the cases
+  # the engine scores, a figure would be labelled with one picture's key and drawn from
+  # another's pixels, and nothing in either object would say so.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  maps <- predict(fit, split = "validation")
+  # `case` here rather than `key`: an instance case table names the column `case`, which is
+  # what the engine's own rows call it, and a test written against `key` passed `NULL` into
+  # `expect_setequal` and failed for the instrument's reason rather than the pairing's.
+  scored <- evaluate_cases(fit, split = "validation")
+  expect_setequal(names(maps), scored$case)
+})
+
+test_that("`decode` picks the decoding and an unknown one is refused by name", {
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  spec <- tiny_instance_spec(
+    root,
+    decode = list(decode_connected_components(), decode_watershed())
+  )
+  fit <- platypus_fit(spec, num_workers = 0)
+  expect_length(predict(fit, split = "validation", decode = "watershed"), 2L)
+  expect_error(predict(fit, split = "validation", decode = "follow_flows"),
+               "does not decode")
+})
+
+test_that("`decode` is refused on a fit that decodes nothing", {
+  skip_if_no_engine()
+  root <- tiny_dataset(n = 2)
+  fit <- platypus_fit(tiny_spec(root), num_workers = 0)
+  expect_error(predict(fit, split = "validation", decode = "watershed"),
+               "only an instance model")
+})
+
+test_that("`space` is refused on an instance fit, and the reason is the label map", {
+  # Not "unsupported": resampling a label map interpolates between object numbers, so
+  # object 3 beside object 5 comes back with a rim of object 4. A refusal that said only
+  # "not supported" would read as a gap somebody might fill.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  expect_error(predict(fit, split = "validation", space = "source"),
+               "interpolates between object numbers")
+})
+
+test_that("`type = \"probability\"` is refused and `\"channels\"` is what it means", {
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  expect_error(predict(fit, split = "validation", type = "probability"),
+               "not all probabilities")
+  channels <- predict(fit, split = "validation", type = "channels")
+  # Stacked, channels-last, and as many channels as the head has - three for `rim`:
+  # background, interior and the rim band.
+  expect_identical(length(dim(channels)), 4L)
+  expect_identical(dim(channels)[[1]], 2L)
+  expect_identical(dim(channels)[[4]], 3L)
+})
+
+test_that("`type = \"channels\"` is refused where the channels are probabilities", {
+  skip_if_no_engine()
+  root <- tiny_dataset(n = 2)
+  fit <- platypus_fit(tiny_spec(root), num_workers = 0)
+  expect_error(predict(fit, split = "validation", type = "channels"),
+               "ask for `type = \"probability\"`")
+})
+
+test_that("a predicted map draws and measures without leaving R", {
+  # §4: a feature is not shipped until something has used it the way a user reaches it. The
+  # way a user reaches this is predict, then draw, then measure - and the three were built
+  # in two pull requests, so the join is the thing neither of them proved.
+  skip_if_no_engine()
+  root <- tiny_instance_dataset(n = 2)
+  fit <- platypus_fit(tiny_instance_spec(root), num_workers = 0)
+  maps <- predict(fit, split = "validation")
+  one <- maps[[1]]
+  image <- array(0.5, dim = c(dim(one), 3L))
+  drawn <- overlay_instances(image, one)
+  expect_identical(dim(drawn), c(dim(one), 3L))
+  sizes <- instance_sizes(one, spacing = c(0.25, 0.25))
+  expect_identical(names(sizes), c("object", "voxels", "area_mm2"))
+  expect_identical(nrow(sizes), length(setdiff(unique(as.vector(one)), 0L)))
 })

@@ -194,13 +194,24 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #'   first one trained.
 #' @param split Which data to predict on.
 #' @param type `"class"` gives the class index per pixel, which is the mask to look at;
-#'   `"probability"` keeps the per-class channel.
+#'   `"probability"` keeps the per-class channel. `"channels"` is for an **instance** model
+#'   only and means the model's own output before any decoding: the class channels are
+#'   probabilities and a flow field's components are **raw**, which is why they are not
+#'   called probabilities here - a softmax across a flow component and a class returns a
+#'   number that means nothing. Read them with [flow_to_colours()].
+#'
+#'   On an instance fit, `"class"` is a label map of **objects**, numbered from 1, and
+#'   `"probability"` is refused by name for the reason above.
 #'
 #'   With `regions` - overlapping classes - `"class"` is **refused** rather than computed.
 #'   The channels are independent binary questions and do not compete, so the most likely
 #'   one is not an answer: a pixel may be in three classes and naming one of them drops the
 #'   rest with nothing in the result to say so. Ask for `"probability"` and write it with
 #'   [save_class_masks()].
+#' @param decode Which decoding turns the predicted channels into objects, by the name used
+#'   in the model's `decode` list. Unset takes the model's first, which is the engine's own
+#'   default rather than one restated here. **Instance models only**; for anything else it
+#'   is refused, because a semantic or detection fit decodes nothing.
 #' @param space `"model"` or `"source"`; see above. Note that the two return different
 #'   shapes of thing, an array and a list, because they are different things.
 #' @param cases Case names to predict, as [evaluate_cases()] reports them. With this the
@@ -217,6 +228,12 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #'   original size, reassembled.
 #'
 #'   With `space = "source"`: a list of such arrays, one per scan, each on that scan's grid.
+#'
+#'   On an **instance** fit: a list of integer label maps **named by case**, objects numbered
+#'   from 1 and 0 for background, one entry per image. A list rather than an array for the
+#'   reason the detection one is a list, and named rather than ordered because a list paired
+#'   against case names by position is one dropped batch away from naming the wrong picture.
+#'   Draw them with [overlay_instances()] and measure them with [instance_sizes()].
 #' @export
 #' @examples
 #' \dontrun{
@@ -236,9 +253,9 @@ evaluate.platypus_fit <- function(object, split = "validation", ...) {
 #' # them to match is how a mask ends up describing anatomy it was not computed from.
 #' }
 predict.platypus_fit <- function(object, model = NULL, split = "test",
-                                 type = c("class", "probability"),
+                                 type = c("class", "probability", "channels"),
                                  space = c("model", "source"),
-                                 cases = NULL, each = NULL, ...) {
+                                 cases = NULL, each = NULL, decode = NULL, ...) {
   # Asked before `match.arg` assigns to them: in R, `missing()` on a formal argument stops
   # being true once the argument has been assigned to, so reading it after the two lines
   # below reports "the caller passed this" for every caller. The first version did exactly
@@ -263,16 +280,47 @@ predict.platypus_fit <- function(object, model = NULL, split = "test",
     return(as_box_frames(found$detections))
   }
 
-  # Refused by name rather than attempted. Without this the call reaches the instance
-  # engine's `predict()`, which takes no `space`, and an R user gets a raw Python
-  # `TypeError` about a keyword argument they never wrote - the one kind of message this
-  # package has a whole conditions page to avoid. `evaluate()` already scores an instance
-  # run, so the gap is the answer coming back, not the run.
   if (identical(object$task, "instance_segmentation")) {
-    stop("`predict()` does not return instances yet. The run and its scores do work - ",
-         "`evaluate()` gives a row per model and decoding - but there is no way yet to get ",
-         "the objects themselves back into R: the bridge has no call that returns a label ",
-         "map of them. platypus#103.", call. = FALSE)
+    if (asked_space) {
+      stop("`space` is about a mask on a grid, and an instance result is objects. The ",
+           "engine decodes them on the model's own grid, and there is no inverse that ",
+           "could put an object identity back on the scan's grid: resampling a label map ",
+           "interpolates between object numbers, so object 3 and object 5 become a rim of ",
+           "object 4. Use the maps as they come, or `target_spacing` so the model's grid ",
+           "is the one you want.", call. = FALSE)
+    }
+    if (identical(type, "probability")) {
+      stop("an instance model's channels are not all probabilities, so `type = ",
+           "\"probability\"` would be a name for something that is not one: the class ",
+           "channels are probabilities and the vector channels - a flow field's components ",
+           "- are raw, because a softmax across a flow component and a class returns a ",
+           "number that means nothing. Ask for `type = \"channels\"`, which says what it ",
+           "gives.", call. = FALSE)
+    }
+    if (identical(type, "channels")) {
+      found <- shim()$instance_channels(object$engine, model, split = split)
+      if (!isTRUE(found$ok)) abort_engine(found)
+      return(found$channels)
+    }
+    found <- shim()$instance_predictions(object$engine, model, split = split,
+                                         decode = decode)
+    if (!isTRUE(found$ok)) abort_engine(found)
+    # Named by case rather than returned in the split's order alone. The engine's own list
+    # is unnamed, and anything that pairs two sequences by position is one `drop_last` away
+    # from naming the wrong picture - which is why `predict_stream` exists on the semantic
+    # side. The names come from the same two objects the engine pairs internally.
+    maps <- lapply(found$maps, function(one) array(as.integer(one), dim = dim(one)))
+    names(maps) <- unlist(found$cases)
+    return(maps)
+  }
+  if (!is.null(decode)) {
+    stop("`decode` is how predicted channels become objects, which only an instance model ",
+         "does. This fit is ", object$task, ".", call. = FALSE)
+  }
+  if (identical(type, "channels")) {
+    stop("`type = \"channels\"` exists for an instance model, whose vector channels are ",
+         "not probabilities. For this fit the channels *are* probabilities, so ask for ",
+         "`type = \"probability\"`.", call. = FALSE)
   }
 
   # Overlapping classes have no class index to return: each channel is an independent

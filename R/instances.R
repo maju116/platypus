@@ -562,3 +562,120 @@ as_instance_map <- function(labels, what) {
   }
   array(as.integer(labels), dim = dim(labels))
 }
+
+#' How big each object is, in units somebody can use
+#'
+#' One row per object. `voxels` is the count, which means nothing outside one scanner, and
+#' `spacing` turns it into a number a reader can compare - the same argument [mask_volume()]
+#' makes for one class, applied per object. That is the question this whole feature is for:
+#' *how many nuclei, and how big is each one*.
+#'
+#' The unit is decided by the rank, and the column is named after it rather than being called
+#' `size` with a note somewhere: `area_mm2` for an image, `volume_ml` for a volume. A column
+#' whose unit lives in the documentation is a column that ends up in a paper as a bare number.
+#'
+#' Without `spacing` there is no such column at all, rather than a count pretending to be a
+#' measurement.
+#'
+#' @param labels An instance label map from `predict()` - one integer per object, 0 for
+#'   background. Two dimensions for an image, three for a volume.
+#' @param spacing The size of one voxel in millimetres: two numbers for an image, three for a
+#'   volume. Unset means the result counts voxels and says nothing about size.
+#' @return A data frame with `object`, `voxels` and, when `spacing` is given, `area_mm2` or
+#'   `volume_ml`. One row per object present, in increasing object number; an object number
+#'   absent from the map gets no row, because a model that found objects 1, 2 and 4 found
+#'   three objects.
+#' @seealso [overlay_instances()] to look at them, [mask_volume()] for one class of a
+#'   semantic mask.
+#' @export
+#' @examples
+#' labels <- matrix(0L, nrow = 8, ncol = 8)
+#' labels[2:4, 2:4] <- 1L
+#' labels[6:7, 6:8] <- 2L
+#' instance_sizes(labels)
+#'
+#' # 0.5 mm pixels: object 1 is 9 pixels, so 9 * 0.25 = 2.25 mm^2.
+#' instance_sizes(labels, spacing = c(0.5, 0.5))
+instance_sizes <- function(labels, spacing = NULL) {
+  labels <- as.array(labels)
+  rank <- length(dim(labels))
+  if (!rank %in% c(2L, 3L)) {
+    stop("`labels` must be one instance map: two dimensions for an image or three for a ",
+         "volume; got ",
+         if (is.null(dim(labels))) "a vector" else paste(dim(labels), collapse = " x "),
+         ". For a stack, apply this to one map at a time - which is also how `predict()` ",
+         "returns them.", call. = FALSE)
+  }
+  values <- sort(unique(as.integer(labels[labels > 0L])))
+  counts <- vapply(values, function(value) sum(labels == value), integer(1))
+  out <- data.frame(object = values, voxels = counts, stringsAsFactors = FALSE)
+  if (is.null(spacing)) return(out)
+
+  if (length(spacing) != rank || anyNA(spacing) || any(spacing <= 0)) {
+    stop("`spacing` must be ", rank, " positive numbers, in millimetres, because `labels` ",
+         "has ", rank, " dimensions. Giving ", length(spacing), " would measure a different ",
+         "shape of thing than the one passed.", call. = FALSE)
+  }
+  per_voxel <- prod(as.numeric(spacing))
+  if (rank == 2L) {
+    out$area_mm2 <- counts * per_voxel
+  } else {
+    # Millilitres rather than cubic millimetres, as `mask_volume()` reports: a millilitre is
+    # a cubic centimetre, which is the unit a radiology report is written in.
+    out$volume_ml <- counts * per_voxel / 1000
+  }
+  out
+}
+
+#' A vector field as a picture: hue is the direction, value is the length
+#'
+#' The convention optical flow has used for twenty years, and a convention rather than a
+#' palette decision - which is why it is not in [drawing_style()]. Nothing about it is a
+#' choice this project gets to make differently from everyone else's figures, and a reader
+#' who has seen one flow visualisation can read this one.
+#'
+#' What it is for: debugging a `separation_flows()` model. A field that is right everywhere
+#' except reversed looks obviously reversed here and identical in any loss. `predict()` with
+#' `type = "channels"` is where the field comes from.
+#'
+#' A zero vector is black, which is also what the background is, and that is honest - the
+#' background has no direction.
+#'
+#' @param flow A two-channel vector field: `2 x height x width`, channel 1 the row component
+#'   and channel 2 the column component, which is the layout the engine's targets use.
+#' @return A `height x width x 3` array of integers, 0-255.
+#' @seealso [separation_flows()] for the model that predicts one.
+#' @export
+#' @examples
+#' field <- array(0, dim = c(2, 2, 3))
+#' field[1, 1, 1] <- 1   # pointing down
+#' field[2, 1, 2] <- 1   # pointing right
+#' shown <- flow_to_colours(field)
+#' # Two directions, two hues; and no vector, no colour.
+#' !identical(shown[1, 1, ], shown[1, 2, ]) && all(shown[2, 3, ] == 0L)
+flow_to_colours <- function(flow) {
+  field <- as.array(flow)
+  if (length(dim(field)) != 3L || dim(field)[1] != 2L) {
+    stop("`flow` is ",
+         if (is.null(dim(field))) "a vector" else paste(dim(field), collapse = " x "),
+         "; a vector field here is `2 x height x width`, channel 1 the row component and ",
+         "channel 2 the column component.", call. = FALSE)
+  }
+  # `drop = FALSE` and an explicit reshape, because `field[1, , ]` on a `2 x 1 x w` field
+  # drops to a vector and the result then has no dimensions at all. A one-row field is what
+  # a tiled model hands back at the edge of an image, so it is the ordinary case rather than
+  # a contrived one - caught by testing three shapes instead of one.
+  shape <- dim(field)[2:3]
+  rows <- array(field[1, , , drop = FALSE], dim = shape)
+  columns <- array(field[2, , , drop = FALSE], dim = shape)
+  length_of <- sqrt(rows^2 + columns^2)
+  longest <- max(length_of)
+  # `atan2` then wrapped into [0, 1): the same expression the engine uses, because a hue is
+  # an angle and the only way to get a different picture from the same field is to measure
+  # the angle from somewhere else.
+  hue <- (atan2(columns, rows) / (2 * pi)) %% 1
+  value <- if (longest > 0) length_of / longest else array(0, dim = dim(length_of))
+  rgb <- grDevices::hsv(h = as.vector(hue), s = 1, v = as.vector(value))
+  channels <- grDevices::col2rgb(rgb)
+  array(as.integer(t(channels)), dim = c(dim(hue), 3L))
+}
