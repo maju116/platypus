@@ -250,6 +250,15 @@ derived rather than written anywhere. **`decode` is a list**, because several de
 one forward pass: a second decoding of 134 images costs 1.41 s against an hour and a half for
 a second training run. `evaluate()` then returns a row per *model and decoding*.
 
+**Which mask column to read is a decision the table makes for you and it used to make it
+wrongly.** Every row carries `foreground_dice` - the binary overlap of anything the model
+called an object against anything that is one, the same arithmetic whatever the separation
+is - and that is the one to read *across* models. The `dice` beside it is the training
+metric, a mean over the class channels the head has, so three for `separation_rim()` against
+two for `separation_flows()`: read down one model's rows, never across two. On the Data
+Science Bowl's validation cases the class column showed two masks 0.09 apart that are 0.0062
+apart, and in the other direction.
+
 **No value appears in both lists**, which is what settles which field a new idea belongs in:
 `separation` is a noun and `decode` is a verb. `separation_rim()` can be decoded by
 `decode_nearest_seed()` or `decode_watershed()`, `separation_flows()` by

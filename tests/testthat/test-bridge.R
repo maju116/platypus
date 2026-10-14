@@ -43,7 +43,19 @@ test_that("platypus_use_torch replaces the requirement instead of adding a secon
   )
   expect_length(asked, 1)
   expect_match(asked, "pascal", fixed = TRUE)
-  expect_match(asked, platypus:::pyplatypus_version, fixed = TRUE)
+  # Two modes, the same way `platypus_status()` below handles them, rather than one
+  # assertion that is only true of the installed route. PLATYPUS_ENGINE_PATH replaces the
+  # pinned name with a source tree, so asserting the pin here made §7's development
+  # command - the one where the two halves meet before a release - fail by construction,
+  # on a line that reads like a wrong pin. The control that found it: the same failure
+  # appears with the previous pin, so it was never about which version the pin names.
+  if (nzchar(Sys.getenv("PLATYPUS_ENGINE_PATH"))) {
+    tree <- sub("\\[.*$", "", asked)
+    expect_true(dir.exists(tree))
+    expect_true(file.exists(file.path(tree, "pyproject.toml")))
+  } else {
+    expect_match(asked, platypus:::pyplatypus_version, fixed = TRUE)
+  }
 })
 
 test_that("status reports the pinned engine before anything has started", {

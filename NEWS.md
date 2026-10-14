@@ -70,6 +70,46 @@ Its source is on the `master` branch, and the issues filed against it stay open.
 is its dependencies rather than its code: the pinned TensorFlow no longer installs on a current
 Python, which is the reason for a rewrite rather than a consequence of one.
 
+### 2026-10-14 - engine 0.8.0a22
+
+**This file has a gap and it is named rather than backfilled.** The entry below is dated
+2026-10-08 and the pin moved twice between then and here - to `0.8.0a12` for `fives-unet`
+(`#151`) and to `0.8.0a20` for the instance task (`#155`) - so the dates above this heading
+are not a complete record of what the pin did. Writing those entries now would be writing
+them from the commit log rather than from the work, which is a different thing from having
+written them; the heading says what this change is and the omission stays visible.
+
+#### Changed
+
+- Engine pinned to `0.8.0a22`, for two things R forwards rather than implements.
+
+- **A regression loss is refused as any segmentation model's own `loss`, not only an instance
+  model's.** `?losses` claimed the narrower rule and was measured when it was written, so it
+  was true rather than wrong - the engine's refusal lived on the instance class alone, and a
+  *semantic* model accepted `loss_mse()` and trained with it, reporting a validation loss of
+  0.0014 for a mask that was half missing where `loss_cce()` reaches a Dice of 1.0000. The
+  default `where = "foreground"` is what made that look like a success: it averages the
+  objective only inside the labelled objects and leaves the background unconstrained.
+  `pyplatypus#223`.
+
+  So `available_losses()` is **ten** rows now rather than thirteen, and
+  `available_losses("instance_segmentation")` is thirteen - the three regression losses are
+  reachable where they have a target, which is `separation_flows(loss = )`. Nothing R sends
+  changes: a configuration refused after this pin move was refused by the engine before it.
+
+- **`evaluate()` on an instance fit carries `foreground_dice`.** It is the mask column to
+  read *across* models - the binary overlap of anything the model called an object against
+  anything that is one, the same arithmetic whatever the separation is. The `dice` beside it
+  is a mean over the class channels the head has, three for `separation_rim()` against two
+  for `separation_flows()`, so it is read down one model's rows and never across two: on the
+  Data Science Bowl's validation cases it showed two masks 0.09 apart that are 0.0062 apart,
+  and in the other direction. `pyplatypus#222`.
+
+#### Fixed
+
+- `?losses`' `task` parameter listed two tasks and there have been three since the engine's
+  `0.8.0a20`.
+
 ### 2026-10-08 - engine 0.8.0a2
 
 #### Added
