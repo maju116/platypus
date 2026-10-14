@@ -46,6 +46,24 @@ drifted underneath it.
   each channel is an **independent binary question** - a sigmoid per channel rather than one
   softmax across them - so a voxel may be in several regions at once, which is the point.
 
+- **`inspect_masks()` names regions rather than numbering them.** The engine reports classes
+  by position, and with `regions` a position is the one thing a reader cannot resolve:
+  `missing_classes: 1` means the second region, and counting entries in a configuration file
+  to find out which is the step nobody takes. With `colormap` or `labels` the number *is* the
+  class, so it stays a number - naming it would invent something the specification did not
+  say, and a test holds that.
+
+  It matters most for the one failure `regions` invites: `of = 3` against a label map holding
+  `4` is a channel of zeros, so the model trains to predict nothing and scores a Dice of 0 for
+  that region while every other number in the run looks ordinary.
+
+  The positions are still attached as the `present` and `missing` attributes, so anything
+  reading them keeps working. The mapping is derived in R from the specification R owns
+  rather than asked of the engine - which would mean a release and a pin move for a label -
+  and what holds the two together is a test comparing R's name against the engine's own
+  refusal sentence. An off-by-one in that mapping fails it, which is the one mistake whose
+  output otherwise looks entirely ordinary.
+
 - **The exclusivity check is three-way and names what was given.** One of `colormap`,
   `labels` and `regions`, in one message, matching the engine's own sentence - and the
   message now says which arguments it found rather than only that one was expected.

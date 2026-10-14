@@ -163,3 +163,71 @@ test_that("`labels` without 0 trains when the masks really do fill every voxel",
   )
   expect_s3_class(platypus_fit(spec, num_workers = 0), "platypus_fit")
 })
+
+
+# --- `inspect_masks()` names regions ----------------------------------------------------
+#
+# The engine reports classes by position, and with `regions` a position is the one thing a
+# reader cannot resolve: `missing_classes: 1` means the second region, and counting entries
+# in a configuration file to find out which is the step nobody takes. `#152`.
+#
+# Measured before any of this was written: on a spec whose second region matches nothing the
+# engine returns `missing = 1`, so the mapping is positional and zero-based.
+
+regions_spec <- function(root, regions) {
+  platypus_spec(
+    data = segmentation_data(root, root, window = "soft_tissue", regions = regions),
+    models = list(u_net("m", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1))
+  )
+}
+
+test_that("`inspect_masks()` names the region that matches nothing", {
+  skip_if_no_volumes()
+  skip_if_no_regions()
+  root <- tiny_label_dataset(background = TRUE)
+  # The masks hold 0, 1 and 2. `of = 9` is the failure this feature invites: a channel of
+  # zeros that trains to predict nothing and scores a Dice of 0 while every other number in
+  # the run looks ordinary.
+  report <- inspect_masks(regions_spec(root, list(list(name = "present", of = 1),
+                                                  list(name = "absent", of = 9))))
+  expect_identical(report$missing_classes, "absent")
+  expect_identical(report$present_classes, "present")
+  # The positions stay in the attributes, so anything already reading them keeps working -
+  # and the number is still the thing to pass back to the engine.
+  expect_identical(attr(report, "missing"), 1L)
+  expect_identical(attr(report, "present"), 0L)
+})
+
+test_that("R's naming is the engine's naming, not a second opinion", {
+  skip_if_no_volumes()
+  skip_if_no_regions()
+  skip_if_no_mask_check()
+  # The mapping is derived in R, from a specification R owns, rather than returned by the
+  # engine - asking for it would mean a release and a pin move for a label. This is what
+  # holds the two together: the engine's own refusal names the region, so R's naming is
+  # compared against that sentence instead of against an opinion. If the engine ever
+  # indexed regions differently, this fails and the test above would not.
+  root <- tiny_label_dataset(background = TRUE)
+  spec <- regions_spec(root, list(list(name = "present", of = 1),
+                                  list(name = "absent", of = 9)))
+  named_by_r <- inspect_masks(spec)$missing_classes
+  expect_error(platypus_fit(spec, num_workers = 0),
+               paste0("region '", named_by_r, "'"))
+})
+
+test_that("without `regions` the classes are still numbers", {
+  skip_if_no_volumes()
+  # The control: with `colormap` or `labels` the number *is* the class, so naming would be
+  # inventing something the specification did not say. This is what the change must not do.
+  skip_if_no_engine()
+  root <- tiny_label_dataset(background = TRUE)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, window = "soft_tissue", labels = c(0, 1, 2)),
+    models = list(u_net("m", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1))
+  )
+  report <- inspect_masks(spec)
+  expect_identical(report$present_classes, "0, 1, 2")
+  expect_identical(attr(report, "present"), c(0L, 1L, 2L))
+})
