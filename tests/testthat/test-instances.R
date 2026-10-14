@@ -257,11 +257,22 @@ test_that("an instance run goes all the way through, from R", {
   # has and the semantic one's does not - so a column check is what says the instance
   # engine answered rather than something that merely returned a data frame.
   expect_true(all(c("model", "decode", "average_precision") %in% names(scored)))
+  # `foreground_dice` arrived with the pin at 0.8.0a22 and is asserted here rather than left
+  # to arrive unnoticed: it is the mask column this table can be read *across* models, where
+  # the `dice` beside it is a mean over the class channels a head has - three for `rim` and
+  # two for `flows` - and reading that one across two models is the defect it was added for
+  # (`pyplatypus#222`). One number per model, so it is the same on every row of one.
+  expect_true("foreground_dice" %in% names(scored))
+  expect_identical(length(unique(scored$foreground_dice)), 1L)
+  expect_true(all(scored$foreground_dice >= 0 & scored$foreground_dice <= 1))
   expect_gt(nrow(scored), 1L)
   expect_true("connected_components" %in% scored$decode)
   expect_true(all(scored$model == "tiny"))
-  # The yardstick is in the table whether or not anybody asked for it, and so is the signal's
-  # own decoding: an unset `decode` derives to both.
+  # This model left `decode` unset, so the pair it derives is the signal's own decoding plus
+  # the yardstick. The comment here said the yardstick is in the table *whether or not
+  # anybody asked for it*, which is the claim `pyplatypus#225` corrected in three places on
+  # the engine side and is wrong in the same way here: a model that writes its own `decode`
+  # list gets the list it wrote.
   expect_setequal(scored$decode, c("nearest_seed", "connected_components"))
 })
 

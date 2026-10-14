@@ -25,8 +25,16 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' nothing for them to measure and a continuous one has nothing for an overlap to measure,
 #' so they belong in exactly one place: the `loss` of [separation_flows()], where the target
 #' is a vector field. Measured against the pinned engine rather than assumed: giving one as
-#' an *instance* model's own `loss` is refused by name, and giving a class loss to
-#' [separation_flows()] is refused by name the other way round.
+#' **any** segmentation model's own `loss` is refused by name - semantic or instance - and
+#' giving a class loss to [separation_flows()] is refused by name the other way round.
+#'
+#' This page said *an instance model's own* until the pin moved to `0.8.0a22`, and it was
+#' true rather than wrong: the refusal lived on the instance class alone, and a semantic
+#' model accepted `loss_mse()` and trained with it, reporting a validation loss of 0.0014
+#' for a mask that was half missing where `loss_cce()` reaches a Dice of 1.0000. The default
+#' `where = "foreground"` is what made it look as though it had worked - it evaluates the
+#' objective only inside the labelled objects and leaves the background unconstrained. The
+#' engine refuses it at either task now (`pyplatypus#223`).
 #'
 #' @param smooth Added to numerator and denominator to keep an empty class finite.
 #' @param gamma For focal losses, how hard to discount the pixels already classified well.
@@ -653,8 +661,14 @@ available_transforms <- function(rank = 2, pattern = NULL) {
 #' a condition whose message says that, rather than returning a table with no rows. An empty
 #' table reads as "there are none", which is a different and wrong answer.
 #'
-#' @param task `"semantic_segmentation"` or `"object_detection"`. Which components a
-#'   specification may name depends on what it is asking for.
+#' @param task `"semantic_segmentation"`, `"instance_segmentation"` or
+#'   `"object_detection"`. Which components a specification may name depends on what it is
+#'   asking for, and for losses it genuinely differs: the three regression losses are listed
+#'   only at the instance task, which is the only one with a target for them. No count is
+#'   written here on purpose - the counts are asserted in the test suite against the pinned
+#'   engine, which is where a number nobody can re-measure from a help page belongs. This
+#'   parameter listed two tasks until the pin moved to `0.8.0a22`; the third arrived in the
+#'   engine's `0.8.0a20`.
 #' @return A data frame with `name`, `arguments` and `description`. `arguments` is a single
 #'   string per row, comma-separated, because a column of vectors prints as something nobody
 #'   can read; `strsplit(x, ", ")` takes it apart.

@@ -94,8 +94,16 @@ the systematic volume bias at some cost in per-case accuracy.
 nothing for them to measure and a continuous one has nothing for an overlap to measure,
 so they belong in exactly one place: the \code{loss} of \code{\link[=separation_flows]{separation_flows()}}, where the target
 is a vector field. Measured against the pinned engine rather than assumed: giving one as
-an \emph{instance} model's own \code{loss} is refused by name, and giving a class loss to
-\code{\link[=separation_flows]{separation_flows()}} is refused by name the other way round.
+\strong{any} segmentation model's own \code{loss} is refused by name - semantic or instance - and
+giving a class loss to \code{\link[=separation_flows]{separation_flows()}} is refused by name the other way round.
+
+This page said \emph{an instance model's own} until the pin moved to \verb{0.8.0a22}, and it was
+true rather than wrong: the refusal lived on the instance class alone, and a semantic
+model accepted \code{loss_mse()} and trained with it, reporting a validation loss of 0.0014
+for a mask that was half missing where \code{loss_cce()} reaches a Dice of 1.0000. The default
+\code{where = "foreground"} is what made it look as though it had worked - it evaluates the
+objective only inside the labelled objects and leaves the background unconstrained. The
+engine refuses it at either task now (\code{pyplatypus#223}).
 }
 \examples{
 loss_focal(gamma = 2)

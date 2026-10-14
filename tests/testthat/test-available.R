@@ -43,10 +43,22 @@ test_that("the counts are what the engine's own unions hold", {
   # not of what it will accept forever, which is why they are asserted here and written in
   # no help page.
   skip_if_no_engine()
-  # 13 rather than 10 since the pin moved to 0.8.0a20: `mse`, `l1` and `smooth_l1` arrived
-  # with the regression targets in 0.8.0a17 and R can reach them now, through
-  # `separation_flows(loss = )` and nowhere else.
-  expect_identical(nrow(available_losses()), 13L)
+  # 10 again since the pin moved to 0.8.0a22, and the pair below is why that is not a
+  # regression. `mse`, `l1` and `smooth_l1` arrived with the regression targets in 0.8.0a17
+  # and R can still reach them - through `separation_flows(loss = )` and nowhere else - but
+  # the engine answers this listing per task now: a semantic model's own `loss` refuses a
+  # continuous one, so advertising thirteen at that task was advertising three it would
+  # refuse (`pyplatypus#223`). The instance count is asserted beside it rather than only the
+  # semantic one, because a listing that merely got shorter and a listing that got right
+  # look identical from one number.
+  expect_identical(nrow(available_losses()), 10L)
+  expect_identical(nrow(available_losses("instance_segmentation")), 13L)
+  expect_identical(
+    sort(setdiff(
+      available_losses("instance_segmentation")$name, available_losses()$name
+    )),
+    c("l1", "mse", "smooth_l1")
+  )
   expect_identical(nrow(available_metrics()), 4L)
   expect_identical(nrow(available_optimizers()), 8L)
   expect_identical(nrow(available_callbacks()), 7L)
