@@ -79,6 +79,26 @@ jobs:
       - name: Build the site
         run: Rscript -e 'altdoc::render_docs()'
 
+      # altdoc::render_docs() empties `_quarto/` before it starts - measured in altdoc
+      # 0.7.3, which `fs::file_delete()`s every entry it finds there - so the generated
+      # Overview page written by the step above is gone by the time Quarto runs. The
+      # sidebar then carries a `file:` entry for a file that is not there, Quarto leaves
+      # the href as the literal `overview.qmd`, and the link 404s. It did, from the day the
+      # page was added until a reader found it.
+      #
+      # So write it back and render again. The second pass is what makes every page's
+      # sidebar point at `overview.html` rather than at the source name - rewriting the
+      # href in the rendered HTML instead would be cheaper and would also have to guess
+      # how deep each page sits. `freeze: auto` means this pass reuses the first one's
+      # executed chunks, which is most of the 160 seconds a cold render costs.
+      - name: The Overview page, which the render above deletes
+        run: |
+          Rscript tools/build-reference.R
+          test -f _quarto/overview.qmd
+          (cd _quarto && quarto render)
+          test -f docs/overview.html
+          ! grep -rl 'href="\./*overview\.qmd"' docs/
+
       # Quarto's `code-link` resolves function names through downlit, which reads the
       # package's *published* pkgdown index - so it writes absolute links into
       # /platypus/reference/, a path this site does not serve. 186 of them, on 50 pages,

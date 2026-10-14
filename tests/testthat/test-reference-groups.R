@@ -243,3 +243,31 @@ test_that("every group says what it is for, because the Overview page publishes 
     info = "a group with no `desc` is a blank section on the Overview page"
   )
 })
+
+test_that("the generated config carries the Overview entry and no `code-links` key", {
+  # Two defects a reader found on the deployed site on 2026-10-14, both in this generated
+  # file, and neither reachable by reading the package.
+  #
+  # `website: code-links: true` is one letter from the `code-link: true` under
+  # `format: html:`, which is downlit resolving function names in code blocks and is
+  # wanted. The plural one wants a list of links; given `true`, Quarto rendered
+  # `<a href="undefined">` with nothing in it behind a paperclip, on 67 of 67 pages. The
+  # engine's site sets neither and carries none, so this is also a divergence.
+  #
+  # The Overview entry is asserted here because the page it points at is deleted by
+  # altdoc::render_docs() before every render - the docs workflow writes it back and
+  # renders again, and `test -f docs/overview.html` there is what fails if that breaks.
+  # This test only holds the sidebar's side of it.
+  skip_if_not_installed("yaml")
+  path <- testthat::test_path("..", "..", "altdoc", "quarto_website.yml")
+  skip_if_not(file.exists(path), "altdoc/quarto_website.yml not reachable from here")
+
+  site <- yaml::read_yaml(path)$website
+  expect_null(site[["code-links"]])
+
+  reference <- Filter(function(x) identical(x$section, "Reference"), site$sidebar$contents)
+  expect_length(reference, 1L)
+  overview <- Filter(function(x) identical(x$text, "Overview"), reference[[1]]$contents)
+  expect_length(overview, 1L)
+  expect_identical(overview[[1]]$file, "overview.qmd")
+})
