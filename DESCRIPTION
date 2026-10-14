@@ -31,6 +31,7 @@ Suggests:
     callr,
     jsonlite,
     knitr,
+    pkgload,
     png,
     RNifti,
     rmarkdown,
