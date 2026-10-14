@@ -283,8 +283,12 @@ test_that("predict(type = \"probability\") is the way through, and says the chan
   # The names `save_class_masks()` wants, in the order it wants them, from the same place
   # `inspect_masks()` reads them. Asserted here rather than left to prose because the order
   # is what pairs a file on disk with a score in a table.
+  # `:::`, because this is internal and the `engine` job runs `test_dir()` against the
+  # installed package with no `package =` argument. A bare call works under `load_all()` and
+  # under `test_dir(package = )`, and fails in the one place that matters - which is §4's
+  # "installed is not source", met for the third time in a new costume.
   expect_identical(
-    unname(named_classes(spec, 0:1)),
+    unname(rplatypus:::named_classes(spec, 0:1)),
     c("one", "both")
   )
 })
