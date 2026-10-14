@@ -772,7 +772,7 @@ The voxel value of each class, in class order: <code>c(0, 1)</code> for a binary
 <code id="tolerance">tolerance</code>
 </td>
 <td>
-Passed to <code><a href="https://maju116.github.io/platypus/man/colours_to_classes.html">colours_to_classes()</a></code>. Ignored for label maps, which are compared to within half a unit - a label map that has been resampled or merely passed through a float will not satisfy an exact comparison, and a label that fails to match becomes background.
+Passed to <code><a href="../man/colours_to_classes.html">colours_to_classes()</a></code>. Ignored for label maps, which are compared to within half a unit - a label map that has been resampled or merely passed through a float will not satisfy an exact comparison, and a label that fails to match becomes background.
 </td>
 </tr>
 </tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
@@ -782,15 +782,15 @@ Passed to <code><a href="https://maju116.github.io/platypus/man/colours_to_class
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Masks stored as pictures: the colormap says which colour is which class.</span></span>
-<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"masks/"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"masks/"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>                    colormap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">255</span>, <span class="fl">255</span>, <span class="fl">255</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Masks stored as label maps, which is how volumes do it. Exactly one of the two.</span></span>
-<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="st">"case_01/seg.nii.gz"</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="st">"case_01/seg.nii.gz"</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># `tolerance` is for masks that have been through a lossy resize, where a colour</span></span>
 <span><span class="co"># that should be (255, 0, 0) arrives as (254, 1, 0) and matches nothing.</span></span>
-<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="va">paths</span>, colormap <span class="op">=</span> <span class="va">voc_colormap</span>, tolerance <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/read_masks.html">read_masks</a></span><span class="op">(</span><span class="va">paths</span>, colormap <span class="op">=</span> <span class="va">voc_colormap</span>, tolerance <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

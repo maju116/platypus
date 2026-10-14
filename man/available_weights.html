@@ -732,26 +732,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
 <p>Weights are named rather than downloaded by hand, and a name is pinned to one commit of the repository holding it - so <code>“dsbowl-unet”</code> means one set of numbers today and the same set next year. This lists what is published, with the commit each name resolves to.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R"><a href="https://maju116.github.io/platypus/man/available_weights.html">available_weights()
+<pre><code class="language-R"><a href="../man/available_weights.html">available_weights()
 </a></code></pre>
 </section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>Read the descriptions rather than only the names. A model’s limitations decide whether it answers your question: the nuclei weights are semantic, so touching nuclei come back as one region and a count taken from them would be wrong.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A data frame with <code>name</code>, <code>repo</code>, <code>filename</code>, <code>revision</code> and <code>description</code>.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="https://maju116.github.io/platypus/man/models.html">u_net()</a></code> and the other architectures, whose <code>weights</code> argument takes a name from here, a <code style="white-space: pre;">hf://owner/repo/file.safetensors@commit</code> reference, or a path to a local file.</p>
+<p><code><a href="../man/models.html">u_net()</a></code> and the other architectures, whose <code>weights</code> argument takes a name from here, a <code style="white-space: pre;">hf://owner/repo/file.safetensors@commit</code> reference, or a path to a local file.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/available_weights.html">available_weights</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../man/available_weights.html">available_weights</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data</a></span><span class="op">(</span><span class="st">"images/"</span>, <span class="st">"images/"</span>, colormap <span class="op">=</span> <span class="va">binary_colormap</span><span class="op">)</span>,</span>
-<span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/models.html">u_net</a></span><span class="op">(</span><span class="st">"nuclei"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, blocks <span class="op">=</span> <span class="fl">4</span>, filters <span class="op">=</span> <span class="fl">16</span>,</span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/platypus_spec.html">platypus_spec</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="fu"><a href="../man/segmentation_data.html">segmentation_data</a></span><span class="op">(</span><span class="st">"images/"</span>, <span class="st">"images/"</span>, colormap <span class="op">=</span> <span class="va">binary_colormap</span><span class="op">)</span>,</span>
+<span>  models <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="../man/models.html">u_net</a></span><span class="op">(</span><span class="st">"nuclei"</span>, input_shape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">256</span>, <span class="fl">256</span><span class="op">)</span>, blocks <span class="op">=</span> <span class="fl">4</span>, filters <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>                      weights <span class="op">=</span> <span class="st">"dsbowl-unet"</span>, fit <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/platypus_fit.html">platypus_fit</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, split <span class="op">=</span> <span class="st">"validation"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="fu"><a href="../man/platypus_fit.html">platypus_fit</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, split <span class="op">=</span> <span class="st">"validation"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

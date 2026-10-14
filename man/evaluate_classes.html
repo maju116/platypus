@@ -730,7 +730,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/predict.platypus_fit.html">Predicting and scoring</a></li><li class="breadcrumb-item"><a href="../man/evaluate_classes.html">Average precision per class</a></li></ol></nav></header><section id="average-precision-per-class" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="average-precision-per-class">Average precision per class</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p><strong>Detection only.</strong> On a segmentation fit this refuses by name and points at <code><a href="https://maju116.github.io/platypus/man/evaluate_cases.html">evaluate_cases()</a></code>. The name carries no <code>detection_</code> prefix on purpose: this is an S3 generic, so a future task gains a method under the same name rather than a second spelling of one idea.</p>
+<p><strong>Detection only.</strong> On a segmentation fit this refuses by name and points at <code><a href="../man/evaluate_cases.html">evaluate_cases()</a></code>. The name carries no <code>detection_</code> prefix on purpose: this is an S3 generic, so a future task gains a method under the same name rather than a second spelling of one idea.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">evaluate_classes(object, ...)
 
@@ -744,7 +744,7 @@ evaluate_classes(object, model = NULL, split = "validation", ...)
 <code id="object">object</code>
 </td>
 <td>
-A fit from <code><a href="https://maju116.github.io/platypus/man/platypus_fit.html">platypus_fit()</a></code> on a detection specification.
+A fit from <code><a href="../man/platypus_fit.html">platypus_fit()</a></code> on a detection specification.
 </td>
 </tr>
 <tr>
@@ -772,14 +772,14 @@ Which split to score.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
-<p>The row that matters on unbalanced data, which is most detection data: BCCD has 4,155 red cells against 372 white and 361 platelets, so a single number is a number about red cells. <code><a href="https://maju116.github.io/platypus/man/evaluate.html">evaluate()</a></code> deliberately carries no overall precision or recall for the same reason - averaging them over classes needs a weighting, and every choice of weighting is a different claim.</p>
+<p>The row that matters on unbalanced data, which is most detection data: BCCD has 4,155 red cells against 372 white and 361 platelets, so a single number is a number about red cells. <code><a href="../man/evaluate.html">evaluate()</a></code> deliberately carries no overall precision or recall for the same reason - averaging them over classes needs a weighting, and every choice of weighting is a different claim.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A data frame, one row per class: average precision at IoU 0.5, the mean overlap of the boxes that matched, the number of true boxes, and precision and recall at the model’s <code>operating_point</code>.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/evaluate_classes.html">evaluate_classes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"bccd"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../man/evaluate_classes.html">evaluate_classes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"bccd"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># The row that matters on unbalanced data, which is most data: BCCD has 4155 red</span></span>
 <span><span class="co"># cells against 372 white and 361 platelets, so a single number is a number about</span></span>

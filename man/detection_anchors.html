@@ -729,7 +729,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/predict.platypus_fit.html">Predicting and scoring</a></li><li class="breadcrumb-item"><a href="../man/detection_anchors.html">The anchors a detector used, and whether they were fitted</a></li></ol></nav></header><section id="the-anchors-a-detector-used-and-whether-they-were-fitted" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="the-anchors-a-detector-used-and-whether-they-were-fitted">The anchors a detector used, and whether they were fitted</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>A detector cannot be reloaded without its anchors, and when they were fitted rather than named in the specification this is the only record. <code><a href="https://maju116.github.io/platypus/man/export_weights.html">export_weights()</a></code> writes them into the sidecar for the same reason.</p>
+<p>A detector cannot be reloaded without its anchors, and when they were fitted rather than named in the specification this is the only record. <code><a href="../man/export_weights.html">export_weights()</a></code> writes them into the sidecar for the same reason.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">detection_anchors(object, model = NULL)
 </code></pre>
@@ -740,7 +740,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="object">object</code>
 </td>
 <td>
-A fit from <code><a href="https://maju116.github.io/platypus/man/platypus_fit.html">platypus_fit()</a></code> on a detection specification.
+A fit from <code><a href="../man/platypus_fit.html">platypus_fit()</a></code> on a detection specification.
 </td>
 </tr>
 <tr>
@@ -757,7 +757,7 @@ Which model, when the specification trained several.
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">anchors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/detection_anchors.html">detection_anchors</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="va">anchors</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/detection_anchors.html">detection_anchors</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">anchors</span><span class="op">$</span><span class="va">mean_iou</span>        <span class="co"># ~0.88 fitted on BCCD, against 0.65 for COCO's nine</span></span>
 <span><span class="va">anchors</span><span class="op">$</span><span class="va">per_anchor</span>      <span class="co"># one row per anchor</span></span>
 <span></span>

@@ -751,7 +751,7 @@ The fraction of the run after which averaging begins - 0.75 folds the last quart
 </td>
 <td>
 <p>Hold the rate at this value once averaging begins. Unset leaves whatever the run was doing.</p>
-Worth setting, and the reason is the whole mechanism: averaging is only worth something while the weights are still moving, and a rate that has decayed towards zero produces a set of nearly identical snapshots whose average is the last one. For the same reason a run cannot ask for this and <code><a href="https://maju116.github.io/platypus/man/callbacks.html">callback_cosine_annealing()</a></code> at once - the two undo each other and the specification refuses the pair.
+Worth setting, and the reason is the whole mechanism: averaging is only worth something while the weights are still moving, and a rate that has decayed towards zero produces a set of nearly identical snapshots whose average is the last one. For the same reason a run cannot ask for this and <code><a href="../man/callbacks.html">callback_cosine_annealing()</a></code> at once - the two undo each other and the specification refuses the pair.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
@@ -787,7 +787,7 @@ plain
 </tr>
 <tr>
 <td style="text-align: left;">
-<code><a href="https://maju116.github.io/platypus/man/callback_swa.html">callback_swa()</a></code>
+<code><a href="../man/callback_swa.html">callback_swa()</a></code>
 </td>
 <td style="text-align: left;">
 0.9667 ±0.0087
@@ -801,22 +801,22 @@ plain
 </tr>
 </tbody></table>
 <p>Dice does not move and neither does the per-case error - both are inside the seed noise. What moves is <strong>reproducibility</strong>: the plain runs’ volume bias was +4.5%, +12.2% and -11.6% across three seeds, and with averaging -0.1%, +4.2% and +2.1%. A spread 5.7 times tighter, improving on all three seeds when paired, by 7.34% at 4.9 standard errors.</p>
-<p>So read it as <em>"the same model twice"</em> rather than <em>"a better model"</em> - which is what averaging is for, and the reason it belongs beside <code><a href="https://maju116.github.io/platypus/man/mask_volume.html">mask_volume()</a></code> in any argument about whether a measured volume can be compared across runs.</p>
+<p>So read it as <em>"the same model twice"</em> rather than <em>"a better model"</em> - which is what averaging is for, and the reason it belongs beside <code><a href="../man/mask_volume.html">mask_volume()</a></code> in any argument about whether a measured volume can be compared across runs.</p>
 <p><strong>Batch-normalisation statistics are recomputed afterwards</strong>, by a pass over the training data. They have to be: an averaged weight tensor inherits the statistics of whichever epoch was last rather than averaging them, so without the pass the model is evaluated under the wrong normalisation and scores far worse than it should with nothing to say why. Models here have batch normalisation on by default, so this is nearly every run.</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A callback specification, to be passed to a model constructor.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p>callbacks for the others, <code><a href="https://maju116.github.io/platypus/man/mask_volume.html">mask_volume()</a></code> for reading a volume in millilitres.</p>
+<p>callbacks for the others, <code><a href="../man/mask_volume.html">mask_volume()</a></code> for reading a volume in millilitres.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/callback_swa.html">callback_swa</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="../man/callback_swa.html">callback_swa</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "swa"</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://maju116.github.io/platypus/man/callback_swa.html">callback_swa</a></span><span class="op">(</span>start <span class="op">=</span> <span class="fl">0.5</span>, learning_rate <span class="op">=</span> <span class="fl">1e-3</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="../man/callback_swa.html">callback_swa</a></span><span class="op">(</span>start <span class="op">=</span> <span class="fl">0.5</span>, learning_rate <span class="op">=</span> <span class="fl">1e-3</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$name
 [1] "swa"

@@ -748,7 +748,7 @@ A mask of class indices, as <code><a href="https://rdrr.io/r/stats/predict.html"
 <code id="spacing">spacing</code>
 </td>
 <td>
-Voxel size in millimetres, length 3. <code><a href="https://maju116.github.io/platypus/man/volume_info.html">volume_info()</a></code> reports it; so does the <code>spacing_1/2/3</code> columns of its output.
+Voxel size in millimetres, length 3. <code><a href="../man/volume_info.html">volume_info()</a></code> reports it; so does the <code>spacing_1/2/3</code> columns of its output.
 </td>
 </tr>
 <tr>
@@ -768,7 +768,7 @@ Which class to measure, numbered from 1 as the colormap and <code>labels</code> 
 <span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fl">1L</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mask</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">3</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2L</span></span>
 <span><span class="co"># 32 voxels of 2 x 2 x 5 mm: 32 * 20 mm^3 = 640 mm^3 = 0.64 ml</span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/mask_volume.html">mask_volume</a></span><span class="op">(</span><span class="va">mask</span>, spacing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="../man/mask_volume.html">mask_volume</a></span><span class="op">(</span><span class="va">mask</span>, spacing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.64</code></pre>
 </div>

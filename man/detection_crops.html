@@ -750,7 +750,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="object">object</code>
 </td>
 <td>
-A <code><a href="https://maju116.github.io/platypus/man/platypus_fit.html">platypus_fit()</a></code> from a detection specification.
+A <code><a href="../man/platypus_fit.html">platypus_fit()</a></code> from a detection specification.
 </td>
 </tr>
 <tr>
@@ -833,9 +833,9 @@ Unused.
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">found</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://maju116.github.io/platypus/man/detection_crops.html">detection_crops</a></span><span class="op">(</span><span class="va">fit</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">224</span>, <span class="fl">224</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">found</span> <span class="op">&lt;-</span> <span class="fu"><a href="../man/detection_crops.html">detection_crops</a></span><span class="op">(</span><span class="va">fit</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">224</span>, <span class="fl">224</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">found</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">crops</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/plot_masks.html">plot_masks</a></span><span class="op">(</span><span class="va">found</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">crops</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>        <span class="co"># look at one</span></span>
+<span><span class="fu"><a href="../man/plot_masks.html">plot_masks</a></span><span class="op">(</span><span class="va">found</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">crops</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>        <span class="co"># look at one</span></span>
 <span></span>
 <span><span class="co"># Everything above the operating point, as one flat list ready for another model.</span></span>
 <span><span class="va">pieces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">found</span>, <span class="va">`[[`</span>, <span class="st">"crops"</span><span class="op">)</span>, recursive <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

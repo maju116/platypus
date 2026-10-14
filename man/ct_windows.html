@@ -729,9 +729,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/colours_to_classes.html">Masks and volumes</a></li><li class="breadcrumb-item"><a href="../man/ct_windows.html">The named CT windows</a></li></ol></nav></header><section id="the-named-ct-windows" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="the-named-ct-windows">The named CT windows</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>The windows radiologists use, as <code>c(centre, width)</code> in Hounsfield units. Pass a name to <code><a href="https://maju116.github.io/platypus/man/segmentation_data.html">segmentation_data()</a></code> rather than the numbers; this is here for looking them up.</p>
+<p>The windows radiologists use, as <code>c(centre, width)</code> in Hounsfield units. Pass a name to <code><a href="../man/segmentation_data.html">segmentation_data()</a></code> rather than the numbers; this is here for looking them up.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R"><a href="https://maju116.github.io/platypus/man/ct_windows.html">ct_windows()
+<pre><code class="language-R"><a href="../man/ct_windows.html">ct_windows()
 </a></code></pre>
 </section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>Held here rather than fetched from the engine so that looking up a constant does not require starting Python. A test checks the two lists against each other whenever the engine is available, so the copy cannot quietly drift.</p>
@@ -741,12 +741,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/ct_windows.html">ct_windows</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">lung</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="../man/ct_windows.html">ct_windows</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">lung</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>centre  width 
   -600   1500 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://maju116.github.io/platypus/man/ct_windows.html">ct_windows</a></span><span class="op">(</span><span class="op">)</span><span class="op">[[</span><span class="st">"soft_tissue"</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="../man/ct_windows.html">ct_windows</a></span><span class="op">(</span><span class="op">)</span><span class="op">[[</span><span class="st">"soft_tissue"</span><span class="op">]</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>centre  width 
     40    400 </code></pre>

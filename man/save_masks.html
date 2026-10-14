@@ -742,7 +742,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </td>
 <td>
 <p>Class indices from <a href="../man/predict.platypus_fit.html"><code>predict.platypus_fit()</code></a> - an <code style="white-space: pre;">image x height x width</code> array, or one <code style="white-space: pre;">height x width</code> matrix. Probabilities are accepted too and reduced to the most likely class.</p>
-For <strong>volumes</strong> use <code><a href="https://maju116.github.io/platypus/man/save_volumes.html">save_volumes()</a></code>, which writes NIfTI carrying the geometry of the scan each mask came from. This function cannot reliably tell a stack of volumes from a stack of images with a class axis - the ranks are identical - so it does not try; it refuses only the case a shape can prove.
+For <strong>volumes</strong> use <code><a href="../man/save_volumes.html">save_volumes()</a></code>, which writes NIfTI carrying the geometry of the scan each mask came from. This function cannot reliably tell a stack of volumes from a stack of images with a class axis - the ranks are identical - so it does not try; it refuses only the case a shape can prove.
 </td>
 </tr>
 <tr>
@@ -786,7 +786,7 @@ Added before the extension, so predictions from different models can sit in one 
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">masks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"unet"</span>, split <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/save_masks.html">save_masks</a></span><span class="op">(</span><span class="va">masks</span>, <span class="st">"predictions"</span>, <span class="va">binary_colormap</span>, suffix <span class="op">=</span> <span class="st">"_unet"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="../man/save_masks.html">save_masks</a></span><span class="op">(</span><span class="va">masks</span>, <span class="st">"predictions"</span>, <span class="va">binary_colormap</span>, suffix <span class="op">=</span> <span class="st">"_unet"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

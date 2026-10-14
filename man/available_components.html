@@ -732,7 +732,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../overview.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/losses.html">What a model is made of</a></li><li class="breadcrumb-item"><a href="../man/available_components.html">What this package can do, asked of the package</a></li></ol></nav></header><section id="what-this-package-can-do-asked-of-the-package" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="what-this-package-can-do-asked-of-the-package">What this package can do, asked of the package</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Six listings beside <code><a href="https://maju116.github.io/platypus/man/available_transforms.html">available_transforms()</a></code> and <code><a href="https://maju116.github.io/platypus/man/available_weights.html">available_weights()</a></code>: the losses, the metrics, the architectures, the optimisers, the callbacks and the tasks. Three columns - the name you write in a specification, the arguments you may tune, and what it is for.</p>
+<p>Six listings beside <code><a href="../man/available_transforms.html">available_transforms()</a></code> and <code><a href="../man/available_weights.html">available_weights()</a></code>: the losses, the metrics, the architectures, the optimisers, the callbacks and the tasks. Three columns - the name you write in a specification, the arguments you may tune, and what it is for.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">available_losses(task = "semantic_segmentation")
 
@@ -763,12 +763,12 @@ available_tasks()
 <p>A detection specification chooses no loss component and no metrics at all. Its objective is fixed, with <code>box_loss</code> on the model picking the box term, and every detection run reports the same set - <code>map_50</code>, <code>map_50_95</code>, <code>mean_matched_iou</code> - which comes out of the run rather than going into the specification.</p>
 <p>So <code>available_losses(“object_detection”)</code> and <code>available_metrics(“object_detection”)</code> raise a condition whose message says that, rather than returning a table with no rows. An empty table reads as "there are none", which is a different and wrong answer.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code><a href="https://maju116.github.io/platypus/man/available_transforms.html">available_transforms()</a></code> and <code><a href="https://maju116.github.io/platypus/man/available_weights.html">available_weights()</a></code>, the two that came first, and <code><a href="https://maju116.github.io/platypus/man/platypus_spec.html">platypus_spec()</a></code>, where these names are written.</p>
+<p><code><a href="../man/available_transforms.html">available_transforms()</a></code> and <code><a href="../man/available_weights.html">available_weights()</a></code>, the two that came first, and <code><a href="../man/platypus_spec.html">platypus_spec()</a></code>, where these names are written.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/available_components.html">available_losses</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../man/available_components.html">available_losses</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            name                    arguments</span></span>
 <span><span class="co">#&gt; 1      boundary               region, alpha</span></span>
 <span><span class="co">#&gt; 2           cce             label_smoothing</span></span>
@@ -776,13 +776,13 @@ available_tasks()
 <span><span class="co">#&gt; ...</span></span>
 <span></span>
 <span><span class="co"># Which metrics take an argument at all, and which do not.</span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/available_components.html">available_metrics</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"arguments"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../man/available_components.html">available_metrics</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"arguments"</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># The entry point, for somebody who has read nothing yet.</span></span>
-<span><span class="fu"><a href="https://maju116.github.io/platypus/man/available_components.html">available_tasks</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../man/available_components.html">available_tasks</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Detection says what it has instead of a loss to choose.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span><span class="fu"><a href="https://maju116.github.io/platypus/man/available_components.html">available_losses</a></span><span class="op">(</span><span class="st">"object_detection"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span><span class="fu"><a href="../man/available_components.html">available_losses</a></span><span class="op">(</span><span class="st">"object_detection"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
