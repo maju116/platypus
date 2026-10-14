@@ -153,12 +153,12 @@ jobs:
 
       - name: Report what the engine resolved to
         run: |
-          Rscript -e 'library(platypus); print(platypus_status()); print(platypus_device())'
+          Rscript -e 'library(rplatypus); print(platypus_status()); print(platypus_device())'
 
       - name: Run the tests, engine included
         run: |
           Rscript -e '
-            library(testthat); library(platypus)
+            library(testthat); library(rplatypus)
             results <- as.data.frame(test_dir("tests/testthat", reporter = "summary"))
 
             failed <- sum(results$failed) + sum(results$error)

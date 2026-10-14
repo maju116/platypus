@@ -30,7 +30,7 @@ if (file.exists("DESCRIPTION")) {
 }
 
 # The extraction lives with the tests, so the generator and the test cannot drift apart.
-`%||%` <- platypus:::`%||%`
+`%||%` <- rplatypus:::`%||%`
 source("tests/testthat/helper-rd.R")
 source("tests/testthat/helper-field-prose.R")
 

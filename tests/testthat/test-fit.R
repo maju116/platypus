@@ -6,11 +6,11 @@ test_that("worker count is chosen rather than left at the slow default", {
   # Zero was the obvious default and the wrong one: decoding images in the main process
   # leaves the GPU idle for most of an epoch. Measured on the Data Science Bowl, zero
   # workers took 35 seconds an epoch where eight took under ten.
-  expect_type(platypus:::resolve_workers("auto"), "integer")
-  expect_lte(platypus:::resolve_workers("auto"), 4L)
-  expect_identical(platypus:::resolve_workers(0), 0L)
-  expect_identical(platypus:::resolve_workers(7), 7L)
-  expect_error(platypus:::resolve_workers("many"), "number")
+  expect_type(rplatypus:::resolve_workers("auto"), "integer")
+  expect_lte(rplatypus:::resolve_workers("auto"), 4L)
+  expect_identical(rplatypus:::resolve_workers(0), 0L)
+  expect_identical(rplatypus:::resolve_workers(7), 7L)
+  expect_error(rplatypus:::resolve_workers("many"), "number")
 })
 
 test_that("training returns a fit that knows what it did", {

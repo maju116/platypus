@@ -110,7 +110,7 @@ test_that("it survives compact(), which would otherwise silently restore the req
   # reading, because dropping it would leave the engine demanding a validation set from a
   # caller who had just said there is none.
   data <- segmentation_data("a", validation = FALSE, colormap = binary_colormap)
-  expect_false(platypus:::compact(data)$validation)
+  expect_false(rplatypus:::compact(data)$validation)
 })
 
 test_that("leaving both unset is still an error, and the message names the third answer", {

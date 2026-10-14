@@ -14,7 +14,7 @@
 #' @keywords internal
 #' @noRd
 described_field_prose <- function(schema = NULL) {
-  schema <- schema %||% platypus:::engine()$spec_schema()
+  schema <- schema %||% rplatypus:::engine()$spec_schema()
   found <- list()
   for (definition in schema$`$defs`) {
     properties <- definition$properties

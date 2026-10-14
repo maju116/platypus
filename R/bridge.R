@@ -147,7 +147,7 @@ engine_start_failure <- function(message) {
   .platypus$engine <- reticulate::import(
     "pyplatypus",
     delay_load = list(
-      # Nothing is downloaded until a function actually needs Python, so library(platypus)
+      # Nothing is downloaded until a function actually needs Python, so library(rplatypus)
       # stays instant and works offline.
       on_error = function(e) {
         stop(engine_start_failure(conditionMessage(e)), call. = FALSE)
@@ -175,7 +175,7 @@ shim <- function() {
   if (is.null(.platypus$shim)) {
     .platypus$shim <- reticulate::import_from_path(
       "platypus_shim",
-      path = system.file("python", package = "platypus", mustWork = TRUE)
+      path = system.file("python", package = "rplatypus", mustWork = TRUE)
     )
   }
   .platypus$shim
@@ -236,7 +236,7 @@ print.platypus_status <- function(x, ...) {
 
 #' Ask for a particular PyTorch build
 #'
-#' Call this before anything starts the engine - straight after `library(platypus)` - and
+#' Call this before anything starts the engine - straight after `library(rplatypus)` - and
 #' before the first call that needs Python.
 #'
 #' There is one reason to: **a GeForce GTX 10-series card, or anything older**. PyTorch
@@ -260,7 +260,7 @@ print.platypus_status <- function(x, ...) {
 #' @export
 #' @examples
 #' \dontrun{
-#' library(platypus)
+#' library(rplatypus)
 #' platypus_use_torch("pascal")   # GTX 10-series and older
 #' }
 platypus_use_torch <- function(build = c("pascal", "default")) {
@@ -268,7 +268,7 @@ platypus_use_torch <- function(build = c("pascal", "default")) {
   if (reticulate::py_available(initialize = FALSE)) {
     stop(
       "The engine has already started, so the PyTorch build can no longer be changed.\n",
-      "  Call platypus_use_torch() right after library(platypus), before anything that ",
+      "  Call platypus_use_torch() right after library(rplatypus), before anything that ",
       "needs Python.\n  Restart R to change it now.",
       call. = FALSE
     )

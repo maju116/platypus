@@ -63,7 +63,7 @@ test_that("every function an example calls still exists", {
   skip_if(length(examples) == 0, "no installed Rd database to read")
 
   reachable <- function(name) {
-    exists(name, envir = asNamespace("platypus"), inherits = FALSE) ||
+    exists(name, envir = asNamespace("rplatypus"), inherits = FALSE) ||
       exists(name, envir = baseenv()) ||
       exists(name, envir = globalenv(), inherits = TRUE)
   }

@@ -1,4 +1,4 @@
 library(testthat)
-library(platypus)
+library(rplatypus)
 
-test_check("platypus")
+test_check("rplatypus")

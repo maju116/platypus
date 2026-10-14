@@ -19,7 +19,7 @@
 # present under `load_all()` and under `R CMD check` alike.
 
 model_selectors <- function() {
-  ns <- asNamespace("platypus")
+  ns <- asNamespace("rplatypus")
   # Exports, plus S3 methods on this package's own classes. Not the S3 methods table, which
   # `pkgload::load_all()` populates lazily - it held 4 of them when this was written, and a
   # count that depends on how the package was loaded is not a measurement.

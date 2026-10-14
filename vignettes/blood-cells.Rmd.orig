@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   fig.path = "figures/bccd-", fig.width = 8, dpi = 110,
   error = FALSE
 )
-library(platypus)
+library(rplatypus)
 ```
 
 ```{r bccd-machine, include = FALSE}

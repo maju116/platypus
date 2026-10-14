@@ -67,7 +67,7 @@ test_that("panels are laid out as rows of samples and columns of views", {
   images <- array(0, dim = c(3, 8, 8, 3))
   mask <- array(1L, dim = c(3, 8, 8))
   rows <- lapply(1:3, function(i) list(array(0, c(8, 8, 3)), array(0, c(8, 8, 3))))
-  montage <- platypus:::bind_panels(rows)
+  montage <- rplatypus:::bind_panels(rows)
   expect_identical(dim(montage), c(24L, 16L, 3L))
 })
 

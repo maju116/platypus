@@ -1,4 +1,4 @@
-# platypus
+# rplatypus
 
 <img src="man/figures/hexsticker_platypus.png" align="right" alt="" width="130" />
 
@@ -6,8 +6,8 @@
 figure.**
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maju116/platypus/actions/workflows/R-CMD-check.yaml)
-[![docs](https://github.com/maju116/platypus/actions/workflows/docs.yaml/badge.svg)](https://maju116.github.io/platypus/)
+[![R-CMD-check](https://github.com/maju116/rplatypus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maju116/rplatypus/actions/workflows/R-CMD-check.yaml)
+[![docs](https://github.com/maju116/rplatypus/actions/workflows/docs.yaml/badge.svg)](https://maju116.github.io/rplatypus/)
 <!-- badges: end -->
 
 > **This is a rewrite, and an alpha.** The package released in 2020 was built on
@@ -26,22 +26,29 @@ that happens to compute in Python.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("maju116/platypus")
+remotes::install_github("maju116/rplatypus")
 ```
 
 There is nothing to set up afterwards. The first call that needs the engine builds an
 isolated Python environment for it, and everything after that uses the cache. You never
 choose an interpreter, activate anything, or match a version.
 
+**The package was called `platypus` until 2026-10-14** and is `rplatypus` now - one name per
+language, beside the `pyplatypus` engine on PyPI. The repository moved with it, so
+`github.com/maju116/platypus` redirects here and every link anybody already has still works.
+What you type changed: `library(rplatypus)`. The functions did not - they are still
+`platypus_spec()`, `platypus_fit()` and the rest, because the family is the brand and the
+package name is only what CRAN and `library()` see.
+
 **Coming from platypus 0.1.1?** Code written against the 2020 release will not run on this one,
-and the [changelog](https://github.com/maju116/platypus/blob/main/NEWS.md) says what moved,
+and the [changelog](https://github.com/maju116/rplatypus/blob/main/NEWS.md) says what moved,
 what is gone, and which three names are still exported and mean something else. It is seventy
 lines and most readers need none of them, which is why it is there rather than here.
 
 ## A worked example
 
 ```r
-library(platypus)
+library(rplatypus)
 
 spec <- platypus_spec(
   data = segmentation_data(
@@ -314,7 +321,7 @@ narrow, and three public datasets are three public datasets.
 Three vignettes, all precomputed from real runs — every number and figure in them came out of
 running the code shown.
 
-**Read them at [maju116.github.io/platypus](https://maju116.github.io/platypus/)**, which also
+**Read them at [maju116.github.io/rplatypus](https://maju116.github.io/rplatypus/)**, which also
 carries the reference for every function. Browsing them here on GitHub does not work: GitHub has
 no renderer for `.Rmd` and serves the source, figures and all, as plain text. From R,
 `vignette("blood-cells")` opens the same document locally.
@@ -376,7 +383,7 @@ it once somewhere with a connection and carry `~/.cache/uv` across.
 **On a GeForce GTX 10-series card or older**, ask for the older PyTorch first:
 
 ```r
-library(platypus)
+library(rplatypus)
 platypus_use_torch("pascal")
 ```
 

@@ -10,7 +10,7 @@
 # and it is invisible to `R CMD check`, which has no opinion about what a page omits.
 #
 # The Rd comes from the source `man/` first and the installed database second, the same
-# order and for the same reason as test-examples.R: `tools::Rd_db("platypus")` is correct
+# order and for the same reason as test-examples.R: `tools::Rd_db("rplatypus")` is correct
 # under `R CMD check` and empty under `pkgload::load_all()`.
 
 family_rd <- function(topic) {
@@ -19,7 +19,7 @@ family_rd <- function(topic) {
     man <- file.path(root, "man", paste0(topic, ".Rd"))
     if (file.exists(man)) return(paste(readLines(man, warn = FALSE), collapse = "\n"))
   }
-  db <- tryCatch(tools::Rd_db("platypus"), error = function(e) list())
+  db <- tryCatch(tools::Rd_db("rplatypus"), error = function(e) list())
   key <- paste0(topic, ".Rd")
   if (!key %in% names(db)) return(NA_character_)
   paste(unlist(lapply(db[[key]], as.character)), collapse = "\n")
@@ -33,7 +33,7 @@ families <- list(
 )
 
 test_that("every member of a family is named on its family page", {
-  exported <- getNamespaceExports("platypus")
+  exported <- getNamespaceExports("rplatypus")
 
   for (topic in names(families)) {
     prefix <- families[[topic]]

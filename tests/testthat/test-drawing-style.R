@@ -9,7 +9,7 @@
 test_that("every drawing decision equals the engine's", {
   skip_if_no_engine()
 
-  result <- platypus:::shim()$drawing_style()
+  result <- rplatypus:::shim()$drawing_style()
   expect_true(isTRUE(result$ok), info = result$message %||% "")
   theirs <- result$style
   ours <- drawing_style()
@@ -44,7 +44,7 @@ test_that("the label format means the same thing in both languages", {
   # Not compared as strings: Python writes `{label} {score:.2f}` and R writes `%s %.2f`,
   # which are the same instruction in two notations and would never be `identical()`. What
   # has to match is what they produce, so both are applied to the same box.
-  theirs <- platypus:::shim()$drawing_style()$style$box_label_format
+  theirs <- rplatypus:::shim()$drawing_style()$style$box_label_format
   rendered_py <- reticulate::py_eval(
     sprintf("%s.format(label='WBC', score=0.98765)", deparse(theirs))
   )

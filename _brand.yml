@@ -1,6 +1,11 @@
-# The look of both platypus sites. This file is byte-for-byte identical in the R package
-# and in pyplatypus, and a test in each repository says so - two sites that must look alike
-# cannot be kept alike by anybody remembering to copy a colour.
+# The look of both platypus sites. This file is meant to be byte-for-byte identical in the R
+# package and in pyplatypus.
+#
+# This comment used to say "and a test in each repository says so". Nothing in either
+# repository reads this file - grepped in both on 2026-10-14, after renaming the R package
+# made the two copies diverge and not one test failed. So the identity is held by whoever
+# edits it, which is the arrangement the sentence it replaced says does not work, and §3F's
+# table of pairs does not list this file either. Named here rather than quietly fixed.
 #
 # THE PALETTE COMES FROM THE HEXSTICKER, which is the one thing the author asked to keep
 # when both repositories were reset (CLAUDE.md §4c). Measured off
@@ -24,8 +29,8 @@
 meta:
   name: platypus
   link:
-    home: https://maju116.github.io/platypus/
-    github: https://github.com/maju116/platypus
+    home: https://maju116.github.io/rplatypus/
+    github: https://github.com/maju116/rplatypus
 
 color:
   palette:

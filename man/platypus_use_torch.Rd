@@ -14,7 +14,7 @@ default.}
 The requirement string now in force, invisibly.
 }
 \description{
-Call this before anything starts the engine - straight after \code{library(platypus)} - and
+Call this before anything starts the engine - straight after \code{library(rplatypus)} - and
 before the first call that needs Python.
 }
 \details{
@@ -36,7 +36,7 @@ your own.
 
 \examples{
 \dontrun{
-library(platypus)
+library(rplatypus)
 platypus_use_torch("pascal")   # GTX 10-series and older
 }
 }

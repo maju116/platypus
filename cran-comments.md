@@ -1,6 +1,6 @@
 # cran-comments
 
-First submission of `platypus`.
+First submission of `rplatypus`.
 
 ## Test environments
 
@@ -21,17 +21,20 @@ The expected `New submission` NOTE will also appear.
 
 ## The package name
 
-The check reports a conflict with `Platypus`, archived from CRAN on 2026-02-02. The two
-differ only in case, which the policy treats as a conflict, and archiving does not release a
-name.
+This file previously described a conflict and promised to resubmit under another name if it
+could not be resolved. **That is what this name is.** The package was called `platypus` on
+GitHub from 2020 until 2026-10-14; `R CMD check --as-cran` reported a conflict with
+`Platypus`, archived from CRAN on 2026-02-02 - unrelated work in immunology, last released
+2024-10-18 - and the two differed only in case, which the policy treats as a conflict and
+which archiving does not release. Rather than ask for an exception or wait on a name that is
+still reserved, the package was renamed.
 
-This R package has been called `platypus` since 2020 and is published under that name on
-GitHub, with a Python engine of its own on PyPI. The archived package is unrelated work in
-immunology, last released 2024-10-18.
+`rplatypus` appears in neither the current index nor the archive, checked against both. The
+name also says what the package is: the computation lives in a Python package, `pyplatypus`,
+and this is its R surface - one name per language rather than one name reused.
 
-I have written to its former maintainer and to CRAN about reusing the name, and I am happy to
-be guided. **If the name cannot be used I will resubmit under another one** rather than ask for
-an exception.
+The GitHub repository was renamed with it, so the URLs in `DESCRIPTION` are the current ones
+and the former addresses redirect.
 
 ## This package calls Python, and provisions it itself
 
@@ -39,7 +42,7 @@ The computation lives in a Python package, `pyplatypus`, reached through `reticu
 reviewer will reasonably want to know what that does on a machine with no Python and no
 network, so:
 
-- **`library(platypus)` starts nothing.** The import is wrapped in `reticulate`'s
+- **`library(rplatypus)` starts nothing.** The import is wrapped in `reticulate`'s
   `delay_load`, so attaching the package is instant, works offline, and works where no Python
   exists. The engine starts on the first call that needs it.
 - **No system Python is touched.** `reticulate::py_require()` declares one exact version of

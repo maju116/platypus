@@ -9,7 +9,7 @@ contact_links:
       the specification schema, the training loop, the metrics or the Python API lives there.
       If you are not sure, file it here - it is easier to move an issue than to find one.
   - name: The 2020 TensorFlow package
-    url: https://github.com/maju116/platypus/tree/master
+    url: https://github.com/maju116/rplatypus/tree/master
     about: >
       The version with u_net() on Keras and yolo3() is frozen on the master branch. If you
       installed platypus before 2026 and your code stopped working, start there.

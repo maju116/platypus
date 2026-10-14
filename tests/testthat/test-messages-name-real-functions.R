@@ -22,7 +22,7 @@ string_literals <- function(expression) {
 }
 
 names_messages_ask_for <- function() {
-  namespace <- asNamespace("platypus")
+  namespace <- asNamespace("rplatypus")
   literals <- character()
   for (name in ls(namespace, all.names = TRUE)) {
     object <- get(name, envir = namespace)
@@ -40,8 +40,8 @@ test_that("every function a message tells the reader to call exists", {
   expect_gt(length(named), 10)
 
   defined <- c(
-    ls(asNamespace("platypus"), all.names = TRUE),
-    getNamespaceExports("platypus"),
+    ls(asNamespace("rplatypus"), all.names = TRUE),
+    getNamespaceExports("rplatypus"),
     # Generics the package provides methods for, which a message may fairly name.
     "summary", "print", "plot", "predict", "as.list"
   )

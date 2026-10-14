@@ -30,7 +30,7 @@ man_topics <- function() {
       if (length(files)) return(sub("[.]Rd$", "", files))
     }
   }
-  db <- tryCatch(tools::Rd_db("platypus"), error = function(e) list())
+  db <- tryCatch(tools::Rd_db("rplatypus"), error = function(e) list())
   sub("[.]Rd$", "", names(db))
 }
 
