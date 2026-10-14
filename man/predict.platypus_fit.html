@@ -653,8 +653,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/save_class_masks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Write overlapping classes, one file per class</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/save_volumes.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Save predicted volumes as NIfTI</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/save_class_volumes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Save overlapping classes as one NIfTI per class</span></a>
   </div>
 </li>
       </ul>
@@ -776,7 +788,8 @@ Which data to predict on.
 <code id="type">type</code>
 </td>
 <td>
-<code>“class”</code> gives the class index per pixel, which is the mask to look at; <code>“probability”</code> keeps the per-class channel.
+<p><code>“class”</code> gives the class index per pixel, which is the mask to look at; <code>“probability”</code> keeps the per-class channel.</p>
+With <code>regions</code> - overlapping classes - <code>“class”</code> is <strong>refused</strong> rather than computed. The channels are independent binary questions and do not compete, so the most likely one is not an answer: a pixel may be in three classes and naming one of them drops the rest with nothing in the result to say so. Ask for <code>“probability”</code> and write it with <code><a href="../man/save_class_masks.html">save_class_masks()</a></code>.
 </td>
 </tr>
 <tr>

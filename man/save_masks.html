@@ -653,8 +653,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/save_class_masks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Write overlapping classes, one file per class</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/save_volumes.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Save predicted volumes as NIfTI</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/save_class_volumes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Save overlapping classes as one NIfTI per class</span></a>
   </div>
 </li>
       </ul>
@@ -742,7 +754,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </td>
 <td>
 <p>Class indices from <a href="../man/predict.platypus_fit.html"><code>predict.platypus_fit()</code></a> - an <code style="white-space: pre;">image x height x width</code> array, or one <code style="white-space: pre;">height x width</code> matrix. Probabilities are accepted too and reduced to the most likely class.</p>
-For <strong>volumes</strong> use <code><a href="../man/save_volumes.html">save_volumes()</a></code>, which writes NIfTI carrying the geometry of the scan each mask came from. This function cannot reliably tell a stack of volumes from a stack of images with a class axis - the ranks are identical - so it does not try; it refuses only the case a shape can prove.
+<p>For <strong>volumes</strong> use <code><a href="../man/save_volumes.html">save_volumes()</a></code>, which writes NIfTI carrying the geometry of the scan each mask came from. This function cannot reliably tell a stack of volumes from a stack of images with a class axis - the ranks are identical - so it does not try; it refuses only the case a shape can prove.</p>
+For <strong>overlapping classes</strong> use <code><a href="../man/save_class_masks.html">save_class_masks()</a></code>. A prediction where some pixel is in two classes at once is refused here rather than reduced: one pixel gets one colour, so writing it as a colour map would mean choosing one of the classes it is in and leaving nothing in the file to say that happened.
 </td>
 </tr>
 <tr>

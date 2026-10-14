@@ -653,8 +653,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/save_class_masks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Write overlapping classes, one file per class</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/save_volumes.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Save predicted volumes as NIfTI</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/save_class_volumes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Save overlapping classes as one NIfTI per class</span></a>
   </div>
 </li>
       </ul>
@@ -879,8 +891,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The task is still <code>semantic_segmentation</code>. What changes is what a channel means.</p>
 <p><strong>There is no background entry, so the class count is not the one you would write as <code>labels</code>.</strong> Those same masks as <code>labels = c(0, 1, 2, 4)</code> are <strong>four</strong> classes; as the three regions above they are <strong>three</strong> channels. And a voxel whose value is <code>4</code> is in all three of them at once, which is the point rather than a tolerated side effect.</p>
 <p><strong>Each channel is an independent binary question</strong> - a sigmoid per channel rather than one softmax across them - so the channels do not compete and do not sum to one. That is what makes the overlap expressible, and it is also why a prediction cannot be written back as a single picture with <a href="../man/save_masks.html"><code>save_masks()</code></a>: one voxel gets one colour, and a voxel here may belong to three classes.</p>
+<p>So <code>save_masks()</code> refuses such a prediction rather than taking the strongest channel, and <code><a href="https://rdrr.io/r/stats/predict.html">predict()</a></code> refuses <code>type = "class"</code> for the same reason - there is no one class per voxel to return. Ask for <code>type = "probability"</code> and write it with <a href="../man/save_class_masks.html"><code>save_class_masks()</code></a>, which gives one binary file per region, named after the region. The channel order is the order the regions were written in, which is also the order <a href="../man/inspect_masks.html"><code>inspect_masks()</code></a> names them in and the order every per-class score is reported in.</p>
 <p><strong>Two regions are the minimum</strong>, because one region is ordinary binary segmentation and <code>labels = c(0, 1)</code> already says that - with a background channel, which <code>regions</code> has none of. Disjoint regions are allowed and are not a mistake: they group several values into one class and drop the background channel, which is a useful thing to ask for and is refused nowhere.</p>
-<p><strong>The failure this invites is quiet, so it is refused loudly.</strong> A region whose <code>of</code> matches nothing in the data - <code>of = 3</code> against a label map holding <code>1</code>, <code>2</code> and <code>4</code> - is a channel of zeros. It trains to predict nothing and scores a Dice of 0 for that region while every other number in the run looks ordinary, which is the kind of result that gets read as “that class is hard”. <a href="../man/platypus_fit.html"><code>platypus_fit()</code></a> refuses it before training, and <a href="../man/inspect_masks.html"><code>inspect_masks()</code></a> asks the same question over as much of the data as you want - <strong>naming the region rather than giving its position</strong>, because <code>missing_classes: 1</code> would leave you counting entries in the file above:</p>
+<p><strong>The failure this invites is quiet, so it is refused loudly.</strong> A region whose <code>of</code> matches nothing in the data - <code>of = 3</code> against a label map holding <code>1</code>, <code>2</code> and <code>4</code> - is a channel of zeros. It trains to predict nothing and scores a Dice of 0 for that region while every other number in the run looks ordinary, which is the kind of result that gets read as “that class is hard”. <a href="../man/platypus_fit.html"><code>platypus_fit()</code></a> refuses it before training, and <code>inspect_masks()</code> asks the same question over as much of the data as you want - <strong>naming the region rather than giving its position</strong>, because <code>missing_classes: 1</code> would leave you counting entries in the file above:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">inspect_masks</span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   split unmatched samples_checked total_samples present_classes      missing_classes</span></span>
