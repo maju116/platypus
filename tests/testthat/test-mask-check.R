@@ -118,3 +118,48 @@ test_that("the two things the refusal tells you to do are both reachable from R"
   expect_identical(attr(inspect_masks(spec), "missing"), 1L)   # and inspectable
   expect_s3_class(platypus_fit(spec, check_masks = FALSE), "platypus_fit")  # and overridable
 })
+
+
+# --- `labels` without 0 ----------------------------------------------------------------
+#
+# `?segmentation_data`'s `@param labels` says "**Include 0 unless the masks really do fill
+# every voxel**", and until now nothing held that sentence to the engine. The engine refused
+# this from `0.8.0a19`; the R prose arrived with the pin and was the whole of R's half, which
+# is exactly the shape of prose that drifts. `maju116/rplatypus#153`.
+#
+# The pair matters more than either test. The engine deliberately refuses only when the data
+# *has* unmatched voxels - `labels = c(1, 2)` over masks that genuinely fill every voxel is a
+# legitimate thing and keeps working - so a single test on the refusal would pass just as well
+# against "refuse whenever 0 is missing", which is a different and worse rule.
+
+test_that("`labels` without 0 is refused when the masks have a background", {
+  skip_if_no_volumes()
+  skip_if_no_mask_check()
+  root <- tiny_label_dataset(background = TRUE)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(1, 2), window = "soft_tissue"),
+    models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1))
+  )
+  # The message is asserted on three things rather than one: that it names the omission, the
+  # fraction it measured, and the fix. A refusal a user cannot act on is a crash with prose.
+  expect_error(platypus_fit(spec, num_workers = 0), "does not contain 0")
+  expect_error(platypus_fit(spec, num_workers = 0), "match none of those labels")
+  expect_error(platypus_fit(spec, num_workers = 0), "add 0 to labels")
+})
+
+test_that("`labels` without 0 trains when the masks really do fill every voxel", {
+  skip_if_no_volumes()
+  skip_if_no_mask_check()
+  # Every voxel is 1 or 2 here, so nothing matches nothing and the engine has no reason to
+  # refuse. This is the control: it is the run that a blanket "labels must contain 0" rule
+  # could not produce, and it is the sentence in `?segmentation_data` that the test above
+  # on its own would let rot.
+  root <- tiny_label_dataset(background = FALSE)
+  spec <- platypus_spec(
+    data = segmentation_data(root, root, labels = c(1, 2), window = "soft_tissue"),
+    models = list(u_net("unet3d", input_shape = c(8, 8, 4), channels = 1, blocks = 2,
+                        filters = 4, epochs = 1, batch_size = 1))
+  )
+  expect_s3_class(platypus_fit(spec, num_workers = 0), "platypus_fit")
+})
