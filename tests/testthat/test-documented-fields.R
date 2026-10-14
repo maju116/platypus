@@ -38,13 +38,15 @@ deliberately_absent <- c(
   train_path = "`train` on the data constructors",
   validation_path = "`validation` on the data constructors",
   test_path = "`test` on the data constructors",
-  # Not an omission and not a decision to leave it out: `segmentation_data()` enumerates its
-  # parameters, so `regions` is an `unused argument` today and R's own two-way exclusivity
-  # check at `R/spec.R` has to become three-way before the field can be written. Documenting
-  # it now would describe something an R caller cannot reach. platypus#152, and it is the one
-  # entry here with an issue number rather than a reason that will never change.
-  regions = "platypus#152: `segmentation_data()` cannot take it yet",
-  of = "inside `regions`, platypus#152"
+  # `regions` was here with an issue number rather than a permanent reason - the one entry
+  # that was going to leave. It left on 2026-10-14: `segmentation_data(regions = )` exists,
+  # the exclusivity check is three-way, and `?segmentation_data` describes the field. The
+  # test below is what said so, by refusing to keep excusing something now documented.
+  #
+  # `of` stays, and its reason is permanent rather than pending: it is a field of `Region`
+  # rather than an argument of anything in R, so there is no `@param of` to write. It is
+  # described inside `@param regions`, which is the only place an R reader meets it.
+  of = "a field of `Region`, described inside `@param regions` because R has no such argument"
 )
 
 test_that("every configuration field the engine describes is documented in R", {

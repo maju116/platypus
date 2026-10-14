@@ -9,6 +9,7 @@ segmentation_data(
   validation = NULL,
   colormap = NULL,
   labels = NULL,
+  regions = NULL,
   test = NULL,
   split = NULL,
   mode = c("nested_dirs", "config_file"),
@@ -48,6 +49,24 @@ tumour. This is how NIfTI and every other volume format label anything. Give thi
 falls back to the first class, so a list without 0 trains the background as whatever
 that first class is. The engine refuses that combination rather than let it look
 plausible, which means the error arrives before the run and not in the scores.}
+
+\item{regions}{Overlapping classes, named as unions of a label-map value set: a list of
+\code{list(name = , of = )}, where \code{of} holds the voxel values belonging to that region.
+\code{list(list(name = "whole tumour", of = c(1, 2, 4)), list(name = "enhancing", of = 4))}
+is the BraTS shape, and the second entry shows that a single value is ordinary rather
+than an edge case. Give this, \code{colormap} or \code{labels}, not more than one.
+
+\strong{Two things this field changes that its name does not say.} There is \strong{no background
+entry}, so \code{n_class} here is not the same number it would be for that many \code{labels} -
+with \code{labels} the background is a class and with \code{regions} it is not. And each channel
+is an \strong{independent binary question}, a sigmoid per channel rather than one softmax
+across them, so a voxel may be in several regions at once - which is the whole point,
+and the reason \code{save_masks()} cannot write such a prediction as one picture.
+
+Two regions are the minimum: one region is ordinary binary segmentation, which
+\code{labels = c(0, 1)} already says. Disjoint regions are allowed and mean something -
+grouping several values into one class and dropping the background channel - so they
+are not refused.}
 
 \item{test}{Optional test data. Only images are read from it.}
 

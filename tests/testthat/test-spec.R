@@ -260,3 +260,104 @@ test_that("unset, the engine's measured default arrives", {
   expect_equal(built$start, 0.75)
   expect_null(built$learning_rate)
 })
+
+
+# --- `regions`: overlapping classes, the third way of naming them -----------------------
+#
+# `regions` shipped in the engine as `0.8.0a14`. R forwarding it is a code change rather
+# than a pin bump, which `maju116/rplatypus#152` measured before this was written:
+# `segmentation_data()` enumerates its parameters, so `regions` was an `unused argument`,
+# while a bare `data` list through `platypus_spec()` reached the engine's own validator and
+# was accepted. The constructor refusing what YAML accepted is the asymmetry these close.
+
+brats_regions <- list(
+  list(name = "whole tumour", of = c(1, 2, 4)),
+  list(name = "enhancing", of = 4)
+)
+
+test_that("classes are named exactly one of three ways, and the message says which", {
+  # "exactly one" on its own leaves the caller to work out which of their arguments the
+  # complaint is about, which is the sort of message that gets read twice.
+  expect_error(segmentation_data("a", "b"), "you gave none")
+  expect_error(
+    segmentation_data("a", "b", labels = c(0, 1), regions = brats_regions),
+    "`labels` and `regions`"
+  )
+  expect_error(
+    segmentation_data("a", "b", colormap = binary_colormap, regions = brats_regions),
+    "`colormap` and `regions`"
+  )
+  expect_error(
+    segmentation_data("a", "b", colormap = binary_colormap, labels = c(0, 1),
+                      regions = brats_regions),
+    "`colormap` and `labels` and `regions`"
+  )
+})
+
+test_that("`regions` travels as name and `of`, and `of` is a list even for one value", {
+  data <- segmentation_data("a", "b", regions = brats_regions)
+  expect_null(data$colormap)
+  expect_null(data$labels)
+  expect_length(data$regions, 2L)
+  expect_identical(data$regions[[1]]$name, "whole tumour")
+  expect_identical(data$regions[[1]]$of, list(1L, 2L, 4L))
+  # The single value is the case that would break silently rather than loudly: reticulate
+  # turns a length-1 integer vector into a Python *scalar*, and the schema wants an array,
+  # so `of = 4` has to arrive as `[4]`. Measured both ways before the code was written, and
+  # `of: [4]` is ordinary rather than an edge case - BraTS's enhancing tumour is exactly it.
+  expect_identical(data$regions[[2]]$of, list(4L))
+})
+
+test_that("a region list that says too little is refused before Python starts", {
+  expect_error(segmentation_data("a", "b", regions = list()), "list of `list\\(name")
+  expect_error(segmentation_data("a", "b", regions = "whole tumour"), "list of `list\\(name")
+  # One region is binary segmentation, which `labels` already says - and says with a
+  # background channel, which `regions` has none of. The engine's schema says the same with
+  # `minItems: 2`; this says it before an interpreter starts.
+  expect_error(
+    segmentation_data("a", "b", regions = brats_regions[1]),
+    "at least two entries"
+  )
+  expect_error(
+    segmentation_data("a", "b", regions = list(list(name = "a"), list(of = 1))),
+    "needs both `name` and `of`"
+  )
+  expect_error(
+    segmentation_data("a", "b",
+                      regions = list(list(name = c("a", "b"), of = 1),
+                                     list(name = "c", of = 2))),
+    "one non-empty string"
+  )
+  expect_error(
+    segmentation_data("a", "b", regions = list(list(name = "a", of = 1.5),
+                                               list(name = "b", of = 2))),
+    "at least one whole number"
+  )
+  expect_error(
+    segmentation_data("a", "b", regions = list(list(name = "a", of = 1),
+                                               list(name = "a", of = 2))),
+    "every region needs its own `name`"
+  )
+})
+
+test_that("the engine accepts what `segmentation_data(regions = )` builds", {
+  skip_if_no_regions()
+  # Through `platypus_spec()` rather than by handing the constructor's list to the shim,
+  # and the first version of this test is why: the raw list carries explicit NULLs for
+  # every field nobody set, and the engine refuses `window: None` before it ever looks at
+  # `regions`. `compact()` is what the real path applies, so a test that skips it is
+  # testing a call no user makes - and it failed for a reason that had nothing to do with
+  # the change.
+  spec <- platypus_spec(
+    data = segmentation_data(".", ".", regions = brats_regions),
+    models = list(u_net("m", input_shape = c(64, 64), blocks = 2, filters = 4))
+  )
+  expect_s3_class(spec, "platypus_spec")
+  # Read back out of the engine rather than off the R object: this is the asymmetry the
+  # change closes, so what matters is what the engine ended up holding.
+  sent <- as.list(spec)$data$regions
+  expect_length(sent, 2L)
+  expect_identical(vapply(sent, function(region) region$name, character(1)),
+                   c("whole tumour", "enhancing"))
+  expect_equal(unlist(sent[[2]]$of), 4L)
+})

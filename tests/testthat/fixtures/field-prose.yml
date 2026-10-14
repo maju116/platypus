@@ -229,7 +229,7 @@ fields:
     documented_in: [loss_boundary]
   - field: regions
     engine_digest: 80b33f0ee00d1b7388d4694c763c7bbb
-    documented_in: []
+    documented_in: [segmentation_data]
   - field: restore_best
     engine_digest: 552162d110abf8811f1824e0d4760d16
     documented_in: [callbacks]
