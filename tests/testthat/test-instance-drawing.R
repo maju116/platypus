@@ -204,4 +204,3 @@ test_that("objects that touch nothing may share a colour, which is the point", {
   slots <- rplatypus:::instance_colour_index(instance_pictures()$apart, 8L)
   expect_identical(unname(unlist(slots)), c(0L, 0L))
 })
-
