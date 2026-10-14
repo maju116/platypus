@@ -79,6 +79,12 @@ network, so:
   inside `\dontrun{}` already. `checking examples ... OK` on a machine that *has* Python does
   not establish that; this does.
 
+  Re-measured on 2026-10-14, after the package was renamed and three `.Rd` files were
+  regenerated, **and with the lever controlled in both directions**: under that variable
+  `available_weights()` refuses by name, and without it the same call returns three rows. So
+  the `OK` is the examples not reaching Python, rather than the variable having had no
+  effect - which is the other thing an `OK` there is consistent with.
+
 Nothing in `R CMD check` therefore reaches the network or starts Python. The one thing worth
 stating plainly because it would surprise a *user* rather than a check: the first real call
 downloads a PyTorch wheel of a few gigabytes, which is documented in `?platypus_status` and in
