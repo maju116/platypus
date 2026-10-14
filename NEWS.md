@@ -15,7 +15,56 @@ this package reach it - so the pin moving is part of a change here, not housekee
 alongside it. The pin is what stops a release of this package breaking because the engine
 drifted underneath it.
 
-## [0.2.0] - unreleased
+## [0.2.1] - unreleased
+
+### 2026-10-14 - `regions` from R: overlapping classes
+
+#### Added
+
+- **`segmentation_data(regions = )`**, the third way of saying what a mask's classes are and
+  the only one that lets a voxel belong to more than one. A list of `list(name = , of = )`,
+  where `of` holds the label-map values making up that region:
+
+  ```r
+  segmentation_data(
+    "train/", "valid/",
+    regions = list(list(name = "whole tumour", of = c(1, 2, 4)),
+                   list(name = "enhancing", of = 4))
+  )
+  ```
+
+  That is the BraTS shape, and the second entry shows that a single value is ordinary rather
+  than an edge case. The engine has had the field since `0.8.0a14`; **R forwarding it was a
+  code change rather than a pin bump**, which is worth saying because the first guess was the
+  opposite: `segmentation_data()` enumerates its parameters, so `regions` was an
+  `unused argument` while a bare `data` list and a YAML file both reached the engine's own
+  validator and were accepted. The constructor refusing what YAML took is the asymmetry this
+  closes. `pyplatypus#91`, `#152`.
+
+  Two things `?segmentation_data` now says that the field name does not. There is **no
+  background entry**, so `n_class` is not the number it would be for that many `labels`. And
+  each channel is an **independent binary question** - a sigmoid per channel rather than one
+  softmax across them - so a voxel may be in several regions at once, which is the point.
+
+- **The exclusivity check is three-way and names what was given.** One of `colormap`,
+  `labels` and `regions`, in one message, matching the engine's own sentence - and the
+  message now says which arguments it found rather than only that one was expected.
+
+#### Fixed
+
+- **A single `of` value would have crossed over as a number rather than a list.** reticulate
+  turns a length-1 integer vector into a Python scalar, and the schema wants an array, so
+  `of = 4` had to be built with `as.list()`. Measured both ways before the code was written,
+  and the engine refuses the scalar - so this would have been a refusal nobody could read
+  rather than a silent wrong answer, on the most ordinary region there is.
+
+  **Still in `#152`, deliberately not here**, and written as a paragraph rather than a
+  heading because `R CMD check` reads every `###` in this file as a version and says so:
+  `save_masks()` refusing an overlapping prediction and the per-class writer that replaces
+  it, `inspect_masks()` naming regions rather than numbering them, and the guide section.
+  Each is independently worth having, which is why none waits for the others.
+
+## [0.2.0] - submitted to CRAN on 2026-10-14
 
 A different package from 0.1.1 under the same name, and the section below says how
 different.

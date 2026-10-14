@@ -53,6 +53,23 @@
 #'   straight to `train`.
 #' @param colormap A list of RGB triples, one per class, background first. For masks stored
 #'   as pictures. Give this or `labels`, not both.
+#' @param regions Overlapping classes, named as unions of a label-map value set: a list of
+#'   `list(name = , of = )`, where `of` holds the voxel values belonging to that region.
+#'   `list(list(name = "whole tumour", of = c(1, 2, 4)), list(name = "enhancing", of = 4))`
+#'   is the BraTS shape, and the second entry shows that a single value is ordinary rather
+#'   than an edge case. Give this, `colormap` or `labels`, not more than one.
+#'
+#'   **Two things this field changes that its name does not say.** There is **no background
+#'   entry**, so `n_class` here is not the same number it would be for that many `labels` -
+#'   with `labels` the background is a class and with `regions` it is not. And each channel
+#'   is an **independent binary question**, a sigmoid per channel rather than one softmax
+#'   across them, so a voxel may be in several regions at once - which is the whole point,
+#'   and the reason `save_masks()` cannot write such a prediction as one picture.
+#'
+#'   Two regions are the minimum: one region is ordinary binary segmentation, which
+#'   `labels = c(0, 1)` already says. Disjoint regions are allowed and mean something -
+#'   grouping several values into one class and dropping the background channel - so they
+#'   are not refused.
 #' @param labels The voxel value of each class, in class order, for masks stored as label
 #'   maps - `c(0, 1)` for a binary segmentation, `c(0, 1, 2)` where 1 is liver and 2 is
 #'   tumour. This is how NIfTI and every other volume format label anything. Give this or
@@ -109,6 +126,7 @@
 #' @examples
 #' segmentation_data("train/", "valid/", colormap = binary_colormap)
 segmentation_data <- function(train, validation = NULL, colormap = NULL, labels = NULL,
+                              regions = NULL,
                               test = NULL, split = NULL,
                               mode = c("nested_dirs", "config_file"),
                               window = NULL, dicom_window = NULL, target_spacing = NULL,
@@ -155,10 +173,26 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
 
   # Caught here rather than in the engine, because the message is the same and this way it
   # costs nothing: no interpreter starts to tell someone they gave both or neither.
-  if (is.null(colormap) == is.null(labels)) {
-    stop("give exactly one of `colormap` (masks stored as pictures) and `labels` ",
-         "(masks stored as label maps, which is how volumes do it).", call. = FALSE)
+  # Three ways to say what a mask's classes are, and exactly one of them. The engine says
+  # the same sentence - "Exactly one of `colormap`, `labels` and `regions` is given" - and
+  # this says it before an interpreter starts, which is the only reason it is duplicated.
+  # It also names what was given: "exactly one" alone leaves the caller to work out which
+  # of their arguments the complaint is about.
+  chosen <- c(colormap = !is.null(colormap), labels = !is.null(labels),
+              regions = !is.null(regions))
+  if (sum(chosen) != 1L) {
+    stop("give exactly one of `colormap` (masks stored as pictures), `labels` (masks ",
+         "stored as label maps, which is how volumes do it) and `regions` (overlapping ",
+         "classes, named as unions of a label map's values)",
+         if (any(chosen)) {
+           paste0(" - you gave ",
+                  paste(sprintf("`%s`", names(chosen)[chosen]), collapse = " and "))
+         } else {
+           " - you gave none"
+         },
+         ".", call. = FALSE)
   }
+  check_regions(regions)
   if (!is.null(window) && !is.null(dicom_window)) {
     stop("`dicom_window` is the former name of `window`; give one of them, not both.",
          call. = FALSE)
@@ -196,6 +230,14 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
     mode = if (explicit_mode || !identical(mode, "nested_dirs")) mode else NULL,
     colormap = if (is.null(colormap)) NULL else lapply(colormap, as.integer),
     labels = if (is.null(labels)) NULL else as.integer(labels),
+    # `as.list()` around each `of` rather than `as.integer()` alone, and the single-value
+    # case is why: reticulate turns a length-1 integer vector into a Python *scalar*, so
+    # `of = 4` would arrive as `4` where the schema wants `[4]` - and `of: [4]` is the
+    # ordinary case rather than an edge one, since BraTS's enhancing tumour is exactly
+    # that. Measured both ways before this was written.
+    regions = if (is.null(regions)) NULL else lapply(regions, function(region) {
+      list(name = as.character(region$name), of = as.list(as.integer(region$of)))
+    }),
     # Left out entirely when unset. An older engine rejects fields it does not know, so
     # sending a default nobody asked for would break every run that has nothing to do
     # with DICOM - and the version pin exists precisely to make such mismatches loud
@@ -521,6 +563,55 @@ agreed_task <- function(data, models, stated = NULL) {
        "`yolo3()`.", call. = FALSE)
 }
 
+
+#' Is this a list of regions, and does it say enough to be one
+#'
+#' Checked here rather than left to the engine for the reason the exclusivity check is:
+#' the message is the same and this way no interpreter starts to deliver it. The counts
+#' and the wording follow the schema rather than an opinion - `minItems: 2` is the
+#' engine's, and so is the reason for it.
+#'
+#' @keywords internal
+#' @noRd
+check_regions <- function(regions) {
+  if (is.null(regions)) return(invisible(NULL))
+  if (!is.list(regions) || !length(regions)) {
+    stop("`regions` is a list of `list(name = , of = )`, one entry per class.",
+         call. = FALSE)
+  }
+  if (length(regions) < 2L) {
+    stop("`regions` needs at least two entries. One region is ordinary binary ",
+         "segmentation, which `labels = c(0, 1)` already says - and says with a ",
+         "background channel, which `regions` does not have.", call. = FALSE)
+  }
+  for (index in seq_along(regions)) {
+    region <- regions[[index]]
+    where <- sprintf("`regions[[%d]]`", index)
+    if (!is.list(region) || !all(c("name", "of") %in% names(region))) {
+      stop(where, " needs both `name` and `of`: `list(name = \"whole tumour\", ",
+           "of = c(1, 2, 4))`.", call. = FALSE)
+    }
+    if (!is.character(region$name) || length(region$name) != 1L ||
+          !nzchar(region$name)) {
+      stop(where, "$name is the channel's name and what a per-class score is reported ",
+           "under, so it is one non-empty string.", call. = FALSE)
+    }
+    of <- region$of
+    if (!is.numeric(of) || !length(of) || anyNA(of) || any(of != trunc(of))) {
+      stop(where, "$of is the label-map values belonging to '", region$name,
+           "' - at least one whole number. A single value is ordinary: BraTS's ",
+           "enhancing tumour is `of = 4`.", call. = FALSE)
+    }
+  }
+  names_given <- vapply(regions, function(region) region$name, character(1))
+  if (anyDuplicated(names_given)) {
+    duplicated_names <- unique(names_given[duplicated(names_given)])
+    stop("every region needs its own `name`, because the name is the output channel and ",
+         "what a per-class score is reported under; repeated: ",
+         paste(sprintf("'%s'", duplicated_names), collapse = ", "), ".", call. = FALSE)
+  }
+  invisible(NULL)
+}
 
 #' Exactly one way of getting a validation set, checked the same for both tasks
 #'

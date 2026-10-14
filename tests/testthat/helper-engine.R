@@ -495,6 +495,39 @@ engine_has_encoders <- function() {
   }, error = function(e) FALSE))
 }
 
+#' Does the engine in use understand `regions`?
+#'
+#' Offered the field rather than asked for a version, the way the encoder probe is - and
+#' with `task` present for the same reason it learnt: without it the engine refuses the
+#' configuration for a reason that has nothing to do with `regions`, this reads that
+#' refusal as "no such field", and every regions test skips against an engine that
+#' supports them. Two entries because the schema's minimum is two, so one would be
+#' refused by an engine that has the field.
+engine_has_regions <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    result <- rplatypus:::shim()$build_spec(
+      list(
+        task = "semantic_segmentation",
+        data = list(train_path = ".", validation_path = ".",
+                    regions = list(list(name = "a", of = list(1L)),
+                                   list(name = "b", of = list(2L)))),
+        models = list(list(name = "probe", input_shape = c(64L, 64L)))
+      ),
+      check_paths = FALSE
+    )
+    isTRUE(result$ok)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_regions <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_has_regions(),
+    "the engine in use predates `regions`"
+  )
+}
+
 skip_if_no_encoders <- function() {
   skip_if_no_engine()
   testthat::skip_if_not(
