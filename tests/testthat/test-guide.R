@@ -26,6 +26,7 @@ guide_sections <- c(
   "Several models at once",
   "Dividing one folder",
   "Augmentation, callbacks, and the rest of a model",
+  "Instances instead of one mask",
   "Detection instead of segmentation",
   "Not training at all",
   "What is checked, and when",
