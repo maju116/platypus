@@ -17,6 +17,71 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - drawing instances
+
+#### Added
+
+- **`overlay_instances()`** draws an instance label map over its image, with one colour per
+  object chosen so that **no two touching objects share one**. The rule is adjacency rather
+  than identity: a colour repeats across the picture and never between neighbours, because
+  nobody reads object 214 by its colour and everybody needs to see where one object ends.
+
+  That is an exact graph colouring - Welsh-Powell, greedy in order of descending degree -
+  and it is affordable rather than clever. Measured in the engine over all 670 Data Science
+  Bowl cases, 524 of which hold touching objects: the hardest needs **three** of the eight
+  slots in `class_colours`, while the cheap alternative of colouring by object number modulo
+  the palette paints **550 of 5436 adjacent pairs in one colour, 10.12%** - one touching pair
+  in ten drawn as a single object, in a figure whose whole subject is whether two objects are
+  two.
+
+  Eight-connected, so two objects meeting at a corner get different colours. A label-maker
+  goes the other way and joins only along edges, because there the risk is merging two
+  objects into one; here the risk is *drawing* two as one, which is the opposite direction.
+
+- **`overlay_instance_agreement()`** is found, missed and invented **objects**.
+  `overlay_agreement()` answers the same three-way question about pixels, and on an instance
+  result that is the wrong unit: a merged pair and a split object are both nearly perfect
+  pixelwise and both wrong, which is what an average precision will not tell anybody. Matched
+  whole object against whole object at one IoU threshold, strictly greater, and **below 0.5
+  is refused** for the reason the metric refuses it.
+
+#### Measured
+
+- **The matching needs no greedy pass, and that is provable rather than convenient.** The
+  engine matches greedily on descending IoU; this package matches every pair above the
+  threshold, which is equivalent above 0.5: if two disjoint true objects both exceeded 0.5
+  against one prediction, each intersection would exceed half of it - the union is at least
+  the prediction - and two disjoint intersections cannot together exceed it. So the matching
+  is one to one whatever order it is taken in, which is also why the metric refuses a lower
+  threshold.
+
+  Written as the equivalent rather than as a copy because `argsort` is not stable: two pairs
+  at the same IoU leave the engine in an order neither package controls, and a pixel-for-pixel
+  test would then fail for something that is not a divergence.
+
+#### Fixed
+
+- **Nothing held the two packages to the same colouring, and the shared constant could not.**
+  `#154`'s subject: the palette is mirrored and `test-drawing-style.R` holds it, so the two
+  would keep agreeing about *which eight colours* while disagreeing about which object gets
+  which. `tests/testthat/test-instance-drawing.R` draws the same pictures both ways and
+  compares them **pixel for pixel** - five label maps including three objects each touching
+  the other two, and five ways an instance result goes wrong - which is the only thing that
+  can hold a rule rather than a constant.
+
+  Six mutations, each caught: four-connected instead of eight, colour by object number instead
+  of by adjacency, ascending instead of descending degree, `>=` instead of `>` at the
+  threshold, and two ways of getting the outline wrong. The outline pair needed a **new
+  picture**: against the first one both mutations passed, because every object in it was three
+  pixels across and had no interior to lose. §4's "a check calibrated loosely enough admits
+  the failure it was written to prevent", found by mutating rather than by reading.
+
+- **`flow_to_colours()` is still deferred, and the stated reason has expired.** `#154` defers
+  it because "R cannot configure `flows` until `pyplatypus#160`" - which shipped in
+  `0.8.0a20`, and `separation_flows()` has been exported here since. The reason that holds now
+  is a different one: `predict()` refuses an instance fit, so **there is no way to get a flow
+  field into R to draw**. It belongs with `#103`, where the prediction comes back.
+
 ### 2026-10-14 - `regions` from R: overlapping classes
 
 #### Added
