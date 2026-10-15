@@ -77,3 +77,47 @@ test_that("the sections that must be here are", {
     info = "a section the shared order requires is missing"
   )
 })
+
+vignettes_dir <- function() {
+  for (candidate in c("vignettes", file.path("..", "..", "vignettes"),
+                      file.path("..", "..", "..", "vignettes"))) {
+    if (dir.exists(candidate)) {
+      return(candidate)
+    }
+  }
+  NULL
+}
+
+test_that("the README names every vignette that runs something", {
+  # Written because the sentence above that list said "Three vignettes" and named four, from
+  # the day `retinal-vessels` landed until the two lines were read together. §3C's rule is
+  # that a number in prose needs a test holding it or no number at all, and the count is gone
+  # - but the *list* is the thing a reader uses, so this holds the list instead.
+  #
+  # The `.Rmd.orig` files are exactly the vignettes that run something: `precompute.R` knits
+  # those and says why `configuration.Rmd` is not among them - it is prose with
+  # `eval = FALSE` chunks, held by test-guide.R instead. So a new worked vignette fails this
+  # until the README names it, and a prose one does not have to.
+  path <- readme_path()
+  skip_if(is.null(path), "README.md not reachable from here")
+  dir <- vignettes_dir()
+  skip_if(is.null(dir), "vignettes/ not reachable from here")
+
+  sources <- Sys.glob(file.path(dir, "*.Rmd.orig"))
+  runs_something <- sort(sub("\\.Rmd\\.orig$", "", basename(sources)))
+  expect_gt(length(runs_something), 2)   # or this passes by looking at nothing
+
+  readme <- paste(readLines(path, warn = FALSE), collapse = "\n")
+  named <- sort(unique(gsub('.*\\("|"\\).*', "", regmatches(
+    readme, gregexpr('vignette\\("[A-Za-z0-9-]+"\\)', readme)
+  )[[1]])))
+
+  expect_identical(
+    setdiff(runs_something, named), character(0),
+    info = "a vignette that trains something is not named in the README"
+  )
+  expect_identical(
+    setdiff(named, c(runs_something, "configuration")), character(0),
+    info = "the README names a vignette that does not exist"
+  )
+})

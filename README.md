@@ -318,7 +318,7 @@ narrow, and three public datasets are three public datasets.
 
 ## Learning it
 
-Three vignettes, all precomputed from real runs — every number and figure in them came out of
+The vignettes are all precomputed from real runs — every number and figure in them came out of
 running the code shown.
 
 **Read them at [maju116.github.io/rplatypus](https://maju116.github.io/rplatypus/)**, which also
