@@ -19,6 +19,10 @@
 # The volume vignette generates its own data, so it needs nothing but a working engine. Name
 # one or more vignettes as arguments to knit only those.
 #
+# The instance one trains for 40 epochs at 256x256 and borrows published weights for the
+# comparison it opens with - about 15 minutes on a GTX 1070, with `num_workers = 4`, which
+# is the difference between 17.5 seconds an epoch and 49.6.
+#
 # The blood-cell one trains a 61.5-million-parameter detector for 150 epochs - about 37
 # minutes on a GTX 1070. The retinal one is slower still: 600 fundus photographs at 2048,
 # each cut into sixteen tiles, for 15 epochs. Both want the CUDA 12 line of PyTorch on that
@@ -26,9 +30,15 @@
 # function had to start working before this one could be built at all.
 
 which <- commandArgs(trailingOnly = TRUE)
-if (!length(which)) which <- c("data-science-bowl", "volumes", "blood-cells", "retinal-vessels")
+if (!length(which)) which <- c("data-science-bowl", "instances", "volumes", "blood-cells",
+                               "retinal-vessels")
 
 if ("data-science-bowl" %in% which) {
+  stopifnot(nzchar(Sys.getenv("PLATYPUS_DSBOWL")))
+}
+if ("instances" %in% which) {
+  # The same directory as the one above: this document reads the per-nucleus masks as
+  # identities rather than uniting them, so it needs no data the other one does not.
   stopifnot(nzchar(Sys.getenv("PLATYPUS_DSBOWL")))
 }
 if ("blood-cells" %in% which) {

@@ -88,6 +88,39 @@ vignettes_dir <- function() {
   NULL
 }
 
+test_that("no two vignettes draw into the same figure file", {
+  # knitr names a figure after its chunk, and all the vignettes share one `fig.path`. So two
+  # documents with a chunk called `history` write the same PNG, the second knit silently
+  # replaces the first document's picture, and nothing anywhere complains - the figure is
+  # still there, still a plot, and about the wrong model.
+  #
+  # That is not hypothetical: `instances.Rmd` was written with an unprefixed `history` chunk
+  # and overwrote `data-science-bowl.Rmd`'s training curve with an instance model's. Caught by
+  # listing the tarball rather than by any test, which is why this one exists. `git` held the
+  # original, so the cost was a re-knit; had the collision been noticed a week later, the
+  # restored figure would have been whatever the last run produced.
+  dir <- vignettes_dir()
+  skip_if(is.null(dir), "vignettes/ not reachable from here")
+
+  shipped <- Sys.glob(file.path(dir, "*.Rmd"))
+  skip_if(!length(shipped), "no knitted vignettes here")
+
+  drawn <- lapply(shipped, function(path) {
+    text <- paste(readLines(path, warn = FALSE), collapse = "\n")
+    unique(regmatches(text, gregexpr("figures/[^)\"' ]+", text))[[1]])
+  })
+  names(drawn) <- basename(shipped)
+  figures <- unlist(drawn, use.names = FALSE)
+  expect_gt(length(figures), 5)   # or this passes by looking at nothing
+
+  shared <- names(which(table(figures) > 1))
+  expect_identical(
+    shared, character(0),
+    info = paste("two vignettes draw into the same file, so one of them shows the other's",
+                 "picture:", paste(shared, collapse = ", "))
+  )
+})
+
 test_that("the README names every vignette that runs something", {
   # Written because the sentence above that list said "Three vignettes" and named four, from
   # the day `retinal-vessels` landed until the two lines were read together. §3C's rule is

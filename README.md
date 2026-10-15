@@ -329,6 +329,13 @@ no renderer for `.Rmd` and serves the source, figures and all, as plain text. Fr
 `vignette("data-science-bowl")` is two-dimensional microscopy: the 2018 Data Science Bowl, one
 mask per nucleus, from a folder of images to a figure.
 
+`vignette("instances")` is the same microscopy read a different way: the per-nucleus masks
+kept as identities rather than united, so the answer is a count instead of an area. It opens
+with published weights decoded two ways — one forward pass giving 245 objects or 180 on the same
+picture, which is sixty-five touching nuclei run together — and ends on the measurement that
+closed this direction: connected components caps any model here at 0.7655, so the headroom is in the
+mask and not in the separation signal.
+
 `vignette("blood-cells")` is detection: BCCD, boxes rather than masks, opening with a
 published detector before any training. It ends on the finding that made the measurement
 honest — across five seeds the overlap of the matched boxes varies six times less than the
