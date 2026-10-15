@@ -314,7 +314,7 @@ instance_adjacent_pairs <- function(labels) {
 #' @noRd
 instance_colour_index <- function(labels, palette_size) {
   values <- sort(unique(as.integer(labels[labels > 0L])))
-  if (!length(values)) return(integer())
+  if (!length(values)) return(structure(integer(), wrapped = integer()))
   neighbours <- stats::setNames(vector("list", length(values)), as.character(values))
   pairs <- instance_adjacent_pairs(labels)
   for (row in seq_len(nrow(pairs))) {
@@ -326,6 +326,7 @@ instance_colour_index <- function(labels, palette_size) {
   degree <- vapply(neighbours, length, integer(1))
 
   chosen <- stats::setNames(rep(NA_integer_, length(values)), as.character(values))
+  wrapped <- integer()
   for (value in values[order(-degree)]) {
     key <- as.character(value)
     taken <- chosen[as.character(neighbours[[key]])]
@@ -333,15 +334,22 @@ instance_colour_index <- function(labels, palette_size) {
     slot <- 0L
     while (slot %in% taken) slot <- slot + 1L
     # Past the palette the colouring stops being a guarantee and the slot wraps, so two
-    # neighbours can get one colour. **Neither package reports that**, which is a gap rather
-    # than a decision: the engine's own `_colour_index` docstring says "`overlay_instances`
-    # reports it" and nothing in `pyplatypus/plots.py` emits anything - grepped. Filed as
-    # `maju116/pyplatypus#231`; this side follows once that is released, because a warning
-    # here and silence there would be the divergence `#154` is about. Unreachable on real
-    # data in the meantime: the hardest of 670 cases needed three of eight slots.
-    chosen[[key]] <- if (slot >= palette_size) slot %% palette_size else slot
+    # neighbours get one colour - provably, since a slot is only past the end once every
+    # colour before it was taken by a neighbour. Which objects that happened to is carried
+    # out rather than dropped, and `overlay_instances()` is what reports it, because it is
+    # the function a person called and the only one that knows the palette. The engine warns
+    # from the same place as of `0.8.0a24` and in the same words, which a test compares -
+    # `maju116/pyplatypus#231`. Both packages were silent here until then, and that silence
+    # was a gap rather than a decision: the engine's docstring claimed the report existed.
+    # `palette_size = NULL` asks for the colouring with no palette at all, which is how many
+    # colours the picture needs and cannot be read off a folded run.
+    if (!is.null(palette_size) && slot >= palette_size) {
+      wrapped <- c(wrapped, value)
+      slot <- slot %% palette_size
+    }
+    chosen[[key]] <- slot
   }
-  chosen
+  structure(chosen, wrapped = sort(wrapped))
 }
 
 #' The pixels of a region that have a non-region pixel among their four neighbours
@@ -397,7 +405,13 @@ blend_into <- function(picture, rgb, where, alpha) {
 #' @param outline Draw one stroke per object instead of filling it, which leaves the tissue
 #'   entirely visible and is what a pathologist is used to.
 #' @param colours The palette to take slots from. Eight by default, mirrored from the
-#'   engine's own.
+#'   engine's own. A picture needing more colours than this has **warns**, naming how many
+#'   it needs and how many objects lost the guarantee: the slot wraps onto a colour a
+#'   neighbour already holds - provably, since it is only past the end once every colour
+#'   before it was taken by a neighbour - so two touching objects are drawn as one and this
+#'   figure answers its own question wrongly. The engine warns in the same words, which is
+#'   checked rather than claimed. Unreachable on anything measured: the hardest of 670 Data
+#'   Science Bowl cases needs three of the eight.
 #' @return A `height x width x 3` array of integers, 0-255.
 #' @seealso [overlay_instance_agreement()] for whether the objects are the right ones,
 #'   [overlay_mask()] for classes rather than objects.
@@ -425,6 +439,19 @@ overlay_instances <- function(image, labels,
   }
 
   slots <- instance_colour_index(labels, length(colours))
+  wrapped <- attr(slots, "wrapped")
+  if (length(wrapped)) {
+    needed <- max(instance_colour_index(labels, NULL)) + 1L
+    warning(
+      "this picture needs ", needed, " colours to keep every pair of touching objects ",
+      "apart and the palette has ", length(colours), ", so ", length(wrapped), " of ",
+      length(slots), " objects are drawn in a colour one of their own neighbours holds. ",
+      "A slot past the end of the palette wraps onto one a neighbour has already taken - ",
+      "that is what being past the end means - so for those objects the figure no longer ",
+      "answers where one ends and the next begins. Pass a longer `colours`.",
+      call. = FALSE
+    )
+  }
   for (key in names(slots)) {
     where <- labels == as.integer(key)
     picture <- blend_into(

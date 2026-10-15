@@ -202,5 +202,110 @@ test_that("objects that touch nothing may share a colour, which is the point", {
   # Adjacency rather than identity. A test that demanded distinct colours per object would
   # pass on a rule that needs a ninth colour for a ninth nucleus.
   slots <- rplatypus:::instance_colour_index(instance_pictures()$apart, 8L)
-  expect_identical(unname(unlist(slots)), c(0L, 0L))
+  # `as.integer()` rather than `unname(unlist())`: the colouring carries which objects
+  # wrapped as an attribute, and here that is the empty vector rather than absent.
+  expect_identical(as.integer(slots), c(0L, 0L))
+  expect_identical(attr(slots, "wrapped"), integer())
+})
+
+# ---- the wrap past the end of the palette
+#
+# Both packages were silent here until `pyplatypus#231`, and the silence was a gap rather
+# than a decision: the engine's `_colour_index` docstring claimed `overlay_instances`
+# reported it and nothing emitted anything. It reports it as of `0.8.0a24`, so this side
+# follows - and the two messages are compared rather than written to look alike, because a
+# warning on one side and silence on the other is the divergence `#154` is about, and so is
+# a warning that says something different.
+
+short_palette <- function(n) drawing_style()$class_colours[seq_len(n)]
+
+test_that("a palette too short to colour the picture warns, with the numbers", {
+  labels <- instance_pictures()$triangle   # three objects, each touching the other two
+  image <- array(0.5, dim = c(dim(labels), 3L))
+
+  expect_warning(
+    overlay_instances(image, labels, colours = short_palette(2)),
+    "needs 3 colours"
+  )
+  expect_warning(
+    overlay_instances(image, labels, colours = short_palette(2)),
+    "1 of 3 objects"
+  )
+})
+
+test_that("the warning is the engine's warning, word for word", {
+  skip_if_no_engine()
+  # The pair this needs is not the palette and not the pixels: it is the sentence. A reader
+  # who meets this in R and then in Python has to be told the same thing, and the pin is
+  # what makes comparing prose safe - one exact engine, so a reworded message on either
+  # side fails here instead of drifting.
+  labels <- instance_pictures()$triangle
+  image <- array(0.5, dim = c(dim(labels), 3L))
+
+  mine <- tryCatch(
+    {
+      overlay_instances(image, labels, colours = short_palette(2))
+      NA_character_
+    },
+    warning = function(w) conditionMessage(w)
+  )
+  expect_false(is.na(mine), info = "this side has to warn before the comparison means anything")
+
+  reticulate::py_run_string(sprintf(
+    "import numpy as np, warnings, pyplatypus
+labels = np.array(%s, dtype=int).reshape(%d, %d, order='F')
+image = np.full((%d, %d, 3), 0.5)
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter('always')
+    pyplatypus.overlay_instances(image, labels, colours=list(pyplatypus.style.CLASS_COLOURS[:2]))
+theirs = str(caught[0].message) if caught else ''",
+    paste0("[", paste(as.integer(labels), collapse = ","), "]"),
+    nrow(labels), ncol(labels), nrow(labels), ncol(labels)
+  ))
+  theirs <- reticulate::py_eval("theirs")
+
+  expect_true(nzchar(theirs), info = "the engine has to warn too, or the pin is behind")
+  expect_identical(mine, theirs)
+})
+
+test_that("a wrapped object is drawn in a neighbour's colour", {
+  # Which is why the wrap is worth a word, and it is provable rather than usual: a slot is
+  # only past the end of the palette once every colour before it was taken by a neighbour,
+  # so the fold lands on one a neighbour holds and never on a free colour.
+  labels <- instance_pictures()$triangle
+  image <- array(0.5, dim = c(dim(labels), 3L))
+  drawn <- suppressWarnings(
+    overlay_instances(image, labels, alpha = 1, colours = short_palette(2))
+  )
+
+  centres <- list("1" = drawn[3, 3, ], "2" = drawn[3, 5, ], "3" = drawn[6, 4, ])
+  pairs <- rplatypus:::instance_adjacent_pairs(labels)
+  alike <- vapply(
+    seq_len(nrow(pairs)),
+    function(row) {
+      identical(centres[[as.character(pairs[row, 1])]],
+                centres[[as.character(pairs[row, 2])]])
+    },
+    logical(1)
+  )
+  expect_true(any(alike))
+})
+
+test_that("the number of colours the warning asks for is enough", {
+  # A warning naming a number that does not fix it would be worse than silence.
+  labels <- instance_pictures()$triangle
+  image <- array(0.5, dim = c(dim(labels), 3L))
+  expect_warning(overlay_instances(image, labels, colours = short_palette(2)), "needs 3")
+  expect_silent(overlay_instances(image, labels, colours = short_palette(3)))
+})
+
+test_that("every picture the palette can hold is drawn without a word", {
+  # The control. Without it the tests above would pass on a function that warns on every
+  # call, and a figure that cries wolf teaches a reader to ignore the one case that means
+  # something - which is the calibration half of §4's lesson about loose checks.
+  for (name in names(instance_pictures())) {
+    labels <- instance_pictures()[[name]]
+    image <- array(0.5, dim = c(dim(labels), 3L))
+    expect_silent(overlay_instances(image, labels))
+  }
 })

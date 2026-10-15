@@ -17,6 +17,35 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - the wrap past the end of the palette is reported
+
+Needs pyplatypus **0.8.0a24**.
+
+#### Changed
+
+- **`overlay_instances()` warns when a picture needs more colours than `colours` has.** It
+  names how many it needs, how many there are, and how many objects lost the guarantee.
+
+  Both packages were silent here until now and the silence was a gap rather than a decision:
+  the engine's own colouring helper said in its docstring that `overlay_instances` reported
+  it, and nothing in either package emitted anything. Filed from this side while `#154` was
+  being written, fixed in the engine as `maju116/pyplatypus#231`, and followed here the same
+  day it was released - a warning on one side and silence on the other would be exactly the
+  divergence `#154` exists to prevent.
+
+  The wrap is worth a word because it is the one case this figure answers its own question
+  wrongly. Its subject is *where does one object end*; every other colour repeat is
+  deliberate, and a wrap is the one that repeats **between neighbours** - provably, since a
+  slot is only past the end of the palette once every colour before it was taken by a
+  neighbour, so the fold lands on a colour a neighbour already holds.
+
+  **The two messages are compared word for word**, in the `engine` job. That is a stronger
+  pair than the palette or the pixels: a reader who meets this warning in R and then in
+  Python has to be told the same thing, and the pin is what makes comparing prose safe - one
+  exact engine, so a rewording on either side fails here instead of drifting. Measured: of
+  five mutations, changing one phrase of the message is caught by that test and by nothing
+  else.
+
 ### 2026-10-15 - instances come back into R
 
 #### Added

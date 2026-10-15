@@ -26,7 +26,13 @@ is drawn at full strength, because a translucent outline is a smudge.}
 entirely visible and is what a pathologist is used to.}
 
 \item{colours}{The palette to take slots from. Eight by default, mirrored from the
-engine's own.}
+engine's own. A picture needing more colours than this has \strong{warns}, naming how many
+it needs and how many objects lost the guarantee: the slot wraps onto a colour a
+neighbour already holds - provably, since it is only past the end once every colour
+before it was taken by a neighbour - so two touching objects are drawn as one and this
+figure answers its own question wrongly. The engine warns in the same words, which is
+checked rather than claimed. Unreachable on anything measured: the hardest of 670 Data
+Science Bowl cases needs three of the eight.}
 }
 \value{
 A \verb{height x width x 3} array of integers, 0-255.
