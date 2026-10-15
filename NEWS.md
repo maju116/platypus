@@ -17,6 +17,52 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - a fourth set of published weights, and a score that needs its decoding
+
+Needs pyplatypus **0.8.0a25**, which is what the pin moves to here.
+
+#### Added
+
+- **`weights = "dsbowl-instances"` works**, and it is the first published name whose score is
+  not one number. A U-Net trained to tell touching nuclei apart on BBBC038v1 - interior, rim
+  and background - measured on the same 134 held-out images `dsbowl-unet` reports:
+
+  | decoding | instance AP | objects found |
+  |---|---|---|
+  | `decode_nearest_seed()` | 0.5445 | 5,378 of 5,999 |
+  | `decode_watershed()` | 0.5390 | 5,378 of 5,999 |
+  | `decode_connected_components()` | 0.4822 | 4,914 of 5,999 |
+
+  Foreground Dice 0.9118, the mask all three rows share.
+
+  **This side needed the pin and nothing else**, which is the cheapest kind of change here and
+  worth naming as its own shape: `available_weights()` reads the registry out of the engine, so
+  the fourth name arrives in that data frame the moment the pin moves. No R code was written
+  for it.
+
+  What was written is the receipt. The description is what an R user reads before trusting a
+  number, and 0.0623 separates the best row from the worst against a run-to-run spread of
+  0.009 - so a score quoted without its decoding is not a property of the weights. A test
+  holds that description to its own arithmetic: every score in it has to name a decoding, the
+  gap it claims for the separation signal has to be the gap between the rows it quotes, and
+  the perfect-mask figure beside it has to be the larger of the two. Checked against the
+  arithmetic rather than against the four decimals, because the measurements live in the Hub
+  repository and nothing on this side can confirm 0.5445.
+
+  The entry's own claim is the instance milestone's finding rather than a recommendation: the
+  separation signal is worth +0.0623 here, a perfect semantic mask is worth +0.2398, and a
+  perfect mask through connected components caps *any* model at 0.7655. The mask is the limit
+  on this data. The weights are published so that the measurement can be argued with by
+  somebody who did not take it.
+
+#### Changed
+
+- **The field-prose ledger records the new engine**, and the diff is the reason this is a line
+  rather than a silent regeneration: `tests/testthat/fixtures/field-prose.yml` moved its
+  `engine:` line and **not one of its 104 digests**. No configuration field's description
+  changed in `0.8.0a25`, so no `@param` on this side needed re-reading. Regenerating without
+  looking at that diff is how the ledger would become a rubber stamp.
+
 ### 2026-10-15 - the two instance axes can be asked about
 
 Needs pyplatypus **0.8.0a24**, which is already the pin.

@@ -45,6 +45,42 @@ test_that("the retinal entry carries the two things a reader would get wrong", {
   expect_match(vessels$description, "not MIT")
 })
 
+test_that("the instance entry cannot offer a score without the decoding it came from", {
+  # The fourth published set and the first whose score is not one number: one trained file,
+  # three decodings, and 0.0623 between the best and the worst against a run-to-run spread of
+  # 0.009. An R user meets all of that through this data frame and nowhere else, so the thing
+  # that has to be in the description is a decoding beside every score.
+  #
+  # Checked against the arithmetic rather than against the four decimals, which is all a test
+  # on this side can do: the measurements live in the Hub repository, so what is verifiable
+  # here is that the gap the description claims for the separation signal is the gap between
+  # the rows it quotes, and that the perfect-mask figure beside it is the larger of the two -
+  # the entry's actual claim, that the mask is the limit on this data and not the signal.
+  skip_if_no_weights_registry()
+  listing <- available_weights()
+  objects <- listing[listing$name == "dsbowl-instances", ]
+
+  expect_equal(nrow(objects), 1)
+  expect_match(objects$description, "BBBC038")
+  expect_match(objects$description, "decoding")
+
+  scored <- regmatches(
+    objects$description,
+    gregexpr("[0-9][.][0-9]{4} by [a-z_]+", objects$description)
+  )[[1]]
+  expect_setequal(
+    sub("^.* by ", "", scored),
+    c("nearest_seed", "watershed", "connected_components")
+  )
+
+  numbers <- as.numeric(sub(" by .*$", "", scored))
+  expect_match(objects$description, sprintf("[+]%.4f", max(numbers) - min(numbers)), fixed = FALSE)
+  perfect <- as.numeric(sub(
+    "^.*perfect mask is worth [+]([0-9][.][0-9]{4}).*$", "\\1", objects$description
+  ))
+  expect_gt(perfect, max(numbers) - min(numbers))
+})
+
 test_that("a trained model's weights make the round trip through R", {
   skip_if_no_weights_registry()
   root <- tiny_dataset()
