@@ -1058,6 +1058,11 @@ def component_listing(kind: str, task: str | None = None) -> dict:
     except Exception as error:  # noqa: BLE001
         return _engine_failure(error)
 
+    # `needs` and `head_channels` belong to two listings only and are the reason somebody
+    # asks for those listings at all: which separation a decoding requires, and how wide a
+    # head a separation makes. Carried when the engine's row has them rather than named
+    # here, so a listing that grows a field reaches R without this function changing.
+    extra = ("needs", "head_channels")
     return {
         "ok": True,
         "rows": [
@@ -1065,6 +1070,11 @@ def component_listing(kind: str, task: str | None = None) -> dict:
                 "name": row["name"],
                 "arguments": ", ".join(row.get("arguments", row.get("chooses", ()))),
                 "description": row["description"],
+                **{
+                    key: ", ".join(row[key]) if isinstance(row[key], tuple | list) else row[key]
+                    for key in extra
+                    if key in row
+                },
             }
             for row in rows
         ],

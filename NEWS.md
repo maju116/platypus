@@ -17,6 +17,37 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - the two instance axes can be asked about
+
+Needs pyplatypus **0.8.0a24**, which is already the pin.
+
+#### Added
+
+- **`available_separations()` and `available_decodings()`**, which completes the family.
+  Eight of the ten listings the engine publishes were here and these two were not, so every
+  axis of a specification could be asked about except the two that are only on the instance
+  task - the newest ones, where a reader is least likely to know the names already.
+
+  Found by comparing the two public surfaces name by name rather than by reading either, and
+  it is the reference group's own description that makes it a defect rather than a wish: the
+  group these two sit in says it holds "the listings that ask the engine what those names
+  are, rather than asking you to remember them", with `separations` and `decodings` listed in
+  it and no listing for either.
+
+  Each carries the column it is opened for: `needs` on a decoding, the separation it
+  requires - empty for `connected_components`, which is why that one is always available -
+  and `head_channels` on a separation, how wide a head that target makes. Both come from the
+  engine's own rows rather than being named on this side, so a listing that grows a field
+  arrives here with no R change; a test holds the other six listings to exactly three
+  columns, because a bug in that would add a column everywhere rather than drop one here.
+
+#### Changed
+
+- **A test called "every decoding the engine offers has a constructor" now asks the
+  engine.** It compared a list written beside it, so the engine could have grown a fifth
+  decoding with nothing failing - the same shape as the warning this morning, a declaration
+  beside a mechanism that does not do it. There is one for separations now too.
+
 ### 2026-10-15 - the wrap past the end of the palette is reported
 
 Needs pyplatypus **0.8.0a24**.

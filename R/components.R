@@ -678,8 +678,16 @@ available_transforms <- function(rank = 2, pattern = NULL) {
 #' @return A data frame with `name`, `arguments` and `description`. `arguments` is a single
 #'   string per row, comma-separated, because a column of vectors prints as something nobody
 #'   can read; `strsplit(x, ", ")` takes it apart.
-#' @seealso [available_transforms()] and [available_weights()], the two that came first, and
-#'   [platypus_spec()], where these names are written.
+#'
+#'   Two listings carry one column more, and it is the column they are asked for:
+#'   `available_decodings()` has `needs`, the separation a decoding requires - empty where it
+#'   requires none, which is `connected_components` and is why that one is always available -
+#'   and `available_separations()` has `head_channels`, how wide a head that target makes.
+#'   Taken from the engine's own rows rather than named on this side, so a listing that grows
+#'   a field arrives here without R changing.
+#' @seealso [available_transforms()] and [available_weights()], the two that came first,
+#'   [separations] and [decodings] for the constructors these two listings name, and
+#'   [platypus_spec()], where all of them are written.
 #' @examples
 #' \dontrun{
 #' available_losses()
@@ -695,6 +703,10 @@ available_transforms <- function(rank = 2, pattern = NULL) {
 #' # The entry point, for somebody who has read nothing yet.
 #' available_tasks()
 #'
+#' # The two instance axes: what a model can predict, and how those channels become objects.
+#' available_separations()[, c("name", "head_channels")]
+#' available_decodings()[, c("name", "needs")]
+#'
 #' # Detection says what it has instead of a loss to choose.
 #' try(available_losses("object_detection"))
 #' }
@@ -709,11 +721,15 @@ component_listing <- function(kind, task = NULL) {
   }
   if (!isTRUE(result$ok)) abort_engine(result)
 
+  # The three every listing has, then whatever that listing adds - `needs` for a decoding,
+  # `head_channels` for a separation. Taken from the rows rather than listed here, because a
+  # column named on this side is a second place to update and the engine is the one that
+  # knows what a listing contains.
+  shared <- c("name", "arguments", "description")
+  columns <- unique(unlist(lapply(result$rows, names)))
+  columns <- c(intersect(shared, columns), setdiff(columns, shared))
   rows <- lapply(result$rows, function(row) {
-    data.frame(
-      name = row$name, arguments = row$arguments, description = row$description,
-      stringsAsFactors = FALSE
-    )
+    data.frame(row[columns], stringsAsFactors = FALSE)
   })
   if (!length(rows)) {
     return(data.frame(
@@ -758,4 +774,16 @@ available_callbacks <- function() {
 #' @export
 available_tasks <- function() {
   component_listing("tasks")
+}
+
+#' @rdname available_components
+#' @export
+available_separations <- function() {
+  component_listing("separations")
+}
+
+#' @rdname available_components
+#' @export
+available_decodings <- function() {
+  component_listing("decodings")
 }

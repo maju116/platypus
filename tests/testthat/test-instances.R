@@ -64,16 +64,60 @@ test_that("a separation block sends only what it was given", {
 })
 
 test_that("every decoding the engine offers has a constructor, and they agree on names", {
-  # Written against the names rather than a count, because a count passes when one name is
-  # swapped for another.
+  # This test said "the engine offers" and asked a list written here, so the engine could
+  # have grown a fifth decoding with nothing failing - the shape §4 calls a declaration
+  # beside a mechanism that does not describe it. It asks now, which is what
+  # `available_decodings()` is for beyond discoverability.
+  skip_if_no_engine()
   constructors <- list(
     connected_components = decode_connected_components,
     nearest_seed = decode_nearest_seed,
     watershed = decode_watershed,
     follow_flows = decode_follow_flows
   )
-  for (expected in names(constructors)) {
+  expect_setequal(available_decodings()$name, names(constructors))
+  for (expected in available_decodings()$name) {
+    expect_true(expected %in% names(constructors), info = expected)
     expect_identical(constructors[[expected]](), list(name = expected), info = expected)
+  }
+})
+
+test_that("every separation the engine offers has a constructor too", {
+  skip_if_no_engine()
+  constructors <- list(rim = separation_rim, flows = separation_flows)
+  expect_setequal(available_separations()$name, names(constructors))
+  for (expected in available_separations()$name) {
+    expect_identical(constructors[[expected]](), list(name = expected), info = expected)
+  }
+})
+
+test_that("the two instance listings carry the column they are asked for", {
+  # `needs` is the question somebody opens `available_decodings()` to answer: a decoding
+  # that needs `rim` cannot be put on a model predicting `flows`, and the engine refuses it.
+  # Empty for `connected_components`, which is why it is the one always available.
+  skip_if_no_engine()
+  decodings <- available_decodings()
+  expect_true(all(c("name", "arguments", "description", "needs") %in% names(decodings)))
+  needs <- stats::setNames(decodings$needs, decodings$name)
+  expect_identical(needs[["connected_components"]], "")
+  expect_identical(needs[["follow_flows"]], "flows")
+  expect_identical(needs[["nearest_seed"]], "rim")
+  expect_identical(needs[["watershed"]], "rim")
+
+  separations <- available_separations()
+  expect_true("head_channels" %in% names(separations))
+  widths <- stats::setNames(separations$head_channels, separations$name)
+  expect_identical(as.integer(widths[["rim"]]), 3L)
+  expect_identical(as.integer(widths[["flows"]]), 4L)
+})
+
+test_that("the six listings with no extra field still have exactly three columns", {
+  # The control for the generalisation: columns are taken from the engine's rows, so a bug
+  # there would show as a stray column on every listing rather than a missing one.
+  skip_if_no_engine()
+  for (listing in list(available_tasks, available_models, available_losses,
+                       available_metrics, available_optimizers, available_callbacks)) {
+    expect_identical(names(listing()), c("name", "arguments", "description"))
   }
 })
 

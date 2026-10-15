@@ -225,6 +225,20 @@ shared_placement <- c(
   flow_to_colours = "Looking at the results"
 )
 
+# `available_separations` and `available_decodings` are deliberately NOT here, and the reason
+# is a property of this side rather than an omission. Eight of the ten listings share one help
+# topic - `available_components` - so what this package files is that topic and the names
+# under it are not entries of their own. Only `available_transforms` and `available_weights`
+# have their own pages, which is why those two are the ones pinned above. Adding a name
+# documented under a shared topic makes this test fail reporting "under nothing here", which
+# is true and not a drift; it was tried on 2026-10-15 when the two arrived. Two other
+# instruments cover them, and a third does not: the first test in this file fails if the
+# `available_components` topic is in no group (measured - removing it gives 2 failures), and
+# `test-available.R` pins the family by name against the namespace, which is what caught
+# these two arriving. `tools/build-reference.R` does **not**: it regenerates happily with a
+# topic missing from the grouping, 64 topics instead of 65 and exit 0, which was written here
+# as a claim about the generator before being measured.
+
 test_that("the shared names are filed where pyplatypus files them", {
   skip_if_not_installed("yaml")
   groups <- reference_groups()

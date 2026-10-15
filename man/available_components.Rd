@@ -8,6 +8,8 @@
 \alias{available_optimizers}
 \alias{available_callbacks}
 \alias{available_tasks}
+\alias{available_separations}
+\alias{available_decodings}
 \title{What this package can do, asked of the package}
 \usage{
 available_losses(task = "semantic_segmentation")
@@ -21,6 +23,10 @@ available_optimizers()
 available_callbacks()
 
 available_tasks()
+
+available_separations()
+
+available_decodings()
 }
 \arguments{
 \item{task}{\code{"semantic_segmentation"}, \code{"instance_segmentation"} or
@@ -36,6 +42,13 @@ engine's \verb{0.8.0a20}.}
 A data frame with \code{name}, \code{arguments} and \code{description}. \code{arguments} is a single
 string per row, comma-separated, because a column of vectors prints as something nobody
 can read; \code{strsplit(x, ", ")} takes it apart.
+
+Two listings carry one column more, and it is the column they are asked for:
+\code{available_decodings()} has \code{needs}, the separation a decoding requires - empty where it
+requires none, which is \code{connected_components} and is why that one is always available -
+and \code{available_separations()} has \code{head_channels}, how wide a head that target makes.
+Taken from the engine's own rows rather than named on this side, so a listing that grows
+a field arrives here without R changing.
 }
 \description{
 Six listings beside \code{\link[=available_transforms]{available_transforms()}} and \code{\link[=available_weights]{available_weights()}}: the losses, the
@@ -80,11 +93,16 @@ available_metrics()[, c("name", "arguments")]
 # The entry point, for somebody who has read nothing yet.
 available_tasks()
 
+# The two instance axes: what a model can predict, and how those channels become objects.
+available_separations()[, c("name", "head_channels")]
+available_decodings()[, c("name", "needs")]
+
 # Detection says what it has instead of a loss to choose.
 try(available_losses("object_detection"))
 }
 }
 \seealso{
-\code{\link[=available_transforms]{available_transforms()}} and \code{\link[=available_weights]{available_weights()}}, the two that came first, and
-\code{\link[=platypus_spec]{platypus_spec()}}, where these names are written.
+\code{\link[=available_transforms]{available_transforms()}} and \code{\link[=available_weights]{available_weights()}}, the two that came first,
+\link{separations} and \link{decodings} for the constructors these two listings name, and
+\code{\link[=platypus_spec]{platypus_spec()}}, where all of them are written.
 }
