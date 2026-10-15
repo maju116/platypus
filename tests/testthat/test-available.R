@@ -123,16 +123,18 @@ test_that("the third task answers with losses rather than with a refusal", {
 })
 
 test_that("the family is spelled one way across both packages", {
-  # §3A: one concept, one name. Seven exported functions answering "what can this do",
-  # and `show_available_*` for any of them would be the divergence the rule exists to
-  # prevent. Checked against the namespace rather than by reading the file.
+  # §3A: one concept, one name. Ten exported functions answering "what can this do", and
+  # `show_available_*` for any of them would be the divergence the rule exists to prevent.
+  # Checked against the namespace rather than by reading the file - which is what caught
+  # `available_separations` and `available_decodings` arriving on 2026-10-15, and the eight
+  # above them are the engine's ten minus those two for as long as this list said eight.
   exported <- getNamespaceExports("rplatypus")
   family <- sort(grep("^available_", exported, value = TRUE))
   expect_identical(
     family,
-    c("available_callbacks", "available_losses", "available_metrics", "available_models",
-      "available_optimizers", "available_tasks", "available_transforms",
-      "available_weights")
+    c("available_callbacks", "available_decodings", "available_losses", "available_metrics",
+      "available_models", "available_optimizers", "available_separations",
+      "available_tasks", "available_transforms", "available_weights")
   )
   expect_identical(length(grep("^show_available", exported, value = TRUE)), 0L)
 })
