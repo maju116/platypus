@@ -17,6 +17,54 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-15 - the instance surface has a document that runs it
+
+Needs pyplatypus **0.8.0a25**, which is already the pin.
+
+#### Added
+
+- **`vignette("instances")`**, the fifth worked document and the one the instance surface did
+  not have. `instance_data()`, `separation_rim()`, the four `decode_*`,
+  `predict(decode = )`, `evaluate()` with an average precision, `overlay_instances()`,
+  `overlay_instance_agreement()` and `instance_sizes()` all shipped with tests and a
+  configuration section, and **nothing joined them end to end**. §4's entry is the argument:
+  a feature is not shipped until something has used it the way a user reaches it.
+
+  It is not a second Data Science Bowl vignette. The subject is the difference between the
+  two readings of one dataset, so it opens with the published weights decoded two ways -
+  **245 objects by `nearest_seed` against 180 by `connected_components` on the same
+  picture**, one forward pass, sixty-five touching nuclei run together - and puts
+  `dsbowl-unet`'s mask beside the object map rather than describing it.
+
+  Then it trains forty epochs beside the borrowed file in **one specification**, so
+  `evaluate()` returns six rows and the comparison is a table rather than a paragraph. It
+  ends where the measurement does: a count and a size distribution, in pixels, with the
+  reason there are no micrometres - this dataset records no scale, and `instance_sizes()`
+  takes a `spacing` precisely so that a document with one can say millilitres, as
+  `vignette("volumes")` does.
+
+  **Two things in it were not planned and are the best of it.** The borrowed weights
+  reproduce the Hub card's numbers exactly - 0.5445, 0.5390, 0.4822 - so the document
+  controls itself. And the forty-epoch run lands about one run-to-run spread behind on
+  foreground Dice while being four to five of them behind on average precision: the extra
+  eighty epochs bought a **sharper rim rather than a better mask**, which `foreground_dice`
+  cannot see because the rim is a third class whose quality only appears after decoding.
+  That is a finding about time inside one recipe, and it sits beside rather than against the
+  milestone's finding about recipes. Both gaps are computed by the document, not typed into
+  it, so re-knitting cannot leave them stale.
+
+#### Fixed
+
+- **Two vignettes were drawing into the same figure file, and one of them was this one.**
+  `knitr` names a figure after its chunk and every vignette here shares one `fig.path`, so an
+  unprefixed `history` chunk wrote `figures/history-1.png` - which is
+  `vignette("data-science-bowl")`'s training curve. Its picture became an instance model's,
+  silently: the file was still there and still a plot. Found by listing the built tarball,
+  recovered with `git checkout` because the original was committed, and now held by a test
+  that reads every shipped vignette and fails when two claim one path. The test demands no
+  collision rather than a naming convention, because the first document to use a name breaks
+  nothing.
+
 ### 2026-10-15 - a fourth set of published weights, and a score that needs its decoding
 
 Needs pyplatypus **0.8.0a25**, which is what the pin moves to here.
