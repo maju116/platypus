@@ -774,6 +774,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.1] - unreleased</a>
   <ul class="collapse">
+  <li><a href="#a-fourth-set-of-published-weights-and-a-score-that-needs-its-decoding" id="toc-a-fourth-set-of-published-weights-and-a-score-that-needs-its-decoding" class="nav-link" data-scroll-target="#a-fourth-set-of-published-weights-and-a-score-that-needs-its-decoding">2026-10-15 - a fourth set of published weights, and a score that needs its decoding</a></li>
   <li><a href="#the-two-instance-axes-can-be-asked-about" id="toc-the-two-instance-axes-can-be-asked-about" class="nav-link" data-scroll-target="#the-two-instance-axes-can-be-asked-about">2026-10-15 - the two instance axes can be asked about</a></li>
   <li><a href="#the-wrap-past-the-end-of-the-palette-is-reported" id="toc-the-wrap-past-the-end-of-the-palette-is-reported" class="nav-link" data-scroll-target="#the-wrap-past-the-end-of-the-palette-is-reported">2026-10-15 - the wrap past the end of the palette is reported</a></li>
   <li><a href="#instances-come-back-into-r" id="toc-instances-come-back-into-r" class="nav-link" data-scroll-target="#instances-come-back-into-r">2026-10-15 - instances come back into R</a></li>
@@ -815,19 +816,65 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">[0.2.1] - unreleased</h2>
+<section id="a-fourth-set-of-published-weights-and-a-score-that-needs-its-decoding" class="level3">
+<h3 class="anchored" data-anchor-id="a-fourth-set-of-published-weights-and-a-score-that-needs-its-decoding">2026-10-15 - a fourth set of published weights, and a score that needs its decoding</h3>
+<p>Needs pyplatypus <strong>0.8.0a25</strong>, which is what the pin moves to here.</p>
+<section id="added" class="level4">
+<h4 class="anchored" data-anchor-id="added">Added</h4>
+<ul>
+<li><p><strong><code>weights = "dsbowl-instances"</code> works</strong>, and it is the first published name whose score is not one number. A U-Net trained to tell touching nuclei apart on BBBC038v1 - interior, rim and background - measured on the same 134 held-out images <code>dsbowl-unet</code> reports:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>decoding</th>
+<th>instance AP</th>
+<th>objects found</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="man/decodings.html"><code>decode_nearest_seed()</code></a></td>
+<td>0.5445</td>
+<td>5,378 of 5,999</td>
+</tr>
+<tr class="even">
+<td><a href="man/decodings.html"><code>decode_watershed()</code></a></td>
+<td>0.5390</td>
+<td>5,378 of 5,999</td>
+</tr>
+<tr class="odd">
+<td><a href="man/decodings.html"><code>decode_connected_components()</code></a></td>
+<td>0.4822</td>
+<td>4,914 of 5,999</td>
+</tr>
+</tbody>
+</table>
+<p>Foreground Dice 0.9118, the mask all three rows share.</p>
+<p><strong>This side needed the pin and nothing else</strong>, which is the cheapest kind of change here and worth naming as its own shape: <a href="man/available_weights.html"><code>available_weights()</code></a> reads the registry out of the engine, so the fourth name arrives in that data frame the moment the pin moves. No R code was written for it.</p>
+<p>What was written is the receipt. The description is what an R user reads before trusting a number, and 0.0623 separates the best row from the worst against a run-to-run spread of 0.009 - so a score quoted without its decoding is not a property of the weights. A test holds that description to its own arithmetic: every score in it has to name a decoding, the gap it claims for the separation signal has to be the gap between the rows it quotes, and the perfect-mask figure beside it has to be the larger of the two. Checked against the arithmetic rather than against the four decimals, because the measurements live in the Hub repository and nothing on this side can confirm 0.5445.</p>
+<p>The entry’s own claim is the instance milestone’s finding rather than a recommendation: the separation signal is worth +0.0623 here, a perfect semantic mask is worth +0.2398, and a perfect mask through connected components caps <em>any</em> model at 0.7655. The mask is the limit on this data. The weights are published so that the measurement can be argued with by somebody who did not take it.</p></li>
+</ul>
+</section>
+<section id="changed" class="level4">
+<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<ul>
+<li><strong>The field-prose ledger records the new engine</strong>, and the diff is the reason this is a line rather than a silent regeneration: <code>tests/testthat/fixtures/field-prose.yml</code> moved its <code>engine:</code> line and <strong>not one of its 104 digests</strong>. No configuration field’s description changed in <code>0.8.0a25</code>, so no <code>@param</code> on this side needed re-reading. Regenerating without looking at that diff is how the ledger would become a rubber stamp.</li>
+</ul>
+</section>
+</section>
 <section id="the-two-instance-axes-can-be-asked-about" class="level3">
 <h3 class="anchored" data-anchor-id="the-two-instance-axes-can-be-asked-about">2026-10-15 - the two instance axes can be asked about</h3>
 <p>Needs pyplatypus <strong>0.8.0a24</strong>, which is already the pin.</p>
-<section id="added" class="level4">
-<h4 class="anchored" data-anchor-id="added">Added</h4>
+<section id="added-1" class="level4">
+<h4 class="anchored" data-anchor-id="added-1">Added</h4>
 <ul>
 <li><p><strong><a href="man/available_components.html"><code>available_separations()</code></a> and <a href="man/available_components.html"><code>available_decodings()</code></a></strong>, which completes the family. Eight of the ten listings the engine publishes were here and these two were not, so every axis of a specification could be asked about except the two that are only on the instance task - the newest ones, where a reader is least likely to know the names already.</p>
 <p>Found by comparing the two public surfaces name by name rather than by reading either, and it is the reference group’s own description that makes it a defect rather than a wish: the group these two sit in says it holds “the listings that ask the engine what those names are, rather than asking you to remember them”, with <code>separations</code> and <code>decodings</code> listed in it and no listing for either.</p>
 <p>Each carries the column it is opened for: <code>needs</code> on a decoding, the separation it requires - empty for <code>connected_components</code>, which is why that one is always available - and <code>head_channels</code> on a separation, how wide a head that target makes. Both come from the engine’s own rows rather than being named on this side, so a listing that grows a field arrives here with no R change; a test holds the other six listings to exactly three columns, because a bug in that would add a column everywhere rather than drop one here.</p></li>
 </ul>
 </section>
-<section id="changed" class="level4">
-<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<section id="changed-1" class="level4">
+<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
 <ul>
 <li><strong>A test called “every decoding the engine offers has a constructor” now asks the engine.</strong> It compared a list written beside it, so the engine could have grown a fifth decoding with nothing failing - the same shape as the warning this morning, a declaration beside a mechanism that does not do it. There is one for separations now too.</li>
 </ul>
@@ -836,8 +883,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-wrap-past-the-end-of-the-palette-is-reported" class="level3">
 <h3 class="anchored" data-anchor-id="the-wrap-past-the-end-of-the-palette-is-reported">2026-10-15 - the wrap past the end of the palette is reported</h3>
 <p>Needs pyplatypus <strong>0.8.0a24</strong>.</p>
-<section id="changed-1" class="level4">
-<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
+<section id="changed-2" class="level4">
+<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
 <ul>
 <li><p><strong><a href="man/overlay_instances.html"><code>overlay_instances()</code></a> warns when a picture needs more colours than <code>colours</code> has.</strong> It names how many it needs, how many there are, and how many objects lost the guarantee.</p>
 <p>Both packages were silent here until now and the silence was a gap rather than a decision: the engine’s own colouring helper said in its docstring that <code>overlay_instances</code> reported it, and nothing in either package emitted anything. Filed from this side while <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> was being written, fixed in the engine as <code>maju116/pyplatypus[#231](https://github.com/maju116/rplatypus/issues/231)</code>, and followed here the same day it was released - a warning on one side and silence on the other would be exactly the divergence <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> exists to prevent.</p>
@@ -848,8 +895,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="instances-come-back-into-r" class="level3">
 <h3 class="anchored" data-anchor-id="instances-come-back-into-r">2026-10-15 - instances come back into R</h3>
-<section id="added-1" class="level4">
-<h4 class="anchored" data-anchor-id="added-1">Added</h4>
+<section id="added-2" class="level4">
+<h4 class="anchored" data-anchor-id="added-2">Added</h4>
 <ul>
 <li><p><strong><code>predict()</code> returns the objects.</strong> It refused an instance fit until now, and the refusal was right for as long as the bridge had no call that returned a label map. A <strong>named list</strong> of integer maps, one per image, objects numbered from 1 and 0 for background.</p>
 <p>Named rather than ordered, and that is the part worth stating: the engine’s own list is unnamed, and anything pairing two sequences by position is one dropped batch away from naming the wrong picture - the mistake <code>predict_stream()</code> exists on the semantic side to avoid. The names are read from the same two objects the engine pairs internally, and a test asserts they are the keys <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a> reports.</p>
@@ -877,8 +924,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="drawing-instances" class="level3">
 <h3 class="anchored" data-anchor-id="drawing-instances">2026-10-15 - drawing instances</h3>
-<section id="added-2" class="level4">
-<h4 class="anchored" data-anchor-id="added-2">Added</h4>
+<section id="added-3" class="level4">
+<h4 class="anchored" data-anchor-id="added-3">Added</h4>
 <ul>
 <li><p><strong><code>overlay_instances()</code></strong> draws an instance label map over its image, with one colour per object chosen so that <strong>no two touching objects share one</strong>. The rule is adjacency rather than identity: a colour repeats across the picture and never between neighbours, because nobody reads object 214 by its colour and everybody needs to see where one object ends.</p>
 <p>That is an exact graph colouring - Welsh-Powell, greedy in order of descending degree - and it is affordable rather than clever. Measured in the engine over all 670 Data Science Bowl cases, 524 of which hold touching objects: the hardest needs <strong>three</strong> of the eight slots in <code>class_colours</code>, while the cheap alternative of colouring by object number modulo the palette paints <strong>550 of 5436 adjacent pairs in one colour, 10.12%</strong> - one touching pair in ten drawn as a single object, in a figure whose whole subject is whether two objects are two.</p>
@@ -904,8 +951,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="regions-from-r-overlapping-classes" class="level3">
 <h3 class="anchored" data-anchor-id="regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</h3>
-<section id="added-3" class="level4">
-<h4 class="anchored" data-anchor-id="added-3">Added</h4>
+<section id="added-4" class="level4">
+<h4 class="anchored" data-anchor-id="added-4">Added</h4>
 <ul>
 <li><p><strong><code>segmentation_data(regions = )</code></strong>, the third way of saying what a mask’s classes are and the only one that lets a voxel belong to more than one. A list of <code>list(name = , of = )</code>, where <code>of</code> holds the label-map values making up that region:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">segmentation_data</span>(</span>
@@ -1019,8 +1066,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="the-package-is-rplatypus" class="level3">
 <h3 class="anchored" data-anchor-id="the-package-is-rplatypus">2026-10-14 - the package is <code>rplatypus</code></h3>
-<section id="changed-2" class="level4">
-<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
+<section id="changed-3" class="level4">
+<h4 class="anchored" data-anchor-id="changed-3">Changed</h4>
 <ul>
 <li><p><strong><code>library(platypus)</code> is <code>library(rplatypus)</code>.</strong> The name collided with <code>Platypus</code>, archived from CRAN on 2026-02-02 - unrelated work in immunology - and the two differed only in case, which the policy treats as a conflict and which archiving does not release. <code>cran-comments.md</code> had promised to resubmit under another name rather than ask for an exception, so this is that name rather than a new idea: one name per language, beside the <code>pyplatypus</code> engine on PyPI, and a name that says what the package is - the R surface over a Python engine.</p>
 <p><code>rplatypus</code> is in neither CRAN’s current index nor its archive, checked against both with a positive control so that the absence means something.</p></li>
@@ -1033,8 +1080,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="engine-0.8.0a22" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</h3>
 <p><strong>This file has a gap and it is named rather than backfilled.</strong> The entry below is dated 2026-10-08 and the pin moved twice between then and here - to <code>0.8.0a12</code> for <code>fives-unet</code> (<code>[#151](https://github.com/maju116/rplatypus/issues/151)</code>) and to <code>0.8.0a20</code> for the instance task (<code>[#155](https://github.com/maju116/rplatypus/issues/155)</code>) - so the dates above this heading are not a complete record of what the pin did. Writing those entries now would be writing them from the commit log rather than from the work, which is a different thing from having written them; the heading says what this change is and the omission stays visible.</p>
-<section id="changed-3" class="level4">
-<h4 class="anchored" data-anchor-id="changed-3">Changed</h4>
+<section id="changed-4" class="level4">
+<h4 class="anchored" data-anchor-id="changed-4">Changed</h4>
 <ul>
 <li><p>Engine pinned to <code>0.8.0a22</code>, for two things R forwards rather than implements.</p></li>
 <li><p><strong>A regression loss is refused as any segmentation model’s own <code>loss</code>, not only an instance model’s.</strong> <code>?losses</code> claimed the narrower rule and was measured when it was written, so it was true rather than wrong - the engine’s refusal lived on the instance class alone, and a <em>semantic</em> model accepted <a href="man/losses.html"><code>loss_mse()</code></a> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <a href="man/losses.html"><code>loss_cce()</code></a> reaches a Dice of 1.0000. The default <code>where = "foreground"</code> is what made that look like a success: it averages the objective only inside the labelled objects and leaves the background unconstrained. <code>pyplatypus[#223](https://github.com/maju116/rplatypus/issues/223)</code>.</p>
@@ -1051,16 +1098,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a2" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</h3>
-<section id="added-4" class="level4">
-<h4 class="anchored" data-anchor-id="added-4">Added</h4>
+<section id="added-5" class="level4">
+<h4 class="anchored" data-anchor-id="added-5">Added</h4>
 <ul>
 <li><p><strong><a href="man/metrics.html"><code>metric_cldice()</code></a></strong>, for structures where Dice asks the wrong question. It scores each mask against the other’s skeleton, so it measures whether a vessel is <em>connected</em> rather than whether its pixels coincide. Vessels, airways, neurons, cracks, catheters.</p>
 <p>The two disagree in a way worth knowing, measured on a nine-pixel vessel: one drawn two pixels thin scores Dice <strong>0.875</strong>, and the same vessel severed in the middle scores <strong>0.947</strong> - Dice prefers the severed one. clDice gives them 1.000 and 0.943. Its limit is measured too: at one pixel wide, a one-pixel displacement leaves no overlap at all and every overlap-based metric reads 0, this one included.</p>
 <p><code>include_background</code> defaults to <code>FALSE</code> here and <code>TRUE</code> for the other three. The background’s skeleton lies inside the background by construction, so that class scores 1 whatever the model did.</p></li>
 </ul>
 </section>
-<section id="changed-4" class="level4">
-<h4 class="anchored" data-anchor-id="changed-4">Changed</h4>
+<section id="changed-5" class="level4">
+<h4 class="anchored" data-anchor-id="changed-5">Changed</h4>
 <ul>
 <li>Engine pinned to <code>0.8.0a2</code>.</li>
 </ul>
@@ -1068,14 +1115,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</h3>
-<section id="added-5" class="level4">
-<h4 class="anchored" data-anchor-id="added-5">Added</h4>
+<section id="added-6" class="level4">
+<h4 class="anchored" data-anchor-id="added-6">Added</h4>
 <ul>
 <li><strong><code>drawing_style()</code></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
 </section>
-<section id="changed-5" class="level4">
-<h4 class="anchored" data-anchor-id="changed-5">Changed</h4>
+<section id="changed-6" class="level4">
+<h4 class="anchored" data-anchor-id="changed-6">Changed</h4>
 <ul>
 <li><p><strong>The drawing decisions now come from the engine.</strong> They were written out in ten places across <code>R/plot.R</code> and <code>R/masks.R</code>, and <code>pyplatypus.style</code> held the same five values - which is two copies that happened to agree, not one source. They agreed because five differences between the two packages’ figures had been found by laying them side by side and fixing them by hand.</p>
 <p>Nothing changes in any picture: the values are identical, and a test compares every one of them against the engine’s, so a change on that side now fails this package’s CI instead of being noticed by eye.</p>
@@ -1150,8 +1197,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
-<section id="added-6" class="level4">
-<h4 class="anchored" data-anchor-id="added-6">Added</h4>
+<section id="added-7" class="level4">
+<h4 class="anchored" data-anchor-id="added-7">Added</h4>
 <ul>
 <li><p><strong><a href="man/callback_swa.html"><code>callback_swa()</code></a></strong>: average the weights over the last part of the run. What it is worth is not in the score column - Dice and per-case error do not move - it is in the spread. Measured over three seeds, the volume bias went from <code>+4.5% / +12.2% / -11.6%</code> to <code>-0.1% / +4.2% / +2.1%</code>, 5.7 times tighter. The help page says so in those words, because somebody reading “weight averaging” will look at Dice, find nothing, and conclude wrongly. Refused beside <a href="man/callbacks.html"><code>callback_cosine_annealing()</code></a>: a cosine has decayed to its floor by the time averaging begins, so the average is the last epoch.</p></li>
 <li><p><strong><code>segmentation_data(validation = FALSE)</code></strong>: say a run has no validation set. The third answer to the question a path and a split already answered, and it had to be a stated value rather than an absence, because “I have no validation set” and “I forgot” look identical and only one of them is a decision. It went in the same argument rather than a new one, so nothing can contradict it.</p></li>
@@ -1173,8 +1220,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.5.0a1-through-0.6.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</h3>
-<section id="added-7" class="level4">
-<h4 class="anchored" data-anchor-id="added-7">Added</h4>
+<section id="added-8" class="level4">
+<h4 class="anchored" data-anchor-id="added-8">Added</h4>
 <ul>
 <li><strong><code>segmentation_data(split = )</code></strong> and <code>detection_data(split = )</code>: divide one training folder into splits without writing any files. The argument is a list of <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is a <strong>required key that may be <code>NULL</code></strong>. The mistake it prevents leaves no trace: slices of one patient on both sides make validation measure memory rather than generalisation, and nothing in the output says so. An omitted key would be that choice made silently; <code>NULL</code> is the same choice made on purpose. For detection this is the only way to divide one folder, because <code>split_dataset()</code> writes a <code>masks</code> column.</li>
 <li><strong><a href="man/detection_crops.html"><code>detection_crops()</code></a></strong>: cut the detected objects out of the images they were found in, at a fixed size, for handing to a classifier. Crops come from the source image through the same reader the dataset uses, are rounded outward so the whole box survives, and letterbox rather than stretch.</li>
