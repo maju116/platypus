@@ -197,6 +197,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./vignettes/instances.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Telling touching nuclei apart</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./vignettes/retinal-vessels.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Retinal vessels: tiling, and a metric Dice cannot replace</span></a>
   </div>
@@ -962,6 +968,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The vignettes are all precomputed from real runs — every number and figure in them came out of running the code shown.</p>
 <p><strong>Read them at <a href="">maju116.github.io/rplatypus</a></strong>, which also carries the reference for every function. Browsing them here on GitHub does not work: GitHub has no renderer for <code>.Rmd</code> and serves the source, figures and all, as plain text. From R, <code>vignette("blood-cells")</code> opens the same document locally.</p>
 <p><code>vignette("data-science-bowl")</code> is two-dimensional microscopy: the 2018 Data Science Bowl, one mask per nucleus, from a folder of images to a figure.</p>
+<p><code>vignette("instances")</code> is the same microscopy read a different way: the per-nucleus masks kept as identities rather than united, so the answer is a count instead of an area. It opens with published weights decoded two ways — one forward pass giving 245 objects or 180 on the same picture, which is sixty-five touching nuclei run together — and ends on the measurement that closed this direction: connected components caps any model here at 0.7655, so the headroom is in the mask and not in the separation signal.</p>
 <p><code>vignette("blood-cells")</code> is detection: BCCD, boxes rather than masks, opening with a published detector before any training. It ends on the finding that made the measurement honest — across five seeds the overlap of the matched boxes varies six times less than the average precision does, so on a dataset that size a point of mAP is not a result.</p>
 <p><code>vignette("volumes")</code> is CT, and generates its own synthetic data so it can be run without downloading anything: voxel spacing, splitting by patient, resampling, per-patient scores, a slice to look at, and the size of a finding in millilitres. It ends on something worth knowing — a model at Dice 0.88 whose volumes were 12% to 23% too large, which is not a contradiction and is the reason to report both.</p>
 <p><code>vignette("retinal-vessels")</code> is the one that cannot resize its images: FIVES fundus photographs at 2048 x 2048, where the vessel to find is about nine pixels wide and a resize to 256 leaves it at one — the width at which a displacement of a single pixel overlaps the truth nowhere at all. So the images are tiled at full resolution, and scored on clDice, which asks whether a structure is connected rather than whether its pixels coincide. It reports per disease group, and ends on a warning rather than a score: the group that looks hardest is the group whose photographs are worst, and the dataset’s own quality grading says so.</p>
