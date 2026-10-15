@@ -617,6 +617,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/flow_to_colours.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A vector field as a picture: hue is the direction, value is the length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/drawing_style.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The decisions a drawing makes</span></a>
   </div>
@@ -698,6 +704,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Save overlapping classes as one NIfTI per class</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/instance_sizes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How big each object is, in units somebody can use</span></a>
+  </div>
+</li>
       </ul>
   </li>
           <li class="sidebar-item sidebar-item-section">
@@ -762,6 +774,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.1] - unreleased</a>
   <ul class="collapse">
+  <li><a href="#instances-come-back-into-r" id="toc-instances-come-back-into-r" class="nav-link" data-scroll-target="#instances-come-back-into-r">2026-10-15 - instances come back into R</a></li>
   <li><a href="#drawing-instances" id="toc-drawing-instances" class="nav-link" data-scroll-target="#drawing-instances">2026-10-15 - drawing instances</a></li>
   <li><a href="#regions-from-r-overlapping-classes" id="toc-regions-from-r-overlapping-classes" class="nav-link" data-scroll-target="#regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</a></li>
   </ul></li>
@@ -800,10 +813,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">[0.2.1] - unreleased</h2>
-<section id="drawing-instances" class="level3">
-<h3 class="anchored" data-anchor-id="drawing-instances">2026-10-15 - drawing instances</h3>
+<section id="instances-come-back-into-r" class="level3">
+<h3 class="anchored" data-anchor-id="instances-come-back-into-r">2026-10-15 - instances come back into R</h3>
 <section id="added" class="level4">
 <h4 class="anchored" data-anchor-id="added">Added</h4>
+<ul>
+<li><p><strong><code>predict()</code> returns the objects.</strong> It refused an instance fit until now, and the refusal was right for as long as the bridge had no call that returned a label map. A <strong>named list</strong> of integer maps, one per image, objects numbered from 1 and 0 for background.</p>
+<p>Named rather than ordered, and that is the part worth stating: the engine’s own list is unnamed, and anything pairing two sequences by position is one dropped batch away from naming the wrong picture - the mistake <code>predict_stream()</code> exists on the semantic side to avoid. The names are read from the same two objects the engine pairs internally, and a test asserts they are the keys <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a> reports.</p>
+<p>A list rather than an array for the reason the detection one is a list: images differ in size and so does the number of objects.</p></li>
+<li><p><strong><code>decode =</code> picks which decoding turns the channels into objects</strong>, by the name in the model’s <code>decode</code> list. Unset takes the model’s first, which is the engine’s default rather than one restated here - and an unknown name is refused by the engine, naming the ones the model does ask for. Refused outright on a fit that decodes nothing.</p></li>
+<li><p><strong><a href="man/instance_sizes.html"><code>instance_sizes()</code></a></strong> is one row per object: <code>voxels</code>, and with <code>spacing</code> either <code>area_mm2</code> or <code>volume_ml</code>. The question <code>[#103](https://github.com/maju116/rplatypus/issues/103)</code> opens with is <em>how many nuclei, and how big is each one</em>, which the published weights’ card cannot answer.</p>
+<p>The unit is in the <strong>column’s name</strong> rather than in the documentation, because a column whose unit lives elsewhere ends up in a paper as a bare number. Without <code>spacing</code> there is no such column at all, rather than a count pretending to be a measurement. Millilitres for a volume, as [mask_volume()] reports them, and a test holds the two to the same arithmetic.</p></li>
+<li><p><strong><a href="man/flow_to_colours.html"><code>flow_to_colours()</code></a></strong> draws a two-channel vector field: hue is the direction, value is the length. A convention rather than a decision - which is why it is not in <a href="man/drawing_style.html"><code>drawing_style()</code></a> - and it is what makes a <a href="man/separations.html"><code>separation_flows()</code></a> model debuggable, because a field that is right everywhere except reversed looks obviously reversed here and identical in any loss.</p>
+<p>Pixel-identical to the engine’s on random fields, which is the only thing that can hold a convention.</p></li>
+</ul>
+</section>
+<section id="fixed" class="level4">
+<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<ul>
+<li><p><strong><code>type = "probability"</code> is refused on an instance fit, by name.</strong> An instance model’s channels are not all probabilities: the class channels are and a flow field’s components are <strong>raw</strong>, because a softmax across a flow component and a class returns a number that means nothing. The engine refuses to conflate the two and so does this - the value is <code>type = "channels"</code>, which says what it gives.</p></li>
+<li><p><strong><code>space</code> is refused on an instance fit, with the reason rather than “unsupported”.</strong> Resampling a label map interpolates between object numbers, so object 3 beside object 5 comes back with a rim of object 4. A refusal saying only that it is not supported would read as a gap somebody might fill.</p></li>
+</ul>
+</section>
+<section id="measured" class="level4">
+<h4 class="anchored" data-anchor-id="measured">Measured</h4>
+<ul>
+<li><strong>A one-row flow field had no dimensions.</strong> <code>field[1, , ]</code> on a <code>2 x 1 x w</code> array drops to a vector, so the picture came back with no <code>dim</code> at all - and a tiled model hands back exactly that shape at the edge of an image. Found because the comparison against the engine ran three shapes rather than one; with only the first it would have shipped.</li>
+</ul>
+</section>
+</section>
+<section id="drawing-instances" class="level3">
+<h3 class="anchored" data-anchor-id="drawing-instances">2026-10-15 - drawing instances</h3>
+<section id="added-1" class="level4">
+<h4 class="anchored" data-anchor-id="added-1">Added</h4>
 <ul>
 <li><p><strong><a href="man/overlay_instances.html"><code>overlay_instances()</code></a></strong> draws an instance label map over its image, with one colour per object chosen so that <strong>no two touching objects share one</strong>. The rule is adjacency rather than identity: a colour repeats across the picture and never between neighbours, because nobody reads object 214 by its colour and everybody needs to see where one object ends.</p>
 <p>That is an exact graph colouring - Welsh-Powell, greedy in order of descending degree - and it is affordable rather than clever. Measured in the engine over all 670 Data Science Bowl cases, 524 of which hold touching objects: the hardest needs <strong>three</strong> of the eight slots in <code>class_colours</code>, while the cheap alternative of colouring by object number modulo the palette paints <strong>550 of 5436 adjacent pairs in one colour, 10.12%</strong> - one touching pair in ten drawn as a single object, in a figure whose whole subject is whether two objects are two.</p>
@@ -811,26 +853,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><strong><a href="man/overlay_instance_agreement.html"><code>overlay_instance_agreement()</code></a></strong> is found, missed and invented <strong>objects</strong>. <a href="man/overlay_agreement.html"><code>overlay_agreement()</code></a> answers the same three-way question about pixels, and on an instance result that is the wrong unit: a merged pair and a split object are both nearly perfect pixelwise and both wrong, which is what an average precision will not tell anybody. Matched whole object against whole object at one IoU threshold, strictly greater, and <strong>below 0.5 is refused</strong> for the reason the metric refuses it.</p></li>
 </ul>
 </section>
-<section id="measured" class="level4">
-<h4 class="anchored" data-anchor-id="measured">Measured</h4>
+<section id="measured-1" class="level4">
+<h4 class="anchored" data-anchor-id="measured-1">Measured</h4>
 <ul>
 <li><p><strong>The matching needs no greedy pass, and that is provable rather than convenient.</strong> The engine matches greedily on descending IoU; this package matches every pair above the threshold, which is equivalent above 0.5: if two disjoint true objects both exceeded 0.5 against one prediction, each intersection would exceed half of it - the union is at least the prediction - and two disjoint intersections cannot together exceed it. So the matching is one to one whatever order it is taken in, which is also why the metric refuses a lower threshold.</p>
 <p>Written as the equivalent rather than as a copy because <code>argsort</code> is not stable: two pairs at the same IoU leave the engine in an order neither package controls, and a pixel-for-pixel test would then fail for something that is not a divergence.</p></li>
 </ul>
 </section>
-<section id="fixed" class="level4">
-<h4 class="anchored" data-anchor-id="fixed">Fixed</h4>
+<section id="fixed-1" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
 <ul>
 <li><p><strong>Nothing held the two packages to the same colouring, and the shared constant could not.</strong> <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code>’s subject: the palette is mirrored and <code>test-drawing-style.R</code> holds it, so the two would keep agreeing about <em>which eight colours</em> while disagreeing about which object gets which. <code>tests/testthat/test-instance-drawing.R</code> draws the same pictures both ways and compares them <strong>pixel for pixel</strong> - five label maps including three objects each touching the other two, and five ways an instance result goes wrong - which is the only thing that can hold a rule rather than a constant.</p>
 <p>Six mutations, each caught: four-connected instead of eight, colour by object number instead of by adjacency, ascending instead of descending degree, <code>&gt;=</code> instead of <code>&gt;</code> at the threshold, and two ways of getting the outline wrong. The outline pair needed a <strong>new picture</strong>: against the first one both mutations passed, because every object in it was three pixels across and had no interior to lose. §4’s “a check calibrated loosely enough admits the failure it was written to prevent”, found by mutating rather than by reading.</p></li>
-<li><p><strong><code>flow_to_colours()</code> is still deferred, and the stated reason has expired.</strong> <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> defers it because “R cannot configure <code>flows</code> until <code>pyplatypus[#160](https://github.com/maju116/rplatypus/issues/160)</code>” - which shipped in <code>0.8.0a20</code>, and <a href="man/separations.html"><code>separation_flows()</code></a> has been exported here since. The reason that holds now is a different one: <code>predict()</code> refuses an instance fit, so <strong>there is no way to get a flow field into R to draw</strong>. It belongs with <code>[#103](https://github.com/maju116/rplatypus/issues/103)</code>, where the prediction comes back.</p></li>
+<li><p><strong><code>flow_to_colours()</code> is still deferred, and the stated reason has expired.</strong> <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> defers it because “R cannot configure <code>flows</code> until <code>pyplatypus[#160](https://github.com/maju116/rplatypus/issues/160)</code>” - which shipped in <code>0.8.0a20</code>, and <code>separation_flows()</code> has been exported here since. The reason that holds now is a different one: <code>predict()</code> refuses an instance fit, so <strong>there is no way to get a flow field into R to draw</strong>. It belongs with <code>[#103](https://github.com/maju116/rplatypus/issues/103)</code>, where the prediction comes back.</p></li>
 </ul>
 </section>
 </section>
 <section id="regions-from-r-overlapping-classes" class="level3">
 <h3 class="anchored" data-anchor-id="regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</h3>
-<section id="added-1" class="level4">
-<h4 class="anchored" data-anchor-id="added-1">Added</h4>
+<section id="added-2" class="level4">
+<h4 class="anchored" data-anchor-id="added-2">Added</h4>
 <ul>
 <li><p><strong><code>segmentation_data(regions = )</code></strong>, the third way of saying what a mask’s classes are and the only one that lets a voxel belong to more than one. A list of <code>list(name = , of = )</code>, where <code>of</code> holds the label-map values making up that region:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">segmentation_data</span>(</span>
@@ -850,8 +892,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The argument is <code>classes</code> and not <code>names</code>, which is §3A applied before the surface existed: <code>names</code> in this family is the <strong>files</strong> - <a href="man/save_masks.html"><code>save_masks()</code></a> and <a href="man/save_volumes.html"><code>save_volumes()</code></a> both use it that way - and a sibling writer where the same word means the classes instead would accept a call copied from one to the other whenever the counts happened to match. The engine’s own function calls them <code>classes</code> too, for the same reason.</p></li>
 </ul>
 </section>
-<section id="fixed-1" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-1">Fixed</h4>
+<section id="fixed-2" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-2">Fixed</h4>
 <ul>
 <li><p><strong><code>save_masks()</code> and <code>save_volumes()</code> refuse an overlapping prediction instead of silently reducing it.</strong> Both took <code>which.max</code> over the channel axis, which for sigmoid channels writes one of the classes a voxel is in and leaves nothing in the file to say so. They now count how many channels are hot at the most ambitious voxel and refuse with that number, each pointing at its own per-class writer.</p>
 <p><code>[#152](https://github.com/maju116/rplatypus/issues/152)</code> named <code>save_masks()</code> and there turned out to be <strong>three</strong> reduction sites, not one: <code>save_volumes()</code> has two, a 4-dimensional array inside a list and a 5-dimensional stack. Found by asking what a BraTS user would actually run, which is §4’s <em>a feature is not shipped until something has used it the way a user reaches it</em> applied to a refusal.</p>
@@ -967,8 +1009,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><strong><a href="man/evaluate.html"><code>evaluate()</code></a> on an instance fit carries <code>foreground_dice</code>.</strong> It is the mask column to read <em>across</em> models - the binary overlap of anything the model called an object against anything that is one, the same arithmetic whatever the separation is. The <code>dice</code> beside it is a mean over the class channels the head has, three for <a href="man/separations.html"><code>separation_rim()</code></a> against two for <code>separation_flows()</code>, so it is read down one model’s rows and never across two: on the Data Science Bowl’s validation cases it showed two masks 0.09 apart that are 0.0062 apart, and in the other direction. <code>pyplatypus[#222](https://github.com/maju116/rplatypus/issues/222)</code>.</p></li>
 </ul>
 </section>
-<section id="fixed-2" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-2">Fixed</h4>
+<section id="fixed-3" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-3">Fixed</h4>
 <ul>
 <li><code>?losses</code>’ <code>task</code> parameter listed two tasks and there have been three since the engine’s <code>0.8.0a20</code>.</li>
 </ul>
@@ -976,8 +1018,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a2" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a2">2026-10-08 - engine 0.8.0a2</h3>
-<section id="added-2" class="level4">
-<h4 class="anchored" data-anchor-id="added-2">Added</h4>
+<section id="added-3" class="level4">
+<h4 class="anchored" data-anchor-id="added-3">Added</h4>
 <ul>
 <li><p><strong><a href="man/metrics.html"><code>metric_cldice()</code></a></strong>, for structures where Dice asks the wrong question. It scores each mask against the other’s skeleton, so it measures whether a vessel is <em>connected</em> rather than whether its pixels coincide. Vessels, airways, neurons, cracks, catheters.</p>
 <p>The two disagree in a way worth knowing, measured on a nine-pixel vessel: one drawn two pixels thin scores Dice <strong>0.875</strong>, and the same vessel severed in the middle scores <strong>0.947</strong> - Dice prefers the severed one. clDice gives them 1.000 and 0.943. Its limit is measured too: at one pixel wide, a one-pixel displacement leaves no overlap at all and every overlap-based metric reads 0, this one included.</p>
@@ -993,10 +1035,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.8.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a1">2026-10-08 - engine 0.8.0a1</h3>
-<section id="added-3" class="level4">
-<h4 class="anchored" data-anchor-id="added-3">Added</h4>
+<section id="added-4" class="level4">
+<h4 class="anchored" data-anchor-id="added-4">Added</h4>
 <ul>
-<li><strong><a href="man/drawing_style.html"><code>drawing_style()</code></a></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
+<li><strong><code>drawing_style()</code></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
 </section>
 <section id="changed-3" class="level4">
@@ -1071,19 +1113,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>No aliases: two names for one thing is what this removes. The S3 <strong>class</strong> returned by <code>split_dataset()</code> is still <code>platypus_split</code> - that is the object’s identity, and every class in the package is prefixed.</p>
-<p><code>evaluate()</code>, <a href="man/evaluate_cases.html"><code>evaluate_cases()</code></a>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <code>platypus_fit()</code>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
+<p><code>evaluate()</code>, <code>evaluate_cases()</code>, <a href="man/evaluate_classes.html"><code>evaluate_classes()</code></a> and <a href="man/evaluate_images.html"><code>evaluate_images()</code></a> keep their names and so does <code>platypus_fit()</code>. The prefix on that one is not an inconsistency: <code>fit</code> is a generic in the tidymodels packages, so a bare <code>fit</code> would have been theirs to own, while <code>evaluate</code> is a generic here and dispatches on the fit’s class whichever package was attached last.</p></li>
 <li><p><code>PYPLATYPUS_VERSION</code> is <code>pyplatypus_version</code>. It was the only ALL-CAPS name in the package, so keeping it would have meant a lint exception for a style used exactly once.</p></li>
 </ul>
 </section>
-<section id="added-4" class="level4">
-<h4 class="anchored" data-anchor-id="added-4">Added</h4>
+<section id="added-5" class="level4">
+<h4 class="anchored" data-anchor-id="added-5">Added</h4>
 <ul>
 <li><p><strong><a href="man/callback_swa.html"><code>callback_swa()</code></a></strong>: average the weights over the last part of the run. What it is worth is not in the score column - Dice and per-case error do not move - it is in the spread. Measured over three seeds, the volume bias went from <code>+4.5% / +12.2% / -11.6%</code> to <code>-0.1% / +4.2% / +2.1%</code>, 5.7 times tighter. The help page says so in those words, because somebody reading “weight averaging” will look at Dice, find nothing, and conclude wrongly. Refused beside <a href="man/callbacks.html"><code>callback_cosine_annealing()</code></a>: a cosine has decayed to its floor by the time averaging begins, so the average is the last epoch.</p></li>
 <li><p><strong><code>segmentation_data(validation = FALSE)</code></strong>: say a run has no validation set. The third answer to the question a path and a split already answered, and it had to be a stated value rather than an absence, because “I have no validation set” and “I forgot” look identical and only one of them is a decision. It went in the same argument rather than a new one, so nothing can contradict it.</p></li>
 </ul>
 </section>
-<section id="fixed-3" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-3">Fixed</h4>
+<section id="fixed-4" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-4">Fixed</h4>
 <ul>
 <li>The Python shim shipped inside this package is now formatted and linted by ruff in CI, beside lintr. It had never been.</li>
 </ul>
@@ -1098,8 +1140,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="engine-0.5.0a1-through-0.6.0a1" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.5.0a1-through-0.6.0a1">2026-10-06 - engine 0.5.0a1 through 0.6.0a1</h3>
-<section id="added-5" class="level4">
-<h4 class="anchored" data-anchor-id="added-5">Added</h4>
+<section id="added-6" class="level4">
+<h4 class="anchored" data-anchor-id="added-6">Added</h4>
 <ul>
 <li><strong><code>segmentation_data(split = )</code></strong> and <code>detection_data(split = )</code>: divide one training folder into splits without writing any files. The argument is a list of <code>fractions</code> (two numbers, or three to cut a test set too) and <code>group_by</code>, which is a <strong>required key that may be <code>NULL</code></strong>. The mistake it prevents leaves no trace: slices of one patient on both sides make validation measure memory rather than generalisation, and nothing in the output says so. An omitted key would be that choice made silently; <code>NULL</code> is the same choice made on purpose. For detection this is the only way to divide one folder, because <code>split_dataset()</code> writes a <code>masks</code> column.</li>
 <li><strong><a href="man/detection_crops.html"><code>detection_crops()</code></a></strong>: cut the detected objects out of the images they were found in, at a fixed size, for handing to a classifier. Crops come from the source image through the same reader the dataset uses, are rounded outward so the whole box survives, and letterbox rather than stretch.</li>
@@ -1107,8 +1149,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><a href="man/loss_boundary.html"><code>loss_boundary()</code></a></strong>: a region loss plus the signed distance to the truth’s boundary. <code>region</code> and <code>alpha</code> default to <code>NULL</code> here and are left out of the request, so the engine’s own defaults apply - <code>alpha = 0.9</code>, which it pins with a test, because at 0.5 the surface term owns half the objective while the prediction is still random and the volume bias spread goes to +/-28%. What the loss trades is accuracy per case for being unbiased over a series: measured over three seeds, the systematic volume bias went from -5.18% to -0.06% and the per-case absolute error from 16.90% to 22.17%.</li>
 </ul>
 </section>
-<section id="fixed-4" class="level4">
-<h4 class="anchored" data-anchor-id="fixed-4">Fixed</h4>
+<section id="fixed-5" class="level4">
+<h4 class="anchored" data-anchor-id="fixed-5">Fixed</h4>
 <ul>
 <li>Every help page has an <code>\examples</code> section but one - 47 of 48 at the time, <code>encoders</code> being a concept page with no <code>\usage</code> - and a test parses every example in every <code>.Rd</code>, including inside <code>\dontrun{}</code>, and fails if it names a function that does not exist. What was at risk was never the functionality; it is the example <em>text</em> drifting from the API.</li>
 <li>lintr runs over the package in CI and gates on its findings. Of 906 findings at lintr’s defaults, 890 were the 80-character line limit this package does not use; at 100 characters and <code>lint_package()</code>, 25 - two of which were defects rather than style.</li>

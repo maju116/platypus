@@ -600,6 +600,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/flow_to_colours.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A vector field as a picture: hue is the direction, value is the length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/drawing_style.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The decisions a drawing makes</span></a>
   </div>
@@ -679,6 +685,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/save_class_volumes.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Save overlapping classes as one NIfTI per class</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/instance_sizes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How big each object is, in units somebody can use</span></a>
   </div>
 </li>
       </ul>
@@ -762,10 +774,11 @@ predict(
   object,
   model = NULL,
   split = "test",
-  type = c("class", "probability"),
+  type = c("class", "probability", "channels"),
   space = c("model", "source"),
   cases = NULL,
   each = NULL,
+  decode = NULL,
   ...
 )
 </code></pre>
@@ -800,7 +813,8 @@ Which data to predict on.
 <code id="type">type</code>
 </td>
 <td>
-<p><code>“class”</code> gives the class index per pixel, which is the mask to look at; <code>“probability”</code> keeps the per-class channel.</p>
+<p><code>“class”</code> gives the class index per pixel, which is the mask to look at; <code>“probability”</code> keeps the per-class channel. <code>“channels”</code> is for an <strong>instance</strong> model only and means the model’s own output before any decoding: the class channels are probabilities and a flow field’s components are <strong>raw</strong>, which is why they are not called probabilities here - a softmax across a flow component and a class returns a number that means nothing. Read them with <code><a href="../man/flow_to_colours.html">flow_to_colours()</a></code>.</p>
+<p>On an instance fit, <code>“class”</code> is a label map of <strong>objects</strong>, numbered from 1, and <code>“probability”</code> is refused by name for the reason above.</p>
 With <code>regions</code> - overlapping classes - <code>“class”</code> is <strong>refused</strong> rather than computed. The channels are independent binary questions and do not compete, so the most likely one is not an answer: a pixel may be in three classes and naming one of them drops the rest with nothing in the result to say so. Ask for <code>“probability”</code> and write it with <code><a href="../man/save_class_masks.html">save_class_masks()</a></code>.
 </td>
 </tr>
@@ -830,6 +844,14 @@ A function called as <code>each(case, mask)</code> once per image, instead of th
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="decode">decode</code>
+</td>
+<td>
+Which decoding turns the predicted channels into objects, by the name used in the model’s <code>decode</code> list. Unset takes the model’s first, which is the engine’s own default rather than one restated here. <strong>Instance models only</strong>; for anything else it is refused, because a semantic or detection fit decodes nothing.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
 <code id="...">…</code>
 </td>
 <td>
@@ -839,6 +861,7 @@ Unused.
 </tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>With <code>space = “model”</code>: for <code>“class”</code>, an integer array of <code style="white-space: pre;">image x height x width</code>, classes numbered from 1 to match the colormap; for <code>“probability”</code>, the same with a trailing class axis. Tiled models return images at their original size, reassembled.</p>
 <p>With <code>space = “source”</code>: a list of such arrays, one per scan, each on that scan’s grid.</p>
+<p>On an <strong>instance</strong> fit: a list of integer label maps <strong>named by case</strong>, objects numbered from 1 and 0 for background, one entry per image. A list rather than an array for the reason the detection one is a list, and named rather than ordered because a list paired against case names by position is one dropped batch away from naming the wrong picture. Draw them with <code><a href="../man/overlay_instances.html">overlay_instances()</a></code> and measure them with <code><a href="../man/instance_sizes.html">instance_sizes()</a></code>.</p>
 </section><section id="which-grid-the-answer-is-on" class="level3"><h3 class="anchored" data-anchor-id="which-grid-the-answer-is-on">Which grid the answer is on</h3>
 <p><code>space = “model”</code> returns everything on the grid the model worked at, stacked into one array. That is what training saw, and it is the only form that can be a single array, because a stack needs one shape.</p>
 <p><code>space = “source”</code> maps each prediction back onto the grid of the scan it was computed from - undoing the resampling and the crop - and therefore returns a <strong>list</strong>, one mask per scan. This is what you want for anything that has to meet the original data: laying a mask over the scan in a viewer, writing it beside the scan with <code><a href="../man/save_volumes.html">save_volumes()</a></code>, or measuring it in millilitres of the scan’s own voxels. Scans differ in size, so the list is not a limitation being worked around - resizing them to a common shape is exactly how a mask ends up describing anatomy it was not computed from.</p>

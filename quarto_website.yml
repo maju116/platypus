@@ -109,6 +109,7 @@ website:
               - man/overlay_agreement.qmd
               - man/overlay_instances.qmd
               - man/overlay_instance_agreement.qmd
+              - man/flow_to_colours.qmd
               - man/drawing_style.qmd
           - section: "Masks and volumes"
             contents:
@@ -123,6 +124,7 @@ website:
               - man/save_class_masks.qmd
               - man/save_volumes.qmd
               - man/save_class_volumes.qmd
+              - man/instance_sizes.qmd
           - section: "When something is wrong"
             contents:
               - man/platypus_conditions.qmd
