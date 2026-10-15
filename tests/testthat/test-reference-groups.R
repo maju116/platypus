@@ -220,7 +220,9 @@ shared_placement <- c(
   # neither until now, so a reader of one site looking for the other's found nothing rather
   # than finding it filed elsewhere - which the subsequence test cannot catch.
   overlay_instances = "Looking at the results",
-  overlay_instance_agreement = "Looking at the results"
+  overlay_instance_agreement = "Looking at the results",
+  # Shared from `#103`, which is the release that made a flow field reachable from R at all.
+  flow_to_colours = "Looking at the results"
 )
 
 test_that("the shared names are filed where pyplatypus files them", {

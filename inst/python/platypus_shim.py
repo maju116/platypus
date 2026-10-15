@@ -660,6 +660,74 @@ def write_masks(masks, paths: list) -> dict:
     return {"ok": True, "paths": [str(p) for p in paths]}
 
 
+def instance_predictions(
+    engine: Any,
+    model_name: str,
+    split: str = "test",
+    decode: Any = None,
+) -> dict:
+    """One label map per image, named by the case it came from.
+
+    `predict_instances` returns a bare list in the split's order, and a list paired against
+    a sequence of case names by position is one `drop_last` away from naming the wrong
+    picture - the mistake `predict_stream` exists on the semantic side to avoid. So the keys
+    are read here, from **the same two objects the engine pairs internally**: its own
+    `evaluate_cases` walks `predict_stream` with `enumerate` and takes
+    `dataset.samples[index].key`, which is what this does without re-running the model.
+
+    `decode` picks the decoding by name; unset takes the model's first, which is the
+    engine's own default and not one restated here.
+    """
+    import numpy as np
+    import pyplatypus
+
+    try:
+        maps = engine.predict_instances(
+            model_name, split=split, decode=None if decode is None else str(decode)
+        )
+        run = engine.runs[model_name]
+        keys = [sample.key for sample in engine.dataset(run.spec, split).samples]
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+
+    if len(keys) != len(maps):
+        # Not a guard against the engine being wrong - it is a guard against this function
+        # being wrong about which dataset it asked. Tiling makes a loader longer than its
+        # samples, and if that ever reached here the names would silently slide by one.
+        return _failure_message(
+            f"the engine returned {len(maps)} label maps and the split names {len(keys)} "
+            "cases, so naming them by position would name the wrong pictures"
+        )
+    return {
+        "ok": True,
+        "cases": list(keys),
+        "maps": [np.asarray(one, dtype=np.int32) for one in maps],
+        "decodings": [block.name for block in engine.runs[model_name].spec.decodings],
+    }
+
+
+def instance_channels(engine: Any, model_name: str, split: str = "test") -> dict:
+    """The model's own channels, raw, which is what a flow field has to be read from.
+
+    Deliberately separate from `instance_predictions`: these are not probabilities. The
+    class channels are, and the vector channels are **raw** - a softmax across a flow
+    component and a class would return a number and mean nothing - so the two cannot be one
+    call with a flag.
+    """
+    import numpy as np
+    import pyplatypus
+
+    try:
+        channels = engine.predict(model_name, split=split)
+    except pyplatypus.PlatypusError as error:
+        return _failure(error)
+    except Exception as error:  # noqa: BLE001
+        return _engine_failure(error)
+    return {"ok": True, "channels": np.asarray(channels)}
+
+
 def class_masks(
     prediction,
     directory: str,
