@@ -6,14 +6,14 @@
 #
 # A digest that no longer matches is not the engine's failure. It is a question - does R's
 # prose still say the right thing? - asked at the only moment anybody would ask it.
-engine: 0.8.0a23
+engine: 0.8.0a24
 fields:
   - field: activation
     engine_digest: 4822b126e39826a504979a6b123cc241
     documented_in: [models]
   - field: alpha
     engine_digest: 00697e6daf7961aa5b03706220b55545
-    documented_in: [loss_boundary, losses, metrics, optimizers, overlay_agreement, overlay_mask, plot_masks]
+    documented_in: [loss_boundary, losses, metrics, optimizers, overlay_agreement, overlay_instance_agreement, overlay_instances, overlay_mask, plot_masks]
   - field: amsgrad
     engine_digest: 35dd2252740dd9052a9b9b3b6d7aea06
     documented_in: [optimizers]
@@ -88,7 +88,7 @@ fields:
     documented_in: [platypus_spec]
   - field: decode
     engine_digest: 5642c906a2fb2f7632264753ca46ac26
-    documented_in: [models]
+    documented_in: [models, predict.platypus_fit]
   - field: deep_supervision
     engine_digest: 7c93647b6037dd1848a527d6171a91bd
     documented_in: [models]
@@ -151,7 +151,7 @@ fields:
     documented_in: [losses]
   - field: labels
     engine_digest: ea9d0a07ce04298c9edd4ac416797497
-    documented_in: [mask_coverage, plot_boxes, plot_masks, read_masks, segmentation_data]
+    documented_in: [instance_sizes, mask_coverage, overlay_instances, plot_boxes, plot_masks, read_masks, segmentation_data]
   - field: learning_rate
     engine_digest: 1703e6fd9efb1d843d14859114088a80
     documented_in: [callback_swa, optimizers]
