@@ -774,6 +774,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#unreleased" id="toc-unreleased" class="nav-link" data-scroll-target="#unreleased">[0.2.1] - unreleased</a>
   <ul class="collapse">
+  <li><a href="#the-wrap-past-the-end-of-the-palette-is-reported" id="toc-the-wrap-past-the-end-of-the-palette-is-reported" class="nav-link" data-scroll-target="#the-wrap-past-the-end-of-the-palette-is-reported">2026-10-15 - the wrap past the end of the palette is reported</a></li>
   <li><a href="#instances-come-back-into-r" id="toc-instances-come-back-into-r" class="nav-link" data-scroll-target="#instances-come-back-into-r">2026-10-15 - instances come back into R</a></li>
   <li><a href="#drawing-instances" id="toc-drawing-instances" class="nav-link" data-scroll-target="#drawing-instances">2026-10-15 - drawing instances</a></li>
   <li><a href="#regions-from-r-overlapping-classes" id="toc-regions-from-r-overlapping-classes" class="nav-link" data-scroll-target="#regions-from-r-overlapping-classes">2026-10-14 - <code>regions</code> from R: overlapping classes</a></li>
@@ -813,6 +814,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Every entry names the engine it needs.</strong> The computation lives in <a href="https://github.com/maju116/pyplatypus">pyplatypus</a> and this package pins one exact version of it. A feature lands in the engine, the engine is published to PyPI, and only then can this package reach it - so the pin moving is part of a change here, not housekeeping alongside it. The pin is what stops a release of this package breaking because the engine drifted underneath it.</p>
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">[0.2.1] - unreleased</h2>
+<section id="the-wrap-past-the-end-of-the-palette-is-reported" class="level3">
+<h3 class="anchored" data-anchor-id="the-wrap-past-the-end-of-the-palette-is-reported">2026-10-15 - the wrap past the end of the palette is reported</h3>
+<p>Needs pyplatypus <strong>0.8.0a24</strong>.</p>
+<section id="changed" class="level4">
+<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<ul>
+<li><p><strong><a href="man/overlay_instances.html"><code>overlay_instances()</code></a> warns when a picture needs more colours than <code>colours</code> has.</strong> It names how many it needs, how many there are, and how many objects lost the guarantee.</p>
+<p>Both packages were silent here until now and the silence was a gap rather than a decision: the engine’s own colouring helper said in its docstring that <code>overlay_instances</code> reported it, and nothing in either package emitted anything. Filed from this side while <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> was being written, fixed in the engine as <code>maju116/pyplatypus[#231](https://github.com/maju116/rplatypus/issues/231)</code>, and followed here the same day it was released - a warning on one side and silence on the other would be exactly the divergence <code>[#154](https://github.com/maju116/rplatypus/issues/154)</code> exists to prevent.</p>
+<p>The wrap is worth a word because it is the one case this figure answers its own question wrongly. Its subject is <em>where does one object end</em>; every other colour repeat is deliberate, and a wrap is the one that repeats <strong>between neighbours</strong> - provably, since a slot is only past the end of the palette once every colour before it was taken by a neighbour, so the fold lands on a colour a neighbour already holds.</p>
+<p><strong>The two messages are compared word for word</strong>, in the <code>engine</code> job. That is a stronger pair than the palette or the pixels: a reader who meets this warning in R and then in Python has to be told the same thing, and the pin is what makes comparing prose safe - one exact engine, so a rewording on either side fails here instead of drifting. Measured: of five mutations, changing one phrase of the message is caught by that test and by nothing else.</p></li>
+</ul>
+</section>
+</section>
 <section id="instances-come-back-into-r" class="level3">
 <h3 class="anchored" data-anchor-id="instances-come-back-into-r">2026-10-15 - instances come back into R</h3>
 <section id="added" class="level4">
@@ -847,7 +861,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="added-1" class="level4">
 <h4 class="anchored" data-anchor-id="added-1">Added</h4>
 <ul>
-<li><p><strong><a href="man/overlay_instances.html"><code>overlay_instances()</code></a></strong> draws an instance label map over its image, with one colour per object chosen so that <strong>no two touching objects share one</strong>. The rule is adjacency rather than identity: a colour repeats across the picture and never between neighbours, because nobody reads object 214 by its colour and everybody needs to see where one object ends.</p>
+<li><p><strong><code>overlay_instances()</code></strong> draws an instance label map over its image, with one colour per object chosen so that <strong>no two touching objects share one</strong>. The rule is adjacency rather than identity: a colour repeats across the picture and never between neighbours, because nobody reads object 214 by its colour and everybody needs to see where one object ends.</p>
 <p>That is an exact graph colouring - Welsh-Powell, greedy in order of descending degree - and it is affordable rather than clever. Measured in the engine over all 670 Data Science Bowl cases, 524 of which hold touching objects: the hardest needs <strong>three</strong> of the eight slots in <code>class_colours</code>, while the cheap alternative of colouring by object number modulo the palette paints <strong>550 of 5436 adjacent pairs in one colour, 10.12%</strong> - one touching pair in ten drawn as a single object, in a figure whose whole subject is whether two objects are two.</p>
 <p>Eight-connected, so two objects meeting at a corner get different colours. A label-maker goes the other way and joins only along edges, because there the risk is merging two objects into one; here the risk is <em>drawing</em> two as one, which is the opposite direction.</p></li>
 <li><p><strong><a href="man/overlay_instance_agreement.html"><code>overlay_instance_agreement()</code></a></strong> is found, missed and invented <strong>objects</strong>. <a href="man/overlay_agreement.html"><code>overlay_agreement()</code></a> answers the same three-way question about pixels, and on an instance result that is the wrong unit: a merged pair and a split object are both nearly perfect pixelwise and both wrong, which is what an average precision will not tell anybody. Matched whole object against whole object at one IoU threshold, strictly greater, and <strong>below 0.5 is refused</strong> for the reason the metric refuses it.</p></li>
@@ -986,8 +1000,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="the-package-is-rplatypus" class="level3">
 <h3 class="anchored" data-anchor-id="the-package-is-rplatypus">2026-10-14 - the package is <code>rplatypus</code></h3>
-<section id="changed" class="level4">
-<h4 class="anchored" data-anchor-id="changed">Changed</h4>
+<section id="changed-1" class="level4">
+<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
 <ul>
 <li><p><strong><code>library(platypus)</code> is <code>library(rplatypus)</code>.</strong> The name collided with <code>Platypus</code>, archived from CRAN on 2026-02-02 - unrelated work in immunology - and the two differed only in case, which the policy treats as a conflict and which archiving does not release. <code>cran-comments.md</code> had promised to resubmit under another name rather than ask for an exception, so this is that name rather than a new idea: one name per language, beside the <code>pyplatypus</code> engine on PyPI, and a name that says what the package is - the R surface over a Python engine.</p>
 <p><code>rplatypus</code> is in neither CRAN’s current index nor its archive, checked against both with a positive control so that the absence means something.</p></li>
@@ -1000,8 +1014,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="engine-0.8.0a22" class="level3">
 <h3 class="anchored" data-anchor-id="engine-0.8.0a22">2026-10-14 - engine 0.8.0a22</h3>
 <p><strong>This file has a gap and it is named rather than backfilled.</strong> The entry below is dated 2026-10-08 and the pin moved twice between then and here - to <code>0.8.0a12</code> for <code>fives-unet</code> (<code>[#151](https://github.com/maju116/rplatypus/issues/151)</code>) and to <code>0.8.0a20</code> for the instance task (<code>[#155](https://github.com/maju116/rplatypus/issues/155)</code>) - so the dates above this heading are not a complete record of what the pin did. Writing those entries now would be writing them from the commit log rather than from the work, which is a different thing from having written them; the heading says what this change is and the omission stays visible.</p>
-<section id="changed-1" class="level4">
-<h4 class="anchored" data-anchor-id="changed-1">Changed</h4>
+<section id="changed-2" class="level4">
+<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
 <ul>
 <li><p>Engine pinned to <code>0.8.0a22</code>, for two things R forwards rather than implements.</p></li>
 <li><p><strong>A regression loss is refused as any segmentation model’s own <code>loss</code>, not only an instance model’s.</strong> <code>?losses</code> claimed the narrower rule and was measured when it was written, so it was true rather than wrong - the engine’s refusal lived on the instance class alone, and a <em>semantic</em> model accepted <a href="man/losses.html"><code>loss_mse()</code></a> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <a href="man/losses.html"><code>loss_cce()</code></a> reaches a Dice of 1.0000. The default <code>where = "foreground"</code> is what made that look like a success: it averages the objective only inside the labelled objects and leaves the background unconstrained. <code>pyplatypus[#223](https://github.com/maju116/rplatypus/issues/223)</code>.</p>
@@ -1026,8 +1040,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>include_background</code> defaults to <code>FALSE</code> here and <code>TRUE</code> for the other three. The background’s skeleton lies inside the background by construction, so that class scores 1 whatever the model did.</p></li>
 </ul>
 </section>
-<section id="changed-2" class="level4">
-<h4 class="anchored" data-anchor-id="changed-2">Changed</h4>
+<section id="changed-3" class="level4">
+<h4 class="anchored" data-anchor-id="changed-3">Changed</h4>
 <ul>
 <li>Engine pinned to <code>0.8.0a2</code>.</li>
 </ul>
@@ -1041,8 +1055,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><code>drawing_style()</code></strong>, the five decisions every figure in this package makes when you do not give it one: which colours mean found, missed and invented, how much of the image an overlay lets through, how a box is labelled, and which boxes are worth drawing. Reach for it when you want to match a figure rather than restate it - <code>colours = drawing_style()$box_colours</code> keeps one source where typing the hex codes starts a second.</li>
 </ul>
 </section>
-<section id="changed-3" class="level4">
-<h4 class="anchored" data-anchor-id="changed-3">Changed</h4>
+<section id="changed-4" class="level4">
+<h4 class="anchored" data-anchor-id="changed-4">Changed</h4>
 <ul>
 <li><p><strong>The drawing decisions now come from the engine.</strong> They were written out in ten places across <code>R/plot.R</code> and <code>R/masks.R</code>, and <code>pyplatypus.style</code> held the same five values - which is two copies that happened to agree, not one source. They agreed because five differences between the two packages’ figures had been found by laying them side by side and fixing them by hand.</p>
 <p>Nothing changes in any picture: the values are identical, and a test compares every one of them against the engine’s, so a change on that side now fails this package’s CI instead of being noticed by eye.</p>

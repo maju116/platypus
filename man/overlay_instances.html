@@ -816,7 +816,7 @@ Draw one stroke per object instead of filling it, which leaves the tissue entire
 <code id="colours">colours</code>
 </td>
 <td>
-The palette to take slots from. Eight by default, mirrored from the engine’s own.
+The palette to take slots from. Eight by default, mirrored from the engine’s own. A picture needing more colours than this has <strong>warns</strong>, naming how many it needs and how many objects lost the guarantee: the slot wraps onto a colour a neighbour already holds - provably, since it is only past the end once every colour before it was taken by a neighbour - so two touching objects are drawn as one and this figure answers its own question wrongly. The engine warns in the same words, which is checked rather than claimed. Unreachable on anything measured: the hardest of 670 Data Science Bowl cases needs three of the eight.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
