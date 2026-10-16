@@ -86,7 +86,9 @@ now that loss was being judged by the metric it exists to improve on.
 Like clDice it is a property of a whole mask rather than of a batch of counts, so on a
 tiled run (\code{splits}) it is reported \strong{per case} by \code{\link[=evaluate_cases]{evaluate_cases()}} and is absent from
 the epoch history - a per-batch average of per-tile boundaries would be a number about
-nothing, and a callback watching \code{val_surface_dice} would wait forever.
+nothing. A callback asking to watch \code{val_surface_dice} on such a run is refused when the
+configuration is read, the way one watching \code{val_cldice} is - so the choice to tile and
+the choice of what to stop on are settled together, before anything is trained.
 
 \code{include_background} defaults to \code{FALSE} for those two and \code{TRUE} for the three overlap
 metrics, and each has its own measured reason. The background's skeleton lies inside the

@@ -220,3 +220,40 @@ test_that("the engine refuses the same tolerances, so R's message is a convenien
   expect_false(isTRUE(absent$ok))
   expect_match(paste(unlist(absent$message), collapse = " "), "tau")
 })
+
+test_that("a tiled run refuses a callback watching either whole-mask metric", {
+  # `?metrics` claims this for both of them and the engine agreed for only one. Until
+  # `0.8.0a27` the engine's specification layer decided it from a list of names that
+  # `surface_dice` had never been added to, so `monitor = "val_surface_dice"` beside
+  # `splits` was accepted, trained for an epoch and then stopped with an error - the epoch
+  # paid for and nothing to show. R cannot measure a boundary, but this is a claim about a
+  # configuration R sends, which makes it R's own to hold rather than the engine's alone.
+  skip_if_no_engine()
+
+  watching <- function(metric, monitor, splits = c(2L, 2L)) {
+    model <- list(
+      metrics = list(metric),
+      callbacks = list(list(name = "early_stopping", monitor = monitor, patience = 2L))
+    )
+    if (!is.null(splits)) model$splits <- splits
+    built(semantic_config(model = model))
+  }
+
+  for (pair in list(list(metric_cldice(), "val_cldice"),
+                    list(metric_surface_dice(tau = 1), "val_surface_dice"))) {
+    refused <- watching(pair[[1]], pair[[2]])
+    expect_false(isTRUE(refused$ok), info = pair[[2]])
+    expect_match(paste(unlist(refused$message), collapse = " "), pair[[2]])
+
+    # The control, without which this test passes on an engine that refuses the pairing for
+    # some other reason: untiled, the same callback watching the same metric is a perfectly
+    # good thing to ask for.
+    whole <- watching(pair[[1]], pair[[2]], splits = NULL)
+    expect_true(isTRUE(whole$ok), info = paste(unlist(whole$message), collapse = " "))
+  }
+
+  # And the second control: tiled, an overlap metric is still watchable. So the refusal is
+  # about the metric rather than about `splits`, which is the one reason it is asking about.
+  overlap <- watching(metric_dice(), "val_dice")
+  expect_true(isTRUE(overlap$ok), info = paste(unlist(overlap$message), collapse = " "))
+})
