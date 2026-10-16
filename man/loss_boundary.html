@@ -784,7 +784,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="region">region</code>
 </td>
 <td>
-The overlap term this is added to - any other loss. Unset uses the engine’s default, which is Dice. <code><a href="../man/losses.html">loss_focal()</a></code> here is what this feature was originally asked for: focal combined with a distance metric.
+The overlap term this is added to - any other loss. Unset uses the engine’s default, which is Dice. <code><a href="../man/losses.html">loss_focal()</a></code> here is what this feature was originally asked for: focal combined with a distance metric. <code><a href="../man/losses.html">loss_generalized_dice()</a></code> here is the combination worth knowing about, because the two features are motivated by the same picture: this loss exists for a lesion in a thousandth of a frame, and a surface term exists for an object whose boundary is most of it.
 </td>
 </tr>
 <tr>
@@ -847,7 +847,7 @@ volume |error|
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A loss specification, to be passed to a model constructor.</p>
 </section><section id="see-also" class="level3"><h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p>losses for the nine region losses, <code><a href="../man/mask_volume.html">mask_volume()</a></code> for reading a volume in millilitres rather than voxels.</p>
+<p>losses for the losses that can be the region term - every one of them except the three that score numbers and this one, held to the engine’s own union by a test rather than counted here - and <code><a href="../man/mask_volume.html">mask_volume()</a></code> for reading a volume in millilitres rather than voxels.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/maju116/rplatypus">"rplatypus"</a></span><span class="op">)</span></span>

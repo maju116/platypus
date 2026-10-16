@@ -779,6 +779,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 loss_dice(smooth = 1)
 
+loss_generalized_dice(smooth = 1)
+
 loss_cce(label_smoothing = 0)
 
 loss_cce_dice(cce_weight = 0.5, smooth = 1)
@@ -876,6 +878,80 @@ For <code><a href="../man/losses.html">loss_lovasz()</a></code>, sort the errors
 </tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>There is one documented separately because it needs a page of its own: <code><a href="../man/loss_boundary.html">loss_boundary()</a></code> adds the signed distance to the truth’s boundary on top of any of these, which removes the systematic volume bias at some cost in per-case accuracy.</p>
 <p><strong>Three of these score numbers rather than classes</strong> - <code><a href="../man/losses.html">loss_mse()</a></code>, <code><a href="../man/losses.html">loss_l1()</a></code> and <code><a href="../man/losses.html">loss_smooth_l1()</a></code> - and they are not alternatives to the others. A class target has nothing for them to measure and a continuous one has nothing for an overlap to measure, so they belong in exactly one place: the <code>loss</code> of <code><a href="../man/separations.html">separation_flows()</a></code>, where the target is a vector field. Measured against the pinned engine rather than assumed: giving one as <strong>any</strong> segmentation model’s own <code>loss</code> is refused by name - semantic or instance - and giving a class loss to <code><a href="../man/separations.html">separation_flows()</a></code> is refused by name the other way round.</p>
+<p><strong>One of these weights the classes rather than treating them alike</strong> - <code><a href="../man/losses.html">loss_generalized_dice()</a></code>, by the inverse square of how much of the picture each class occupies - and the argument usually made for it is not the argument for it here. It is introduced in the literature as a fix for Dice being dominated by the background, and <code><a href="../man/losses.html">loss_dice()</a></code> in this package is a mean over the class channels: a lesion in 1% of the frame already carries the same weight as the 99% around it. Measured on a 1% target, with one prediction that finds the lesion and leaks a false positive of equal size and one that misses it and gets the background perfect:</p>
+<table>
+<tbody><tr>
+<td style="text-align: left;">
+loss
+</td>
+<td style="text-align: left;">
+finds it
+</td>
+<td style="text-align: left;">
+misses it
+</td>
+<td style="text-align: left;">
+prefers finding by
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code><a href="../man/losses.html">loss_dice()</a></code>
+</td>
+<td style="text-align: left;">
+0.1658
+</td>
+<td style="text-align: left;">
+0.4731
+</td>
+<td style="text-align: left;">
+0.3073
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code><a href="../man/losses.html">loss_cce()</a></code>
+</td>
+<td style="text-align: left;">
+0.1600
+</td>
+<td style="text-align: left;">
+0.1600
+</td>
+<td style="text-align: left;">
+nothing at all
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code><a href="../man/losses.html">loss_cce_dice()</a></code>
+</td>
+<td style="text-align: left;">
+0.1629
+</td>
+<td style="text-align: left;">
+0.3166
+</td>
+<td style="text-align: left;">
+0.1536
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code><a href="../man/losses.html">loss_generalized_dice()</a></code>
+</td>
+<td style="text-align: left;">
+0.3278
+</td>
+<td style="text-align: left;">
+0.9511
+</td>
+<td style="text-align: left;">
+0.6233
+</td>
+</tr>
+</tbody></table>
+<p>So what it adds is weight <strong>beyond</strong> an equal share - on that target the classes come out weighted 1 to 9801 - and the objective that is genuinely dominated is the per-pixel half of <code><a href="../man/losses.html">loss_cce_dice()</a></code>: to cross-entropy a false positive and a missed lesion of the same size are the same number of wrong pixels, which is the indifference in that row. Two things follow. With every class the same size this is <strong>exactly <code><a href="../man/losses.html">loss_dice()</a></code> pooled over the classes</strong>, so on a balanced problem it costs nothing and buys nothing. And it is not a third <code><a href="../man/losses.html">loss_tversky()</a></code>: Tversky moves the balance between false positives and false negatives by a number you choose, <code><a href="../man/losses.html">loss_focal_tversky()</a></code> reweights the hard pixels, and this reweights classes by how much of the image they occupy, computed from each batch rather than set by hand - so a batch holding no lesion at all is scored on flat weights, which is an argument for a larger <code>batch_size</code> on a sparse dataset rather than against the loss.</p>
 <p>This page said <em>an instance model’s own</em> until the pin moved to <code style="white-space: pre;">0.8.0a22</code>, and it was true rather than wrong: the refusal lived on the instance class alone, and a semantic model accepted <code><a href="../man/losses.html">loss_mse()</a></code> and trained with it, reporting a validation loss of 0.0014 for a mask that was half missing where <code><a href="../man/losses.html">loss_cce()</a></code> reaches a Dice of 1.0000. The default <code>where = “foreground”</code> is what made it look as though it had worked - it evaluates the objective only inside the labelled objects and leaves the background unconstrained. The engine refuses it at either task now (<code>pyplatypus#223</code>).</p>
 </section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A loss specification, to be passed to a model constructor.</p>
