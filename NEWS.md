@@ -17,6 +17,71 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-16 - `classes_from`: one binary mask file per class
+
+Needs pyplatypus **0.8.0a28**, and the pin moves with this. `maju116/rplatypus#180`, whose
+engine half is `maju116/pyplatypus#91` - an issue open since 2022, and this is the half the
+author's decision of 2026-10-12 deferred rather than dropped.
+
+#### Added
+
+- **`segmentation_data(classes_from = )`**, the fourth way of saying what a mask's classes
+  are and the only one that can express an overlap that was **drawn independently**: a
+  vessel crossing an organ, or two annotators' masks of the same structure. One pattern per
+  class, in class order, matched against a sample's mask files.
+
+  It is `regions`' sibling rather than its replacement, and the difference is the file on
+  disk. `regions` derives overlapping channels from the values of one label map, which is
+  how BraTS stores its ground truth; this reads channels that were separate files to begin
+  with, because no single voxel value can hold two things drawn independently. Everything
+  the two share is everything after the target: no background entry, a sigmoid per channel
+  rather than one softmax across them, a voxel that may be in several classes at once, and
+  a prediction `save_masks()` refuses - `save_class_masks()` and `save_class_volumes()`
+  have written per-class files since `0.8.0a23` and needed nothing for this.
+
+- **The exclusivity refusal is four-way**, and that is the reason this is a code change
+  rather than a pin bump. `segmentation_data()` enumerates its parameters, so the field
+  would otherwise be an `unused argument` here; and a bare `data` list or a YAML file
+  through `platypus_spec()` reaches the engine's validator either way, so a constructor
+  that refused what YAML accepts would leave the two R paths disagreeing about the same
+  configuration. Measured on `regions` in `rplatypus#152` and not re-guessed here.
+
+- **The two pattern refusals say *class* where a class is what they are about** - at least
+  two patterns, and distinct ones. `channels_from` has the same two for images, and the
+  engine answers both through one matcher with a noun; a copied message would have been the
+  likely slip, so a test holds each to its own wording.
+
+#### Fixed
+
+- **A model that leaves `separation` to its weights is no longer read as semantic.**
+  `0.8.0a28` lets an instance model omit the field when `weights` names a file whose
+  description records what it was trained to predict; this package reads a model's task
+  from that field, so a silent model was read as semantic and refused beside
+  `instance_data()` as two tasks in one specification - which made the engine's own
+  headline example, written as an R snippet, impossible to write in R. A model now
+  contributes the tasks it is *admissible* for and `platypus_spec()` intersects them with
+  the data's one task. `rplatypus#181`, and it is `maju116/pyplatypus#236`'s R half, which
+  that issue said did not exist.
+
+  An intersection rather than a fallback, because a fallback swallows the case a wrong
+  pairing is about: `u_net()` beside `detection_data()` says nothing about detection and
+  is still refused. And a model that forgot `separation` and names no weights is still
+  semantic and still refused beside instance data - the condition for being admissible is
+  the engine's own, `weights` being set, which is exactly where the engine permits the
+  omission.
+
+  **Found by the field-prose ledger**, which reported the engine's `separation`
+  description rewritten. Re-reading R's `@param` against the new text is the only thing
+  that step is for, and this time it turned up a mechanism rather than a sentence.
+
+#### Documented
+
+- `?segmentation_data` gains the field, and the configuration vignette gains a subsection
+  under *Overlapping classes instead of one per voxel* rather than a section of its own -
+  the section list is pinned by a test in each package's suite. That subsection replaces
+  the paragraph which said `classes_from` was **deliberately not here**, true of every
+  release until this one.
+
 ### 2026-10-16 - the pin moves again, and a sentence on `?metrics` was true of no release
 
 Needs pyplatypus **0.8.0a27**, and the pin moves with this. Nothing in this package gains a

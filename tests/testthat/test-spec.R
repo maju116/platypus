@@ -275,13 +275,31 @@ brats_regions <- list(
   list(name = "enhancing", of = 4)
 )
 
-test_that("classes are named exactly one of three ways, and the message says which", {
+#: Two classes drawn separately over the same image, which is what `classes_from` is for.
+two_class_files <- c("_vessel\\.png$", "_organ\\.png$")
+
+test_that("classes are named exactly one of four ways, and the message says which", {
   # "exactly one" on its own leaves the caller to work out which of their arguments the
   # complaint is about, which is the sort of message that gets read twice.
   expect_error(segmentation_data("a", "b"), "you gave none")
   expect_error(
     segmentation_data("a", "b", labels = c(0, 1), regions = brats_regions),
     "`labels` and `regions`"
+  )
+  # The fourth arrived with `0.8.0a28`. Every pairing with it, because this check is a
+  # second copy of the engine's sentence and the only thing that keeps the copy honest is
+  # a test that would notice a field left out of the list.
+  expect_error(
+    segmentation_data("a", "b", labels = c(0, 1), classes_from = two_class_files),
+    "`labels` and `classes_from`"
+  )
+  expect_error(
+    segmentation_data("a", "b", colormap = binary_colormap, classes_from = two_class_files),
+    "`colormap` and `classes_from`"
+  )
+  expect_error(
+    segmentation_data("a", "b", regions = brats_regions, classes_from = two_class_files),
+    "`regions` and `classes_from`"
   )
   expect_error(
     segmentation_data("a", "b", colormap = binary_colormap, regions = brats_regions),
@@ -360,4 +378,87 @@ test_that("the engine accepts what `segmentation_data(regions = )` builds", {
   expect_identical(vapply(sent, function(region) region$name, character(1)),
                    c("whole tumour", "enhancing"))
   expect_equal(unlist(sent[[2]]$of), 4L)
+})
+
+# --- `classes_from`: one binary file per class, the fourth way of naming them ------------
+#
+# `classes_from` shipped in the engine as `0.8.0a28`, and it is the half of
+# `maju116/pyplatypus#91` that 2026-10-12's decision deferred rather than dropped. R
+# forwarding it is a code change rather than a pin bump for the two reasons `regions`
+# measured: `segmentation_data()` enumerates its parameters, so it would be an
+# `unused argument` here, and the exclusivity refusal above is R's own and had to become
+# four-way or the constructor and a YAML file would disagree about the same configuration.
+# `maju116/rplatypus#180`.
+
+test_that("`classes_from` travels as patterns, and nothing else names the classes", {
+  data <- segmentation_data("a", "b", classes_from = two_class_files)
+  expect_identical(data$classes_from, two_class_files)
+  expect_null(data$colormap)
+  expect_null(data$labels)
+  expect_null(data$regions)
+  # Unset it is NULL, which is what `compact()` drops on the way to the engine: an older
+  # engine refuses a field it does not know, so every run that has nothing to do with
+  # per-class files has to be unaffected. §3D.3.
+  #
+  # Asserted as NULL rather than as an absent *name*, which is what the first version of
+  # this test said and why it failed: the constructor's list carries a name for every
+  # field, NULL or not, and the dropping happens one layer up. The neighbouring `regions`
+  # test says it the same way for `colormap` and `labels`, for the same reason.
+  expect_null(segmentation_data("a", "b", labels = c(0, 1))$classes_from)
+})
+
+test_that("a pattern list that says too little is refused before Python starts", {
+  # One pattern is ordinary binary segmentation, which `labels = c(0, 1)` already says -
+  # the engine's schema says the same with `minItems: 2`, and this says it before an
+  # interpreter starts.
+  expect_error(
+    segmentation_data("a", "b", classes_from = "_vessel\\.png$"),
+    "one pattern per class, so at least two"
+  )
+  expect_error(
+    segmentation_data("a", "b", classes_from = c("_v\\.png$", "_v\\.png$")),
+    "would make one class into two"
+  )
+  # And the message is about classes, not channels: the two fields share the engine's
+  # matcher and nearly share these two refusals, so a copied message is the likely slip.
+  expect_error(
+    segmentation_data("a", "b", labels = c(0, 1), channels_from = c("_t1\\.nii", "_t1\\.nii")),
+    "would make one measurement into two"
+  )
+})
+
+test_that("the engine accepts what `segmentation_data(classes_from = )` builds", {
+  skip_if_no_classes_from()
+  # Through `platypus_spec()` rather than by handing the constructor's list to the shim,
+  # for the reason the regions test above records: the raw list carries explicit NULLs that
+  # the engine refuses before it looks at the field being tested.
+  spec <- platypus_spec(
+    data = segmentation_data(".", ".", classes_from = two_class_files),
+    models = list(u_net("m", input_shape = c(64, 64), blocks = 2, filters = 4))
+  )
+  expect_s3_class(spec, "platypus_spec")
+  # Read back out of the engine rather than off the R object: this is the asymmetry the
+  # change closes, so what matters is what the engine ended up holding - and in the order
+  # it was written, since the order is the channel order and nothing downstream can tell
+  # a swapped pair from a correct one.
+  expect_identical(unlist(as.list(spec)$data$classes_from), two_class_files)
+})
+
+test_that("the engine refuses two namings at once, so R's refusal is not the only one", {
+  skip_if_no_classes_from()
+  # R's check is a second copy of the engine's sentence. A copy is only safe while the
+  # original still says it, so this asks the engine directly - the same reason the
+  # field-prose ledger exists one layer up.
+  refused <- rplatypus:::shim()$build_spec(
+    list(
+      task = "semantic_segmentation",
+      data = list(train_path = ".", validation_path = ".",
+                  labels = list(0L, 1L),
+                  classes_from = list("_vessel\\.png$", "_organ\\.png$")),
+      models = list(list(name = "probe", input_shape = c(64L, 64L)))
+    ),
+    check_paths = FALSE
+  )
+  expect_false(isTRUE(refused$ok))
+  expect_match(paste(unlist(refused), collapse = " "), "exactly one of")
 })

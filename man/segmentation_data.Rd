@@ -10,6 +10,7 @@ segmentation_data(
   colormap = NULL,
   labels = NULL,
   regions = NULL,
+  classes_from = NULL,
   test = NULL,
   split = NULL,
   mode = c("nested_dirs", "config_file"),
@@ -67,6 +68,33 @@ Two regions are the minimum: one region is ordinary binary segmentation, which
 \code{labels = c(0, 1)} already says. Disjoint regions are allowed and mean something -
 grouping several values into one class and dropping the background channel - so they
 are not refused.}
+
+\item{classes_from}{For masks kept as \strong{one binary file per class}: one pattern per
+class, in class order. The fourth way of saying what a mask's classes are, and the only
+one that can express an overlap that was drawn independently - a vessel crossing an
+organ, or two annotators' masks of the same structure. Give this, \code{colormap}, \code{labels}
+or \code{regions}, not more than one.
+
+\strong{It is \code{regions}' sibling, not its replacement}, and the difference is the file on
+disk. \code{regions} derives overlapping channels from the values of one label map, which is
+how BraTS stores its ground truth; this reads channels that were separate files to
+begin with, because no single voxel value can hold two things drawn independently.
+Everything the two share is everything after the target: no background entry, a sigmoid
+per channel rather than one softmax across them, a voxel that may be in several classes
+at once, and a prediction \code{save_masks()} cannot write as one picture - use
+\code{\link[=save_class_masks]{save_class_masks()}} or \code{\link[=save_class_volumes]{save_class_volumes()}}.
+
+Patterns are Python regular expressions matched against a sample's \strong{mask} files, with
+the same two rules \code{channels_from} has for images and for the same reason: each must
+match exactly one file, and every mask file must be claimed by some pattern. Both halves
+are refused, because each is invisible from the other side - a pattern matching nothing
+is a class the model is never shown, and a file matching no pattern is a class the data
+has and nobody asked for. R's own quoting applies:
+\code{c("_vessel\\\\.png$", "_organ\\\\.png$")}.
+
+The order is written rather than inferred, and here it matters more than for channels:
+a model trained with the vessel in the first channel and used where the first channel
+is the organ answers plausibly, in range, and nothing further down can notice.}
 
 \item{test}{Optional test data. Only images are read from it.}
 
