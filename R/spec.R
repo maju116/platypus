@@ -554,8 +554,13 @@ compact <- function(x) {
 #' @noRd
 agreed_task <- function(data, models, stated = NULL) {
   from_data <- task_of(data)
-  from_models <- vapply(models, task_of, character(1))
-  all_tasks <- unique(c(from_data, from_models))
+  # Each model contributes the tasks it is *admissible* for rather than one it claims, and
+  # the answer is the intersection with the data's one task. An intersection rather than a
+  # fallback, because a fallback would swallow the case a wrong pairing is actually about:
+  # a `u_net()` beside `detection_data()` says nothing about detection and must still be
+  # refused, which "the data decides when the model is silent" would have accepted.
+  from_models <- lapply(models, admissible_tasks)
+  all_tasks <- Reduce(intersect, c(list(from_data), from_models))
 
   # `task` is derived rather than typed, because `segmentation_data()` with `u_net()` can
   # only mean one thing and saying it again could only ever disagree. It can still be
@@ -569,13 +574,12 @@ agreed_task <- function(data, models, stated = NULL) {
   # constructor does not - `separation` is required on an instance model and has no
   # counterpart on a semantic one - so a model still names its task and cannot leave it unsaid.
   #
-  # And the engine has since made that last clause false: `0.8.0a28` lets an instance model
-  # leave `separation` out beside `weights`, because a published file records what it was
-  # trained to predict. R cannot read such a model yet - it would be tagged semantic and
-  # refused beside `instance_data()` as two tasks in one specification - which is
-  # `maju116/rplatypus#181`, found by re-reading this field's prose when the field-prose
-  # ledger said the engine had rewritten it. The fix is for a model to contribute the tasks
-  # it is *admissible* for rather than one it claims, intersected with the data's.
+  # And the engine has since made that last clause narrower: `0.8.0a28` lets an instance
+  # model leave `separation` out *beside `weights`*, because a published file records what
+  # it was trained to predict. So a model no longer names one task - it names the tasks it
+  # is admissible for, and `admissible_tasks()` below is where that lives. Found by
+  # re-reading this field's prose when the field-prose ledger said the engine had rewritten
+  # it, which is the only thing that step is for. `maju116/rplatypus#181`.
   #
   # So this argument keeps the job it has. Instances arrive as `instance_data()`, tagged the
   # way `detection_data()` tags itself, and what that constructor is for is the five fields it
@@ -608,13 +612,45 @@ agreed_task <- function(data, models, stated = NULL) {
   named <- vapply(seq_along(models), function(i) {
     name <- models[[i]][["name"]]
     sprintf("%s is %s", if (is.null(name)) paste0("models[[", i, "]]") else name,
-            from_models[[i]])
+            paste(from_models[[i]], collapse = " or "))
   }, character(1))
   stop("a specification describes one task, and this one mixes them: the data is ",
        from_data, " while ", paste(named, collapse = ", "), ".\n",
        "  Masks and boxes are not the same pipeline, so there is nothing to reconcile - ",
        "use `segmentation_data()` with `u_net()` and friends, or `detection_data()` with ",
        "`yolo3()`.", call. = FALSE)
+}
+
+
+#' Which tasks a model could belong to, rather than the one it claims
+#'
+#' `task_of()` answers for a data block, which always names exactly one task. A model is
+#' different as of pyplatypus `0.8.0a28`: a U-shaped model that named no `separation` is
+#' semantic **unless it names `weights`**, and then it may be either, because an instance
+#' model may now leave that field to the file - a published sidecar records what the
+#' channels were trained to predict, and `"dsbowl-instances"` is a rim of width 2, which is
+#' a training decision rather than a shape and nothing a reader can guess.
+#'
+#' **The condition is the engine's own rather than an invention here**, which is what keeps
+#' the two from drifting: the engine permits the omission exactly where `weights` is set,
+#' and refuses a file whose sidecar does not record the separation. So a model that forgot
+#' `separation` and names no weights is still read as semantic and still refused beside
+#' `instance_data()` as two tasks in one specification - which is the pair that would
+#' otherwise be silent, the same layout and the same architecture differing only in whether
+#' a signal is predicted at all, and there is a test holding that case where it was.
+#'
+#' `maju116/rplatypus#181`, found by re-reading this field's prose when the field-prose
+#' ledger reported the engine had rewritten its description.
+#'
+#' @noRd
+admissible_tasks <- function(model) {
+  tagged <- attr(model, "task", exact = TRUE)
+  if (!is.null(tagged)) return(tagged)
+  if (is.null(model$weights)) {
+    "semantic_segmentation"
+  } else {
+    c("semantic_segmentation", "instance_segmentation")
+  }
 }
 
 

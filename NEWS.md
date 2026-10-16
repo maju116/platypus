@@ -51,6 +51,29 @@ author's decision of 2026-10-12 deferred rather than dropped.
   engine answers both through one matcher with a noun; a copied message would have been the
   likely slip, so a test holds each to its own wording.
 
+#### Fixed
+
+- **A model that leaves `separation` to its weights is no longer read as semantic.**
+  `0.8.0a28` lets an instance model omit the field when `weights` names a file whose
+  description records what it was trained to predict; this package reads a model's task
+  from that field, so a silent model was read as semantic and refused beside
+  `instance_data()` as two tasks in one specification - which made the engine's own
+  headline example, written as an R snippet, impossible to write in R. A model now
+  contributes the tasks it is *admissible* for and `platypus_spec()` intersects them with
+  the data's one task. `rplatypus#181`, and it is `maju116/pyplatypus#236`'s R half, which
+  that issue said did not exist.
+
+  An intersection rather than a fallback, because a fallback swallows the case a wrong
+  pairing is about: `u_net()` beside `detection_data()` says nothing about detection and
+  is still refused. And a model that forgot `separation` and names no weights is still
+  semantic and still refused beside instance data - the condition for being admissible is
+  the engine's own, `weights` being set, which is exactly where the engine permits the
+  omission.
+
+  **Found by the field-prose ledger**, which reported the engine's `separation`
+  description rewritten. Re-reading R's `@param` against the new text is the only thing
+  that step is for, and this time it turned up a mechanism rather than a sentence.
+
 #### Documented
 
 - `?segmentation_data` gains the field, and the configuration vignette gains a subsection

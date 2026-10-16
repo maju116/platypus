@@ -122,15 +122,17 @@
 #'   data has to be [instance_data()] to match. The head's width follows from the signal and
 #'   the number of classes and is derived rather than stated.
 #'
-#'   **Required here, and no longer required by the engine.** Since pyplatypus `0.8.0a28` an
-#'   instance model may leave it out when `weights` names a file whose description records
-#'   what it was trained to predict - `"dsbowl-instances"` is a rim of width 2, which is a
-#'   training decision rather than a shape and nothing a reader can guess. From R it still
-#'   has to be written, because this is the field a model's task is read from: left out, the
-#'   model is read as semantic, and a semantic model beside [instance_data()] is refused as
-#'   two tasks in one specification. That gap is `maju116/rplatypus#181`; until it closes,
-#'   write the block the weights were trained with and the engine will refuse it if the
-#'   signal is the wrong one.
+#'   **It may be left out when `weights` names a file that records it**, since pyplatypus
+#'   `0.8.0a28`: a published sidecar says what the channels were trained to predict, and
+#'   `"dsbowl-instances"` is a rim of width 2 - a training decision rather than a shape, and
+#'   nothing a reader can guess from a model card. So
+#'   `u_net("objects", input_shape = c(256, 256), weights = "dsbowl-instances")` beside
+#'   [instance_data()] is an instance model, and the engine prints what it adopted.
+#'
+#'   Left out with **no** `weights` it is still semantic, and still refused beside
+#'   [instance_data()] as two tasks in one specification - which is the pair that would
+#'   otherwise be silent: the same layout and the same architecture, differing only in
+#'   whether a signal is predicted at all. `maju116/rplatypus#181`.
 #' @param decode A **list** of [decodings] turning those channels into objects, e.g.
 #'   `list(decode_nearest_seed(), decode_connected_components())`. A list rather than one,
 #'   because several decodings share a single forward pass: a second costs seconds where a

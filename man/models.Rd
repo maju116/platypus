@@ -254,15 +254,17 @@ instances, which is how a specification knows its task without anybody typing it
 data has to be \code{\link[=instance_data]{instance_data()}} to match. The head's width follows from the signal and
 the number of classes and is derived rather than stated.
 
-\strong{Required here, and no longer required by the engine.} Since pyplatypus \verb{0.8.0a28} an
-instance model may leave it out when \code{weights} names a file whose description records
-what it was trained to predict - \code{"dsbowl-instances"} is a rim of width 2, which is a
-training decision rather than a shape and nothing a reader can guess. From R it still
-has to be written, because this is the field a model's task is read from: left out, the
-model is read as semantic, and a semantic model beside \code{\link[=instance_data]{instance_data()}} is refused as
-two tasks in one specification. That gap is \code{maju116/rplatypus#181}; until it closes,
-write the block the weights were trained with and the engine will refuse it if the
-signal is the wrong one.}
+\strong{It may be left out when \code{weights} names a file that records it}, since pyplatypus
+\verb{0.8.0a28}: a published sidecar says what the channels were trained to predict, and
+\code{"dsbowl-instances"} is a rim of width 2 - a training decision rather than a shape, and
+nothing a reader can guess from a model card. So
+\code{u_net("objects", input_shape = c(256, 256), weights = "dsbowl-instances")} beside
+\code{\link[=instance_data]{instance_data()}} is an instance model, and the engine prints what it adopted.
+
+Left out with \strong{no} \code{weights} it is still semantic, and still refused beside
+\code{\link[=instance_data]{instance_data()}} as two tasks in one specification - which is the pair that would
+otherwise be silent: the same layout and the same architecture, differing only in
+whether a signal is predicted at all. \code{maju116/rplatypus#181}.}
 
 \item{decode}{A \strong{list} of \link{decodings} turning those channels into objects, e.g.
 \code{list(decode_nearest_seed(), decode_connected_components())}. A list rather than one,

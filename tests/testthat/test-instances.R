@@ -174,6 +174,10 @@ test_that("an instance data block and an instance model agree on one task", {
 test_that("instance data with a plain segmentation model is refused, and named", {
   # The pair that would otherwise be silent: the same directory layout and the same
   # architecture, differing only in whether a signal is predicted at all.
+  #
+  # Still true after `0.8.0a28` widened what a silent model may be, and this is the case
+  # that kept the widening narrow: a model with no `weights` has nothing to adopt the
+  # separation from, so it cannot be an instance model. `maju116/rplatypus#181`.
   caught <- tryCatch(
     rplatypus:::agreed_task(
       instance_data("a/", "b/"),
@@ -184,6 +188,58 @@ test_that("instance data with a plain segmentation model is refused, and named",
   expect_match(caught, "mixes them")
   expect_match(caught, "the data is instance_segmentation")
   expect_match(caught, "plain is semantic_segmentation")
+})
+
+test_that("a model that leaves the separation to its weights is admissible for instances", {
+  # `0.8.0a28` lets an instance model omit `separation` when `weights` names a file whose
+  # sidecar records what it was trained to predict. R reads a model's task from that field,
+  # so until this a silent model was read as semantic and the pair below was refused as two
+  # tasks in one specification - which made the engine's own headline example, written as
+  # an R snippet, impossible to write in R. `maju116/rplatypus#181`.
+  expect_identical(
+    rplatypus:::agreed_task(
+      instance_data("a/", "b/"),
+      list(u_net("objects", input_shape = c(64, 64), weights = "dsbowl-instances"))
+    ),
+    "instance_segmentation"
+  )
+  # The same model beside semantic data is still semantic: the data decides inside the
+  # overlap, and `weights` widens what a model *may* be rather than what it is.
+  expect_identical(
+    rplatypus:::agreed_task(
+      segmentation_data("a/", "b/", colormap = binary_colormap),
+      list(u_net("m", input_shape = c(64, 64), weights = "dsbowl-unet"))
+    ),
+    "semantic_segmentation"
+  )
+  # And the case the fix must not swallow, which is why it is an intersection rather than
+  # "the data decides when the model is silent": a u_net says nothing about detection.
+  expect_error(
+    rplatypus:::agreed_task(
+      detection_data("a/", "b/", classes = c("rbc", "wbc")),
+      list(u_net("m", input_shape = c(64, 64), weights = "dsbowl-unet"))
+    ),
+    "mixes them"
+  )
+})
+
+test_that("the engine refuses a silent model whose file does not say either", {
+  skip_if_no_engine()
+  # The other half of the permission, and it is the engine's because only the engine can
+  # read a sidecar: a model that leaves `separation` to a *semantic* weights file is
+  # admissible here and refused there, naming the file rather than the field.
+  refused <- rplatypus:::shim()$build_spec(
+    list(
+      task = "instance_segmentation",
+      data = list(train_path = ".", validation_path = "."),
+      models = list(list(name = "objects", input_shape = c(64L, 64L),
+                         weights = "dsbowl-unet"))
+    ),
+    check_paths = FALSE
+  )
+  # The specification itself is accepted - the refusal belongs to `fit`, where the registry
+  # is reachable - so what this asserts is that R's side no longer stands in the way.
+  expect_true(isTRUE(refused$ok))
 })
 
 test_that("stating the task is still checked rather than trusted", {
