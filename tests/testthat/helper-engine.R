@@ -520,6 +520,37 @@ engine_has_regions <- function() {
   }, error = function(e) FALSE))
 }
 
+#' Does the engine in use understand `classes_from`?
+#'
+#' The same probe as `regions`, for the same reason and with the same two lessons built in:
+#' `task` is present, because without it the engine refuses the configuration for a reason
+#' that has nothing to do with the field and every test here would skip against an engine
+#' that supports it; and there are two patterns, because the schema's minimum is two, so one
+#' would be refused by an engine that has the field.
+engine_has_classes_from <- function() {
+  if (!engine_available()) return(FALSE)
+  isTRUE(tryCatch({
+    result <- rplatypus:::shim()$build_spec(
+      list(
+        task = "semantic_segmentation",
+        data = list(train_path = ".", validation_path = ".",
+                    classes_from = list("_vessel\\.png$", "_organ\\.png$")),
+        models = list(list(name = "probe", input_shape = c(64L, 64L)))
+      ),
+      check_paths = FALSE
+    )
+    isTRUE(result$ok)
+  }, error = function(e) FALSE))
+}
+
+skip_if_no_classes_from <- function() {
+  skip_if_no_engine()
+  testthat::skip_if_not(
+    engine_has_classes_from(),
+    "the engine in use predates `classes_from`"
+  )
+}
+
 skip_if_no_regions <- function() {
   skip_if_no_engine()
   testthat::skip_if_not(

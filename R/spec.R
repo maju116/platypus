@@ -70,6 +70,32 @@
 #'   `labels = c(0, 1)` already says. Disjoint regions are allowed and mean something -
 #'   grouping several values into one class and dropping the background channel - so they
 #'   are not refused.
+#' @param classes_from For masks kept as **one binary file per class**: one pattern per
+#'   class, in class order. The fourth way of saying what a mask's classes are, and the only
+#'   one that can express an overlap that was drawn independently - a vessel crossing an
+#'   organ, or two annotators' masks of the same structure. Give this, `colormap`, `labels`
+#'   or `regions`, not more than one.
+#'
+#'   **It is `regions`' sibling, not its replacement**, and the difference is the file on
+#'   disk. `regions` derives overlapping channels from the values of one label map, which is
+#'   how BraTS stores its ground truth; this reads channels that were separate files to
+#'   begin with, because no single voxel value can hold two things drawn independently.
+#'   Everything the two share is everything after the target: no background entry, a sigmoid
+#'   per channel rather than one softmax across them, a voxel that may be in several classes
+#'   at once, and a prediction `save_masks()` cannot write as one picture - use
+#'   [save_class_masks()] or [save_class_volumes()].
+#'
+#'   Patterns are Python regular expressions matched against a sample's **mask** files, with
+#'   the same two rules `channels_from` has for images and for the same reason: each must
+#'   match exactly one file, and every mask file must be claimed by some pattern. Both halves
+#'   are refused, because each is invisible from the other side - a pattern matching nothing
+#'   is a class the model is never shown, and a file matching no pattern is a class the data
+#'   has and nobody asked for. R's own quoting applies:
+#'   `c("_vessel\\.png$", "_organ\\.png$")`.
+#'
+#'   The order is written rather than inferred, and here it matters more than for channels:
+#'   a model trained with the vessel in the first channel and used where the first channel
+#'   is the organ answers plausibly, in range, and nothing further down can notice.
 #' @param labels The voxel value of each class, in class order, for masks stored as label
 #'   maps - `c(0, 1)` for a binary segmentation, `c(0, 1, 2)` where 1 is liver and 2 is
 #'   tumour. This is how NIfTI and every other volume format label anything. Give this or
@@ -126,7 +152,7 @@
 #' @examples
 #' segmentation_data("train/", "valid/", colormap = binary_colormap)
 segmentation_data <- function(train, validation = NULL, colormap = NULL, labels = NULL,
-                              regions = NULL,
+                              regions = NULL, classes_from = NULL,
                               test = NULL, split = NULL,
                               mode = c("nested_dirs", "config_file"),
                               window = NULL, dicom_window = NULL, target_spacing = NULL,
@@ -173,17 +199,23 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
 
   # Caught here rather than in the engine, because the message is the same and this way it
   # costs nothing: no interpreter starts to tell someone they gave both or neither.
-  # Three ways to say what a mask's classes are, and exactly one of them. The engine says
-  # the same sentence - "Exactly one of `colormap`, `labels` and `regions` is given" - and
-  # this says it before an interpreter starts, which is the only reason it is duplicated.
-  # It also names what was given: "exactly one" alone leaves the caller to work out which
-  # of their arguments the complaint is about.
+  # Four ways to say what a mask's classes are, and exactly one of them. The engine says
+  # the same sentence - "Exactly one of `colormap`, `labels`, `regions` and `classes_from`
+  # is given" - and this says it before an interpreter starts, which is the only reason it
+  # is duplicated. It also names what was given: "exactly one" alone leaves the caller to
+  # work out which of their arguments the complaint is about.
+  #
+  # It was three until `0.8.0a28`, and the fourth is why this check exists in R at all: a
+  # bare `data` list or a YAML file through `platypus_spec()` reaches the engine's validator
+  # either way, so a constructor that accepted what the engine refuses - or refused what it
+  # accepts - would make the two R paths disagree. `rplatypus#180`.
   chosen <- c(colormap = !is.null(colormap), labels = !is.null(labels),
-              regions = !is.null(regions))
+              regions = !is.null(regions), classes_from = !is.null(classes_from))
   if (sum(chosen) != 1L) {
     stop("give exactly one of `colormap` (masks stored as pictures), `labels` (masks ",
-         "stored as label maps, which is how volumes do it) and `regions` (overlapping ",
-         "classes, named as unions of a label map's values)",
+         "stored as label maps, which is how volumes do it), `regions` (overlapping ",
+         "classes, named as unions of a label map's values) and `classes_from` (one ",
+         "binary mask file per class, for classes that overlap independently)",
          if (any(chosen)) {
            paste0(" - you gave ",
                   paste(sprintf("`%s`", names(chosen)[chosen]), collapse = " and "))
@@ -205,6 +237,19 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
   if (!is.null(channels_from) && anyDuplicated(channels_from)) {
     stop("`channels_from` patterns must be distinct - two channels matching the same file ",
          "would make one measurement into two.", call. = FALSE)
+  }
+  # The same two refusals for the other pattern field, and the nouns are the difference.
+  # One pattern is not a list of classes to overlap: with a single class there is nothing
+  # for the second channel to be, and `labels = c(0, 1)` already says ordinary binary
+  # segmentation - which is the engine's own argument for `regions` needing two.
+  if (!is.null(classes_from) && length(classes_from) < 2L) {
+    stop("`classes_from` needs one pattern per class, so at least two. One binary mask is ",
+         "ordinary binary segmentation, which `labels = c(0, 1)` already says.",
+         call. = FALSE)
+  }
+  if (!is.null(classes_from) && anyDuplicated(classes_from)) {
+    stop("`classes_from` patterns must be distinct - two classes matching the same file ",
+         "would make one class into two.", call. = FALSE)
   }
   if (!is.null(target_spacing) &&
         (length(target_spacing) != 3L || anyNA(target_spacing) || any(target_spacing <= 0))) {
@@ -248,6 +293,7 @@ segmentation_data <- function(train, validation = NULL, colormap = NULL, labels 
              else as.numeric(window),
     target_spacing = if (is.null(target_spacing)) NULL else as.numeric(target_spacing),
     channels_from = if (is.null(channels_from)) NULL else as.character(channels_from),
+    classes_from = if (is.null(classes_from)) NULL else as.character(classes_from),
     subdirs = if (gave$subdirs) subdirs else NULL,
     column_sep = if (gave$column_sep) column_sep else NULL,
     shuffle = if (gave$shuffle) shuffle else NULL
@@ -522,6 +568,14 @@ agreed_task <- function(data, models, stated = NULL) {
   # lacks and requires the same fields, so no data block can tell the two apart. The *model*
   # constructor does not - `separation` is required on an instance model and has no
   # counterpart on a semantic one - so a model still names its task and cannot leave it unsaid.
+  #
+  # And the engine has since made that last clause false: `0.8.0a28` lets an instance model
+  # leave `separation` out beside `weights`, because a published file records what it was
+  # trained to predict. R cannot read such a model yet - it would be tagged semantic and
+  # refused beside `instance_data()` as two tasks in one specification - which is
+  # `maju116/rplatypus#181`, found by re-reading this field's prose when the field-prose
+  # ledger said the engine had rewritten it. The fix is for a model to contribute the tasks
+  # it is *admissible* for rather than one it claims, intersected with the data's.
   #
   # So this argument keeps the job it has. Instances arrive as `instance_data()`, tagged the
   # way `detection_data()` tags itself, and what that constructor is for is the five fields it

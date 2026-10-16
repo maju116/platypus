@@ -274,9 +274,38 @@ inspect_masks(spec)
 #> 1 train    0.0000             500          1251 whole tumour, ...    enhancing
 ```
 
-`classes_from` - one binary file per class, the only way to express an overlap that is not a
-union of label values - is **deliberately not here**. It is deferred in `pyplatypus#91`, where
-the decision was nested regions first.
+### When the overlap was drawn separately: `classes_from`
+
+`regions` needs the overlap to be a union of one label map's values, which is how BraTS
+stores it: one integer per voxel, and the scored classes are conventions over those
+integers. Some overlaps are not like that. A vessel crossing an organ, or two annotators'
+masks of the same structure, were drawn independently, and no single integer can hold both.
+Those arrive as **one binary file per class**, and `classes_from` names them - one pattern
+per class, in class order, matched against a sample's mask files.
+
+```{r eval = FALSE}
+spec <- platypus_spec(
+  data = segmentation_data(
+    "data/train", "data/validation",
+    classes_from = c("_vessel\\.png$", "_organ\\.png$")
+  ),
+  models = list(u_net("crossing", input_shape = c(256, 256)))
+)
+```
+
+Everything above still holds: independent binary questions, no background entry, a
+prediction `save_masks()` refuses and `save_class_masks()` writes. The difference between
+the two namings is the file on disk and nothing else.
+
+**Every pattern must match exactly one of a sample's mask files, and every mask file must
+match a pattern.** Both halves are refused, because each is invisible from the other side: a
+pattern matching nothing is a class the model is never shown, and a file matching no pattern
+is a class the data has and nobody asked for. Patterns are Python regular expressions, like
+`channels_from` and `group_by`, so R's own backslashes double.
+
+The order is written rather than inferred, and here it matters more than for channels: a
+model trained with the vessel in the first channel and used where the first channel is the
+organ answers plausibly, in range, and nothing further down can notice.
 
 ## Instances instead of one mask
 

@@ -252,7 +252,17 @@ measured worse everywhere, and on one dataset worse than no backbone at all.}
 model: it has no counterpart on a semantic one, so a model carrying it can only mean
 instances, which is how a specification knows its task without anybody typing it. The
 data has to be \code{\link[=instance_data]{instance_data()}} to match. The head's width follows from the signal and
-the number of classes and is derived rather than stated.}
+the number of classes and is derived rather than stated.
+
+\strong{Required here, and no longer required by the engine.} Since pyplatypus \verb{0.8.0a28} an
+instance model may leave it out when \code{weights} names a file whose description records
+what it was trained to predict - \code{"dsbowl-instances"} is a rim of width 2, which is a
+training decision rather than a shape and nothing a reader can guess. From R it still
+has to be written, because this is the field a model's task is read from: left out, the
+model is read as semantic, and a semantic model beside \code{\link[=instance_data]{instance_data()}} is refused as
+two tasks in one specification. That gap is \code{maju116/rplatypus#181}; until it closes,
+write the block the weights were trained with and the engine will refuse it if the
+signal is the wrong one.}
 
 \item{decode}{A \strong{list} of \link{decodings} turning those channels into objects, e.g.
 \code{list(decode_nearest_seed(), decode_connected_components())}. A list rather than one,
