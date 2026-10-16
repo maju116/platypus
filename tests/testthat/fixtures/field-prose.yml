@@ -6,7 +6,7 @@
 #
 # A digest that no longer matches is not the engine's failure. It is a question - does R's
 # prose still say the right thing? - asked at the only moment anybody would ask it.
-engine: 0.8.0a25
+engine: 0.8.0a26
 fields:
   - field: activation
     engine_digest: 4822b126e39826a504979a6b123cc241
@@ -135,7 +135,7 @@ fields:
     engine_digest: a727c361adeca59916f8655232ca97c0
     documented_in: [yolo3]
   - field: include_background
-    engine_digest: b3e0abab249cc9f98ea0ebb43351410e
+    engine_digest: 02a913289d0b1221d289f43883f9818f
     documented_in: [metrics]
   - field: initialiser
     engine_digest: 12a8137d5b3077636d034b047f9df330
@@ -189,7 +189,7 @@ fields:
     engine_digest: 154478e867f4f3bce7e1c7299d588e43
     documented_in: [callbacks]
   - field: name
-    engine_digest: 504282f4b9aa1030a90be971e27e4aab
+    engine_digest: 6166b7ed932e417f98d13eb3c83e87ff
     documented_in: [augmentation_step, models, yolo3]
   - field: nesterov
     engine_digest: ca72d9bb1726037b66653c1bb67f09b3
@@ -287,6 +287,9 @@ fields:
   - field: task
     engine_digest: f3683dc07ded14b8da7d3d06e0c33301
     documented_in: [available_components, platypus_spec]
+  - field: tau
+    engine_digest: 183c748838ddfb0a3e95735ba83de9d5
+    documented_in: [metrics]
   - field: test_path
     engine_digest: 47df2eadd41a480d75b706c403905336
     documented_in: []

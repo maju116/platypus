@@ -51,15 +51,21 @@ test_that("the counts are what the engine's own unions hold", {
   # refuse (`pyplatypus#223`). The instance count is asserted beside it rather than only the
   # semantic one, because a listing that merely got shorter and a listing that got right
   # look identical from one number.
-  expect_identical(nrow(available_losses()), 10L)
-  expect_identical(nrow(available_losses("instance_segmentation")), 13L)
+  #
+  # 11 and 14 since the pin moved to 0.8.0a26, which added `generalized_dice` to both - it
+  # scores classes, so it is admissible wherever `dice` is. The two counts move together
+  # for a class loss and apart for a continuous one, which is the thing these two numbers
+  # beside each other are for.
+  expect_identical(nrow(available_losses()), 11L)
+  expect_identical(nrow(available_losses("instance_segmentation")), 14L)
   expect_identical(
     sort(setdiff(
       available_losses("instance_segmentation")$name, available_losses()$name
     )),
     c("l1", "mse", "smooth_l1")
   )
-  expect_identical(nrow(available_metrics()), 4L)
+  # 5 since 0.8.0a26 added `surface_dice`.
+  expect_identical(nrow(available_metrics()), 5L)
   expect_identical(nrow(available_optimizers()), 8L)
   expect_identical(nrow(available_callbacks()), 7L)
   expect_identical(nrow(available_models()), 4L)

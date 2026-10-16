@@ -4,6 +4,7 @@
 \alias{losses}
 \alias{loss_iou}
 \alias{loss_dice}
+\alias{loss_generalized_dice}
 \alias{loss_cce}
 \alias{loss_cce_dice}
 \alias{loss_focal}
@@ -19,6 +20,8 @@
 loss_iou(smooth = 1)
 
 loss_dice(smooth = 1)
+
+loss_generalized_dice(smooth = 1)
 
 loss_cce(label_smoothing = 0)
 
@@ -96,6 +99,35 @@ so they belong in exactly one place: the \code{loss} of \code{\link[=separation_
 is a vector field. Measured against the pinned engine rather than assumed: giving one as
 \strong{any} segmentation model's own \code{loss} is refused by name - semantic or instance - and
 giving a class loss to \code{\link[=separation_flows]{separation_flows()}} is refused by name the other way round.
+
+\strong{One of these weights the classes rather than treating them alike} -
+\code{loss_generalized_dice()}, by the inverse square of how much of the picture each class
+occupies - and the argument usually made for it is not the argument for it here. It is
+introduced in the literature as a fix for Dice being dominated by the background, and
+\code{loss_dice()} in this package is a mean over the class channels: a lesion in 1\% of the
+frame already carries the same weight as the 99\% around it. Measured on a 1\% target, with
+one prediction that finds the lesion and leaks a false positive of equal size and one that
+misses it and gets the background perfect:\tabular{llll}{
+   loss \tab finds it \tab misses it \tab prefers finding by \cr
+   \code{loss_dice()} \tab 0.1658 \tab 0.4731 \tab 0.3073 \cr
+   \code{loss_cce()} \tab 0.1600 \tab 0.1600 \tab nothing at all \cr
+   \code{loss_cce_dice()} \tab 0.1629 \tab 0.3166 \tab 0.1536 \cr
+   \code{loss_generalized_dice()} \tab 0.3278 \tab 0.9511 \tab 0.6233 \cr
+}
+
+
+So what it adds is weight \strong{beyond} an equal share - on that target the classes come out
+weighted 1 to 9801 - and the objective that is genuinely dominated is the per-pixel half
+of \code{loss_cce_dice()}: to cross-entropy a false positive and a missed lesion of the same
+size are the same number of wrong pixels, which is the indifference in that row. Two
+things follow. With every class the same size this is \strong{exactly \code{loss_dice()} pooled over
+the classes}, so on a balanced problem it costs nothing and buys nothing. And it is not a
+third \code{loss_tversky()}: Tversky moves the balance between false positives and false
+negatives by a number you choose, \code{loss_focal_tversky()} reweights the hard pixels, and
+this reweights classes by how much of the image they occupy, computed from each batch
+rather than set by hand - so a batch holding no lesion at all is scored on flat weights,
+which is an argument for a larger \code{batch_size} on a sparse dataset rather than against the
+loss.
 
 This page said \emph{an instance model's own} until the pin moved to \verb{0.8.0a22}, and it was
 true rather than wrong: the refusal lived on the instance class alone, and a semantic

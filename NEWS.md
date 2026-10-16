@@ -17,6 +17,75 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-16 - how far wrong the boundary is, and a loss that weights the rare class
+
+Needs pyplatypus **0.8.0a26**, and the pin moves with this.
+
+#### Added
+
+- **`metric_surface_dice(tau = )`**, normalised surface Dice (Nikolov et al., 2018). The
+  three overlap metrics ask how much of the mask coincides and `metric_cldice()` asks
+  whether the structure does; none of them asks **how far wrong the boundary is**, which is
+  the question a contour somebody has to approve is actually judged by. `?loss_boundary`
+  reports a model at Dice 0.9525 whose volumes run 5% small and 17% wrong per case, and no
+  overlap column says that - a displaced boundary and a correct one of the same area score
+  alike. It is also what `loss_boundary()` optimises, so until now that loss was being judged
+  by the metric it exists to improve on.
+
+  `tau` is **required**, because no default would be honest: a tolerance belongs to the
+  structure and the dataset, and conventionally it is the inter-observer variability for
+  what is being drawn. It is in millimetres where `target_spacing` puts the cases on a
+  common grid and in voxels where it does not, which makes this the one metric here that
+  reads the voxel spacing. Like clDice it is a property of a whole mask, so on a tiled run
+  it is reported per case by `evaluate_cases()` and is absent from the epoch history.
+
+  `include_background` is `FALSE`, and for a measured reason rather than the usual one: a
+  background boundary is the foreground's **plus the edge of the picture**, and that edge
+  agrees between any two masks whatever happened inside them. On four random pairs at
+  `tau = 2` the background scored 0.6110 to 0.7030 against the foreground's 0.5583 to
+  0.6266 - higher every time, which is agreement on the field of view.
+
+- **`loss_generalized_dice()`**, Dice with each class weighted by the inverse square of how
+  much of the picture it occupies. **The argument usually made for it is not the argument
+  for it here, and the help page says so.** It is introduced in the literature as a fix for
+  Dice being dominated by the background; `loss_dice()` in this package is a mean over the
+  class channels, so a 1% lesion already carries the same weight as the 99% around it.
+  Measured on a 1% target, with one prediction finding the lesion and leaking an equal false
+  positive and one missing it entirely:
+
+  | loss | finds it | misses it | prefers finding by |
+  |---|---|---|---|
+  | `loss_dice()` | 0.1658 | 0.4731 | 0.3073 |
+  | `loss_cce()` | 0.1600 | 0.1600 | nothing at all |
+  | `loss_cce_dice()` | 0.1629 | 0.3166 | 0.1536 |
+  | `loss_generalized_dice()` | 0.3278 | 0.9511 | 0.6233 |
+
+  So it adds weight **beyond** an equal share - 1 to 9801 on that target - and the objective
+  genuinely dominated is the per-pixel half of `loss_cce_dice()`. It is admissible as a
+  model's own `loss` at both segmentation tasks and as `loss_boundary(region = )`, which is
+  the combination worth knowing about since both features are motivated by the same picture;
+  `separation_flows(loss = )` refuses it by name, because that target is a vector field.
+
+#### Changed
+
+- **`?loss_boundary` said "the nine region losses" and there are ten.** The count is gone
+  rather than corrected: a number in prose with nothing holding it is the failure §3C exists
+  to prevent, so the page states the rule - every loss except the three that score numbers
+  and `boundary` itself - and a test holds that rule against the engine's own union for
+  `BoundaryLoss.region`. The same shape as the family page that twice failed to name a
+  member of its family.
+
+- **`?metrics` describes the `include_background` split rather than one exception to it.**
+  It said the default differs "for clDice alone", and the test holding that said the same in
+  its own name; both would have gone on passing with a fifth metric in the package. The
+  partition is asserted now - every metric is in one of the two groups, and a new one has to
+  be put in a group before the suite passes.
+
+- The pin moves to **0.8.0a26**, which also carries the measured answers to two things that
+  were **not** built: cbDice, whose own gate now has a measurement pointing the other way,
+  and the DIoU/CIoU/EIoU family. Both are answered on their issues rather than added as
+  names.
+
 ### 2026-10-15 - the instance surface has a document that runs it
 
 Needs pyplatypus **0.8.0a25**, which is already the pin.

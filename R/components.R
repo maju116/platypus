@@ -28,6 +28,35 @@ int1 <- function(x) if (is.null(x)) NULL else as.integer(x)
 #' **any** segmentation model's own `loss` is refused by name - semantic or instance - and
 #' giving a class loss to [separation_flows()] is refused by name the other way round.
 #'
+#' **One of these weights the classes rather than treating them alike** -
+#' `loss_generalized_dice()`, by the inverse square of how much of the picture each class
+#' occupies - and the argument usually made for it is not the argument for it here. It is
+#' introduced in the literature as a fix for Dice being dominated by the background, and
+#' `loss_dice()` in this package is a mean over the class channels: a lesion in 1% of the
+#' frame already carries the same weight as the 99% around it. Measured on a 1% target, with
+#' one prediction that finds the lesion and leaks a false positive of equal size and one that
+#' misses it and gets the background perfect:
+#'
+#' | loss | finds it | misses it | prefers finding by |
+#' |---|---|---|---|
+#' | `loss_dice()` | 0.1658 | 0.4731 | 0.3073 |
+#' | `loss_cce()` | 0.1600 | 0.1600 | nothing at all |
+#' | `loss_cce_dice()` | 0.1629 | 0.3166 | 0.1536 |
+#' | `loss_generalized_dice()` | 0.3278 | 0.9511 | 0.6233 |
+#'
+#' So what it adds is weight **beyond** an equal share - on that target the classes come out
+#' weighted 1 to 9801 - and the objective that is genuinely dominated is the per-pixel half
+#' of `loss_cce_dice()`: to cross-entropy a false positive and a missed lesion of the same
+#' size are the same number of wrong pixels, which is the indifference in that row. Two
+#' things follow. With every class the same size this is **exactly `loss_dice()` pooled over
+#' the classes**, so on a balanced problem it costs nothing and buys nothing. And it is not a
+#' third `loss_tversky()`: Tversky moves the balance between false positives and false
+#' negatives by a number you choose, `loss_focal_tversky()` reweights the hard pixels, and
+#' this reweights classes by how much of the image they occupy, computed from each batch
+#' rather than set by hand - so a batch holding no lesion at all is scored on flat weights,
+#' which is an argument for a larger `batch_size` on a sparse dataset rather than against the
+#' loss.
+#'
 #' This page said *an instance model's own* until the pin moved to `0.8.0a22`, and it was
 #' true rather than wrong: the refusal lived on the instance class alone, and a semantic
 #' model accepted `loss_mse()` and trained with it, reporting a validation loss of 0.0014
@@ -79,6 +108,12 @@ loss_iou <- function(smooth = 1) list(name = "iou", smooth = smooth)
 #' @rdname losses
 #' @export
 loss_dice <- function(smooth = 1) list(name = "dice", smooth = smooth)
+
+#' @rdname losses
+#' @export
+loss_generalized_dice <- function(smooth = 1) {
+  list(name = "generalized_dice", smooth = smooth)
+}
 
 #' @rdname losses
 #' @export
@@ -168,7 +203,10 @@ loss_smooth_l1 <- function(beta = NULL, where = NULL) {
 #'
 #' @param region The overlap term this is added to - any other loss. Unset uses the engine's
 #'   default, which is Dice. `loss_focal()` here is what this feature was originally asked
-#'   for: focal combined with a distance metric.
+#'   for: focal combined with a distance metric. `loss_generalized_dice()` here is the
+#'   combination worth knowing about, because the two features are motivated by the same
+#'   picture: this loss exists for a lesion in a thousandth of a frame, and a surface term
+#'   exists for an object whose boundary is most of it.
 #' @param alpha How much of the objective is the region term, `1 - alpha` the surface term.
 #'   Unset uses the engine's default of 0.9.
 #'
@@ -179,7 +217,9 @@ loss_smooth_l1 <- function(beta = NULL, where = NULL) {
 #'   the measurement lives, so that an engine that learns better cannot be contradicted from
 #'   this side.
 #' @return A loss specification, to be passed to a model constructor.
-#' @seealso [losses] for the nine region losses, [mask_volume()] for reading a volume in
+#' @seealso [losses] for the losses that can be the region term - every one of them
+#'   except the three that score numbers and this one, held to the engine's own union by
+#'   a test rather than counted here - and [mask_volume()] for reading a volume in
 #'   millilitres rather than voxels.
 #' @export
 #' @examples
@@ -212,26 +252,66 @@ loss_lovasz <- function(per_image = FALSE) list(name = "lovasz", per_image = per
 #' mask you will actually be handed - because a metric taken on probabilities reads higher
 #' than the model deserves.
 #'
-#' Three of these ask the same question - how much of the mask coincides - and differ in
-#' how they weigh the ways of being wrong. `metric_cldice()` asks a different one: whether
-#' the *structure* coincides. For something thin and connected that is the question worth
-#' asking, and the two disagree in a way worth knowing. Measured on a nine-pixel vessel: one
-#' drawn two pixels thin scores Dice 0.875, and the same vessel severed in the middle scores
-#' 0.947 - **Dice prefers the severed one**. clDice gives them 1.000 and 0.943.
+#' **Three of these ask the same question and two ask different ones.** `metric_iou()`,
+#' `metric_dice()` and `metric_tversky()` all ask how much of the mask coincides and differ
+#' in how they weigh the ways of being wrong. `metric_cldice()` asks whether the *structure*
+#' coincides, and `metric_surface_dice()` asks **how far wrong the boundary is** - which is
+#' the question a contour somebody has to approve is actually judged by, and the one nothing
+#' here reported until the pin moved to `0.8.0a26`.
+#'
+#' For something thin and connected clDice is the question worth asking, and it and Dice
+#' disagree in a way worth knowing. Measured on a nine-pixel vessel: one drawn two pixels
+#' thin scores Dice 0.875, and the same vessel severed in the middle scores 0.947 - **Dice
+#' prefers the severed one**. clDice gives them 1.000 and 0.943.
 #'
 #' Its limit, also measured: at one pixel wide a displacement of one pixel leaves no overlap
 #' at all, and every overlap-based metric reads 0, this one included.
 #'
-#' `include_background` defaults to `FALSE` for clDice alone. The background's skeleton lies
-#' inside the background by construction, so that class scores 1 whatever the model did -
-#' averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel.
+#' `metric_surface_dice()` is the other kind of disagreement. [loss_boundary()]'s own page
+#' reports a model at Dice 0.9525 whose volumes run 5% small and 17% wrong per case, and no
+#' overlap column says that: a displaced boundary and a correct one of the same area score
+#' alike. This is normalised surface Dice (Nikolov et al., 2018), symmetric on purpose - the
+#' truth's surface near the prediction is the boundary's recall, the prediction's surface
+#' near the truth is its precision - and it is the one metric here that reads the voxel
+#' spacing, so `tau` is in millimetres when `target_spacing` has put the data on a common
+#' grid and in voxels when it has not. It is also what `loss_boundary()` optimises, so until
+#' now that loss was being judged by the metric it exists to improve on.
+#'
+#' Like clDice it is a property of a whole mask rather than of a batch of counts, so on a
+#' tiled run (`splits`) it is reported **per case** by [evaluate_cases()] and is absent from
+#' the epoch history - a per-batch average of per-tile boundaries would be a number about
+#' nothing, and a callback watching `val_surface_dice` would wait forever.
+#'
+#' `include_background` defaults to `FALSE` for those two and `TRUE` for the three overlap
+#' metrics, and each has its own measured reason. The background's skeleton lies inside the
+#' background by construction, so that class scores 1 for clDice whatever the model did -
+#' averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel. The background's
+#' *boundary* is the foreground's boundary plus the edge of the picture, and that edge agrees
+#' between any two masks whatever happened in them: measured on four random pairs at
+#' `tau = 2`, the background scored 0.6110 to 0.7030 against the foreground's 0.5583 to
+#' 0.6266 - higher every time. That is agreement on the field of view rather than on the
+#' object.
 #'
 #' @param smooth Smoothing. Zero is allowed and is the honest choice for a reported
 #'   number: with smoothing, a class absent from an image scores a perfect 1.
 #' @param include_background Average over the background class as well. In medical images
 #'   the background is usually most of the picture, so leaving it in can turn a model that
-#'   found nothing into one that looks respectable. Papers report foreground only.
+#'   found nothing into one that looks respectable. Papers report foreground only. It
+#'   defaults to `TRUE` for the three overlap metrics and `FALSE` for `metric_cldice()` and
+#'   `metric_surface_dice()`, where the background class does not merely flatter a model but
+#'   measures something that is not the question - its skeleton and its boundary are both
+#'   artefacts of the frame rather than of what was found. The paragraphs above give both
+#'   measurements.
 #' @param alpha For Tversky, the weight on false negatives.
+#' @param tau For `metric_surface_dice()`, the tolerance a boundary is allowed to be wrong
+#'   by, and it is **required because no default would be honest**. A tolerance belongs to
+#'   the structure and the dataset rather than to a package: conventionally it is the
+#'   inter-observer variability for that structure - the distance two people drawing the same
+#'   boundary differ by - and published values exist per organ and per challenge. Take one
+#'   from the protocol you are comparing against. In millimetres where `target_spacing` puts
+#'   every case on a common grid, and in voxels where it does not, which is the same pair of
+#'   answers the signed distance map in [loss_boundary()] gives and for the same reason: a
+#'   0.5 mm and a 2.5 mm acquisition are not comparable in voxels at all.
 #' @param iterations For clDice, how many times the skeleton is peeled. It has to reach the
 #'   half-width of the thickest structure, or its core is never reduced to a centreline and
 #'   the score is refused rather than reported - an empty skeleton otherwise reads as a
@@ -243,6 +323,11 @@ loss_lovasz <- function(per_image = FALSE) list(name = "lovasz", per_image = per
 #'
 #' # Vessels, airways, neurons, cracks: thin and connected, where Dice asks the wrong thing.
 #' metric_cldice()
+#'
+#' # How far wrong the boundary is, rather than how much of the area coincides. 1.5 mm
+#' # because that is this structure's inter-observer variability, not because of anything
+#' # here.
+#' metric_surface_dice(tau = 1.5)
 NULL
 
 #' @rdname metrics
@@ -268,6 +353,18 @@ metric_tversky <- function(alpha = 0.5, smooth = 1, include_background = TRUE) {
 #' @export
 metric_cldice <- function(iterations = 5, smooth = 1, include_background = FALSE) {
   list(name = "cldice", iterations = iterations, smooth = smooth,
+       include_background = include_background)
+}
+
+#' @rdname metrics
+#' @export
+metric_surface_dice <- function(tau, smooth = 1, include_background = FALSE) {
+  if (!is.numeric(tau) || length(tau) != 1L || is.na(tau) || tau <= 0) {
+    stop("`tau` is one positive number: the distance a boundary may be wrong by, in the ",
+         "units `target_spacing` puts the data in. There is no default because a tolerance ",
+         "belongs to the structure being drawn - see ?metrics.", call. = FALSE)
+  }
+  list(name = "surface_dice", tau = tau, smooth = smooth,
        include_background = include_background)
 }
 
