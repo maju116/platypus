@@ -17,6 +17,32 @@ drifted underneath it.
 
 ## [0.2.1] - unreleased
 
+### 2026-10-16 - the pin moves again, and a sentence on `?metrics` was true of no release
+
+Needs pyplatypus **0.8.0a27**, and the pin moves with this. Nothing in this package gains a
+function: the engine fixed a defect in the release it shipped `metric_surface_dice()` in,
+and what this package owes is one corrected sentence and the test that would have caught it.
+
+#### Fixed
+
+- **`?metrics` said a callback watching `val_surface_dice` on a tiled run "would wait
+  forever".** It would not. Until pyplatypus `0.8.0a27` the engine *accepted* that pairing
+  and the run stopped with an error at the end of the first epoch - the epoch paid for and
+  nothing to show - because its specification layer decided which metrics a callback may
+  watch from a list of names that `surface_dice` had never been added to, while its trainer
+  decided what an epoch reports by asking the metric itself. One question, two answers,
+  `cldice` in both and `surface_dice` in one. The engine now asks the metric in both places
+  (`pyplatypus#239`), so the pairing is refused when the configuration is read, which is
+  what the page should have said and now does.
+
+  **A test holds it from this side**, which is the part worth having: the claim is about a
+  configuration this package *sends*, so it is this package's to check rather than only the
+  engine's. It offers the engine both whole-mask metrics with a callback watching each, and
+  carries two controls - untiled, the same callback is accepted, so the refusal is about the
+  tiling; tiled with `metric_dice()`, it is accepted, so it is about the metric. Without
+  both, a test like this passes on an engine that refuses the configuration for a reason of
+  its own.
+
 ### 2026-10-16 - how far wrong the boundary is, and a loss that weights the rare class
 
 Needs pyplatypus **0.8.0a26**, and the pin moves with this.

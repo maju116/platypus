@@ -280,7 +280,9 @@ loss_lovasz <- function(per_image = FALSE) list(name = "lovasz", per_image = per
 #' Like clDice it is a property of a whole mask rather than of a batch of counts, so on a
 #' tiled run (`splits`) it is reported **per case** by [evaluate_cases()] and is absent from
 #' the epoch history - a per-batch average of per-tile boundaries would be a number about
-#' nothing, and a callback watching `val_surface_dice` would wait forever.
+#' nothing. A callback asking to watch `val_surface_dice` on such a run is refused when the
+#' configuration is read, the way one watching `val_cldice` is - so the choice to tile and
+#' the choice of what to stop on are settled together, before anything is trained.
 #'
 #' `include_background` defaults to `FALSE` for those two and `TRUE` for the three overlap
 #' metrics, and each has its own measured reason. The background's skeleton lies inside the
