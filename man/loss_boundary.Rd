@@ -9,7 +9,10 @@ loss_boundary(region = NULL, alpha = NULL)
 \arguments{
 \item{region}{The overlap term this is added to - any other loss. Unset uses the engine's
 default, which is Dice. \code{loss_focal()} here is what this feature was originally asked
-for: focal combined with a distance metric.}
+for: focal combined with a distance metric. \code{loss_generalized_dice()} here is the
+combination worth knowing about, because the two features are motivated by the same
+picture: this loss exists for a lesion in a thousandth of a frame, and a surface term
+exists for an object whose boundary is most of it.}
 
 \item{alpha}{How much of the objective is the region term, \code{1 - alpha} the surface term.
 Unset uses the engine's default of 0.9.
@@ -56,6 +59,8 @@ loss_boundary(region = loss_focal(gamma = 2))
 loss_boundary(region = loss_dice(), alpha = 0.95)
 }
 \seealso{
-\link{losses} for the nine region losses, \code{\link[=mask_volume]{mask_volume()}} for reading a volume in
+\link{losses} for the losses that can be the region term - every one of them
+except the three that score numbers and this one, held to the engine's own union by
+a test rather than counted here - and \code{\link[=mask_volume]{mask_volume()}} for reading a volume in
 millilitres rather than voxels.
 }

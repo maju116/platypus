@@ -6,6 +6,7 @@
 \alias{metric_dice}
 \alias{metric_tversky}
 \alias{metric_cldice}
+\alias{metric_surface_dice}
 \title{Metrics}
 \usage{
 metric_iou(smooth = 1, include_background = TRUE)
@@ -15,6 +16,8 @@ metric_dice(smooth = 1, include_background = TRUE)
 metric_tversky(alpha = 0.5, smooth = 1, include_background = TRUE)
 
 metric_cldice(iterations = 5, smooth = 1, include_background = FALSE)
+
+metric_surface_dice(tau, smooth = 1, include_background = FALSE)
 }
 \arguments{
 \item{smooth}{Smoothing. Zero is allowed and is the honest choice for a reported
@@ -22,7 +25,12 @@ number: with smoothing, a class absent from an image scores a perfect 1.}
 
 \item{include_background}{Average over the background class as well. In medical images
 the background is usually most of the picture, so leaving it in can turn a model that
-found nothing into one that looks respectable. Papers report foreground only.}
+found nothing into one that looks respectable. Papers report foreground only. It
+defaults to \code{TRUE} for the three overlap metrics and \code{FALSE} for \code{metric_cldice()} and
+\code{metric_surface_dice()}, where the background class does not merely flatter a model but
+measures something that is not the question - its skeleton and its boundary are both
+artefacts of the frame rather than of what was found. The paragraphs above give both
+measurements.}
 
 \item{alpha}{For Tversky, the weight on false negatives.}
 
@@ -30,6 +38,16 @@ found nothing into one that looks respectable. Papers report foreground only.}
 half-width of the thickest structure, or its core is never reduced to a centreline and
 the score is refused rather than reported - an empty skeleton otherwise reads as a
 perfect 1.}
+
+\item{tau}{For \code{metric_surface_dice()}, the tolerance a boundary is allowed to be wrong
+by, and it is \strong{required because no default would be honest}. A tolerance belongs to
+the structure and the dataset rather than to a package: conventionally it is the
+inter-observer variability for that structure - the distance two people drawing the same
+boundary differ by - and published values exist per organ and per challenge. Take one
+from the protocol you are comparing against. In millimetres where \code{target_spacing} puts
+every case on a common grid, and in voxels where it does not, which is the same pair of
+answers the signed distance map in \code{\link[=loss_boundary]{loss_boundary()}} gives and for the same reason: a
+0.5 mm and a 2.5 mm acquisition are not comparable in voxels at all.}
 }
 \value{
 A metric specification.
@@ -40,23 +58,54 @@ mask you will actually be handed - because a metric taken on probabilities reads
 than the model deserves.
 }
 \details{
-Three of these ask the same question - how much of the mask coincides - and differ in
-how they weigh the ways of being wrong. \code{metric_cldice()} asks a different one: whether
-the \emph{structure} coincides. For something thin and connected that is the question worth
-asking, and the two disagree in a way worth knowing. Measured on a nine-pixel vessel: one
-drawn two pixels thin scores Dice 0.875, and the same vessel severed in the middle scores
-0.947 - \strong{Dice prefers the severed one}. clDice gives them 1.000 and 0.943.
+\strong{Three of these ask the same question and two ask different ones.} \code{metric_iou()},
+\code{metric_dice()} and \code{metric_tversky()} all ask how much of the mask coincides and differ
+in how they weigh the ways of being wrong. \code{metric_cldice()} asks whether the \emph{structure}
+coincides, and \code{metric_surface_dice()} asks \strong{how far wrong the boundary is} - which is
+the question a contour somebody has to approve is actually judged by, and the one nothing
+here reported until the pin moved to \verb{0.8.0a26}.
+
+For something thin and connected clDice is the question worth asking, and it and Dice
+disagree in a way worth knowing. Measured on a nine-pixel vessel: one drawn two pixels
+thin scores Dice 0.875, and the same vessel severed in the middle scores 0.947 - \strong{Dice
+prefers the severed one}. clDice gives them 1.000 and 0.943.
 
 Its limit, also measured: at one pixel wide a displacement of one pixel leaves no overlap
 at all, and every overlap-based metric reads 0, this one included.
 
-\code{include_background} defaults to \code{FALSE} for clDice alone. The background's skeleton lies
-inside the background by construction, so that class scores 1 whatever the model did -
-averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel.
+\code{metric_surface_dice()} is the other kind of disagreement. \code{\link[=loss_boundary]{loss_boundary()}}'s own page
+reports a model at Dice 0.9525 whose volumes run 5\% small and 17\% wrong per case, and no
+overlap column says that: a displaced boundary and a correct one of the same area score
+alike. This is normalised surface Dice (Nikolov et al., 2018), symmetric on purpose - the
+truth's surface near the prediction is the boundary's recall, the prediction's surface
+near the truth is its precision - and it is the one metric here that reads the voxel
+spacing, so \code{tau} is in millimetres when \code{target_spacing} has put the data on a common
+grid and in voxels when it has not. It is also what \code{loss_boundary()} optimises, so until
+now that loss was being judged by the metric it exists to improve on.
+
+Like clDice it is a property of a whole mask rather than of a batch of counts, so on a
+tiled run (\code{splits}) it is reported \strong{per case} by \code{\link[=evaluate_cases]{evaluate_cases()}} and is absent from
+the epoch history - a per-batch average of per-tile boundaries would be a number about
+nothing, and a callback watching \code{val_surface_dice} would wait forever.
+
+\code{include_background} defaults to \code{FALSE} for those two and \code{TRUE} for the three overlap
+metrics, and each has its own measured reason. The background's skeleton lies inside the
+background by construction, so that class scores 1 for clDice whatever the model did -
+averaging it in moved 0.7865 to 0.8933 on a three-pixel vessel. The background's
+\emph{boundary} is the foreground's boundary plus the edge of the picture, and that edge agrees
+between any two masks whatever happened in them: measured on four random pairs at
+\code{tau = 2}, the background scored 0.6110 to 0.7030 against the foreground's 0.5583 to
+0.6266 - higher every time. That is agreement on the field of view rather than on the
+object.
 }
 \examples{
 metric_dice(include_background = FALSE)
 
 # Vessels, airways, neurons, cracks: thin and connected, where Dice asks the wrong thing.
 metric_cldice()
+
+# How far wrong the boundary is, rather than how much of the area coincides. 1.5 mm
+# because that is this structure's inter-observer variability, not because of anything
+# here.
+metric_surface_dice(tau = 1.5)
 }
